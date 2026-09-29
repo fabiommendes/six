@@ -6,3 +6,4 @@ Modules
    :caption: Contents:
 
    seks
+   seks.themes

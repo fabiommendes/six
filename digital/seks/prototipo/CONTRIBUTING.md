@@ -43,6 +43,9 @@ tasks in `pyproject.toml`. Run them with `uv run task <name>`:
   stays easy to test without a display.
 * Add tests for rule changes and bug fixes, and update the rules manual in the
   README when the rules change.
+* New color themes go in `seks/themes.py`. The tests check that every theme
+  keeps enough contrast between dice, pips, cells and text, so run
+  `uv run task test` and `uv run task screenshots` to preview it.
 * Run `uv run task ci` before opening a pull request.
 
 ## Releasing

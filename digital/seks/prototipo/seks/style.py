@@ -2,16 +2,23 @@ from dataclasses import dataclass
 
 import pyxel
 
+from .themes import ROLE_INDEX
 from .types import Coord, Pos
 
 
 @dataclass
 class Style:
-    background: int = pyxel.COLOR_RED
-    empty_cell: int = pyxel.COLOR_PINK
-    empty_cell_border: int = pyxel.COLOR_ORANGE
+    """
+    Palette indices used to draw each element. Themes set their colors.
+    """
+
+    background: int = ROLE_INDEX["board"]
+    empty_cell: int = ROLE_INDEX["cell"]
+    empty_cell_border: int = ROLE_INDEX["cell_border"]
     transparent: int = pyxel.COLOR_GRAY
-    screen_color: int = pyxel.COLOR_WHITE
+    screen_color: int = ROLE_INDEX["screen"]
+    screen_text: int = ROLE_INDEX["screen_text"]
+    accent: int = ROLE_INDEX["accent"]
     undo_button_white: Pos = Pos(0, 112)
     undo_button_black: Pos = Pos(0, 112)
 

@@ -1,5 +1,6 @@
 """
-Play a short scripted game and save screenshots used in the README.
+Play a short scripted game and save the screenshots and theme previews used
+in the README.
 
 The moves go through the same click handler used by the mouse, so the images
 always reflect the real rules. Run it with ``task screenshots`` (it needs a
@@ -12,10 +13,16 @@ import pyxel
 
 from seks.app import App
 from seks.game import Game
+from seks.themes import DEFAULT_THEME, THEMES
 from seks.types import GameMode
 
-OUTPUT_DIR = Path(__file__).parent.parent / "assets" / "screenshots"
+ASSETS_DIR = Path(__file__).parent.parent / "assets"
+OUTPUT_DIR = ASSETS_DIR / "screenshots"
+THEMES_DIR = ASSETS_DIR / "themes"
 SCALE = 2
+
+#: Screenshot of the scripted game used to preview every theme.
+THEME_PREVIEW = "05-before-capture"
 
 # Each step is (player, cells clicked, screenshot name or None). The screenshot
 # is taken after the clicks.
@@ -44,6 +51,16 @@ def click(game: Game, i: int, j: int) -> None:
     game.click_cell(i, j)
 
 
+def save_theme_previews(app: App) -> None:
+    THEMES_DIR.mkdir(parents=True, exist_ok=True)
+    for name, theme in THEMES.items():
+        theme.apply()
+        app.draw()
+        pyxel.screen.save(str(THEMES_DIR / name), 1)
+        print(f"saved themes/{name}.png")
+    THEMES[DEFAULT_THEME].apply()
+
+
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     app = App()
@@ -57,6 +74,8 @@ def main() -> None:
             app.draw()
             pyxel.screen.save(str(OUTPUT_DIR / name), SCALE)
             print(f"saved {name}.png")
+        if name == THEME_PREVIEW:
+            save_theme_previews(app)
 
     assert game.mode is GameMode.Finished, "the scripted game should end in a win"
 

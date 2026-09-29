@@ -44,6 +44,42 @@ repository, use `uv run seks`.
 | Quit                          | `Esc`                                          |
 
 
+## Themes
+
+Pick a color theme with `--theme`:
+
+```bash
+seks --theme catppuccin-mocha
+```
+
+The default theme is `felt`, and `classic` has the original colors of the
+game. Run `seks --help` to list all themes.
+
+<table>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/felt.png" width="160" alt="felt theme"><br><code>felt</code></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/classic.png" width="160" alt="classic theme"><br><code>classic</code></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/wood.png" width="160" alt="wood theme"><br><code>wood</code></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/azulejo.png" width="160" alt="azulejo theme"><br><code>azulejo</code></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/paper.png" width="160" alt="paper theme"><br><code>paper</code></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/nord.png" width="160" alt="nord theme"><br><code>nord</code></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/catppuccin-mocha.png" width="160" alt="catppuccin-mocha theme"><br><code>catppuccin-mocha</code></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/catppuccin-latte.png" width="160" alt="catppuccin-latte theme"><br><code>catppuccin-latte</code></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/dracula.png" width="160" alt="dracula theme"><br><code>dracula</code></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/gruvbox.png" width="160" alt="gruvbox theme"><br><code>gruvbox</code></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/solarized.png" width="160" alt="solarized theme"><br><code>solarized</code></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/tokyo-night.png" width="160" alt="tokyo-night theme"><br><code>tokyo-night</code></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/fabiommendes/seks/main/assets/themes/rose-pine.png" width="160" alt="rose-pine theme"><br><code>rose-pine</code></td>
+  </tr>
+</table>
+
+
 ## Rules
 
 ### Setup

@@ -6,6 +6,7 @@ import pyxel
 
 from .game import Game
 from .style import Layout, Style
+from .themes import DEFAULT_THEME, THEMES, Theme
 from .types import SimpleMsg
 from .utils import log
 
@@ -16,7 +17,7 @@ RESOURCES = Path(__file__).parent / "resources.pyxres"
 class App:
     FPS = 20
 
-    def __init__(self):
+    def __init__(self, theme: Theme | None = None):
         self.title: str = "Seks - A dice abstract game"
         self.style = Style()
         self.layout = Layout()
@@ -26,6 +27,7 @@ class App:
         pyxel.init(width, height, self.title, fps=self.FPS)
 
         pyxel.load(str(RESOURCES))
+        (theme or THEMES[DEFAULT_THEME]).apply()
         pyxel.mouse(True)
 
     def draw(self):

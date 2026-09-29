@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - First public release on PyPI, with a `seks` command to start the game.
+- Color themes, selected with `seks --theme NAME`: `felt` (the new default),
+  `classic` (the original colors), `wood`, `azulejo`, `paper`, `nord`,
+  `catppuccin-mocha`, `catppuccin-latte`, `dracula`, `gruvbox`, `solarized`,
+  `tokyo-night` and `rose-pine`.
 - Rules manual with screenshots in the README.
 - Test suite, linting, type checking and CI on GitHub Actions.
 

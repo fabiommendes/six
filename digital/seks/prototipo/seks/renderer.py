@@ -54,7 +54,7 @@ class Renderer:
         img_y = self._dice_y(player, selected=True)
         pyxel.blt(x, y, 0, img_x, img_y, 16, 16, self.style.transparent)
 
-        cols = [pyxel.COLOR_PINK, pyxel.COLOR_GREEN]
+        cols = [self.style.empty_cell, self.style.accent]
         for k in range((pyxel.frame_count // 3) % 3):
             pyxel.rectb(x - k, y - k, 16 + 2 * k, 16 + 2 * k, cols[k])
 
@@ -114,7 +114,7 @@ class Renderer:
             y - 3,
             n * pyxel.FONT_WIDTH + 8,
             pyxel.FONT_HEIGHT + 6,
-            pyxel.COLOR_RED,
+            self.style.accent,
         )
         pyxel.rect(
             x - 3,
@@ -123,7 +123,7 @@ class Renderer:
             pyxel.FONT_HEIGHT + 4,
             pyxel.COLOR_BLACK,
         )
-        pyxel.text(x, y, msg.upper(), pyxel.COLOR_RED)
+        pyxel.text(x, y, msg.upper(), self.style.accent)
 
     def render_captured_dice(self, grid: Grid):
         x0, _ = self.layout.board_origin
@@ -132,8 +132,8 @@ class Renderer:
         pyxel.blt(x0, x0, 0, 0, 0, 16, 16, pyxel.COLOR_GRAY)
         pyxel.blt(x0, 273, 0, 0, 32, 16, 16, pyxel.COLOR_GRAY)
 
-        pyxel.text(23, 10, f"X {16 - n_white}", pyxel.COLOR_BLACK)
-        pyxel.text(23, 279, f"X {16 - n_black}", pyxel.COLOR_BLACK)
+        pyxel.text(23, 10, f"X {16 - n_white}", self.style.screen_text)
+        pyxel.text(23, 279, f"X {16 - n_black}", self.style.screen_text)
 
     def _dice_y(self, player: Player, selected=False) -> int:
         delta = 16 if selected else 0
