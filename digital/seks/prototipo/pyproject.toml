@@ -1,0 +1,93 @@
+[project]
+name = "seks"
+version = "0.1.0"
+description = "Seks: an abstract strategy game played with dice on an 11x11 board."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Fábio Macêdo Mendes", email = "fabiomacedomendes@gmail.com" }]
+requires-python = ">=3.12"
+dependencies = ["pyxel>=2.3"]
+keywords = ["game", "board-game", "abstract-strategy", "dice", "pyxel"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: X11 Applications",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Games/Entertainment :: Board Games",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/fabiommendes/seks"
+Repository = "https://github.com/fabiommendes/seks"
+Issues = "https://github.com/fabiommendes/seks/issues"
+Changelog = "https://github.com/fabiommendes/seks/blob/main/CHANGELOG.md"
+
+[project.scripts]
+seks = "seks.main:main"
+
+[dependency-groups]
+dev = [
+    "doc-zero>=0.2; python_version >= '3.13'",
+    "mypy>=1.15",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.11",
+    "taskipy>=1.14",
+]
+
+[build-system]
+requires = ["uv_build>=0.8,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "seks"
+module-root = "."
+source-include = ["tests/**", "CHANGELOG.md"]
+source-exclude = ["*.save"]
+wheel-exclude = ["*.save"]
+
+[tool.taskipy.tasks]
+run = { cmd = "python -m seks", help = "run the game" }
+test = { cmd = "pytest", help = "run all tests" }
+format = { cmd = "ruff format . && ruff check . --fix", help = "format code and apply safe lint fixes" }
+lint = { cmd = "ruff format --check . && ruff check . && mypy", help = "run all linters and type checkers" }
+docs = { cmd = "doc-zero build", help = "build the documentation" }
+screenshots = { cmd = "python scripts/screenshots.py", help = "play a scripted game and regenerate the README screenshots" }
+ci = { cmd = "task lint && task test && task docs", help = "run all CI checks" }
+release = { cmd = "task ci && rm -rf dist && uv build && uvx twine check --strict dist/*", help = "check that the project is ready to be published to PyPI" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib", "--cov=seks", "--cov-report=term-missing"]
+
+[tool.coverage.run]
+omit = ["seks/__main__.py"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = [".base-ast", ".base-ast-cache", "docs"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["seks.types.Pos"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["seks", "tests", "scripts"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["pyxel.*"]
+ignore_missing_imports = true
