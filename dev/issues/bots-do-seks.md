@@ -37,9 +37,11 @@ rede pequena (NNUE) fica para outra issue, se a avaliação linear não bastar.
 
 Os bots rodam no servidor de rede e em WASM no navegador (issues futuras): o
 bot de jogo tem de ser leve; o treinamento roda offline, só em CPU (Ryzen 5
-3600, 12 threads). A GPU da máquina (RX 6600, 8 GB, dividida com o desktop,
-fora da lista oficial do ROCm) não entra no plano: um modelo linear treina em
-minutos na CPU.
+3600, 12 threads). A GPU da máquina (RX 6600, 8 GB, dividida com o desktop)
+está fora da lista oficial do ROCm, mas funciona com override, segundo o
+designer. Ela fica como recurso de reserva: só entra se o treino na CPU
+travar com os bots já jogando normalmente. Um modelo linear treina em minutos
+na CPU.
 
 O crate segue a estrutura do `rio-bots`: trait `Bot`, `by_name(spec)`,
 executor em lote com threads, linha de comando com argumentos lidos à mão,
@@ -218,6 +220,15 @@ que os outros da mesma fase.
   `train/*.json`, `openings/`, `tests/positions/`. Fica fora
   (`.gitignore`): `train/runs/`. Promover pesos é um commit com o resumo da
   execução no `EVALUATOR.md`.
+- [ ] Scripts Python de automação do treino em
+  `digital/seks/bots/train/scripts/` (pedido do designer): rodar uma grade de
+  experimentos ou calibrações a partir de uma configuração, chamar o
+  `seks-bots` (`selfplay`, `tune`, `batch`, `train`), juntar os `log.csv` e os
+  JSONL e imprimir um resumo curto por experimento (Elo com intervalo, taxa
+  de vitória contra `random`, empates por causa). O objetivo é desenhar
+  experimentos sem escrever código novo e manter fora do contexto dos agentes
+  a saída longa dos lotes: o agente lê só o resumo. Projeto `uv`, só com a
+  biblioteca padrão se der.
 - [ ] Medir R5 e registrar a curva por geração em
   `dev/notes/bots-do-seks.md`.
 
