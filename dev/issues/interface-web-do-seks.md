@@ -58,3 +58,52 @@ Site estático, sem rede. Leia a seção "Decisions" do RFC.
 - Extrair o tabuleiro e o dado para `digital/kit/`.
 - Temas alternativos (as outras direções de `arte/esbocos/`).
 - Ajustes de desenho dos motivos dos outros cinco jogos.
+
+## Plano
+
+Decisões de desenho:
+
+- `digital/seks/web/` com pnpm, na estrutura do Rio. O pacote WASM não é
+  copiado: a interface importa de `digital/seks/wasm/pkg` (gerado por
+  `just seks-wasm`) e os tipos, de `digital/seks/wasm/types`.
+- Três camadas, para testar sem WebGL: `src/engine` (carregador do WASM e
+  invólucro tipado sobre o `Game`), `src/logic` (seleção, partida, desfazer,
+  contador, textos), `src/bot` (Worker e bot); `src/board` (Three.js) e
+  `src/ui` (DOM) só desenham e repassam cliques.
+- A lógica roda nos testes com o WASM real no Node (vitest), sem mock do
+  motor.
+- Para carregar posições (R3), `seks-wasm` ganha `Game.fromDiagram` (o
+  diagrama de texto que o motor já lê), com teste. A interface abre uma
+  posição de teste com `?fixture=esboco`: a partida do esboço de arte.
+- O bot de verdade ainda não está no WASM (R4 do `seks-wasm`). O Worker é
+  real e recebe `Game.state()`, mas o bot provisório só sorteia de
+  `legalCommands()`. Os níveis da tela inicial guardam nós, profundidade e
+  ruído, que o provisório ignora; trocar pelo bot real é mudar só o Worker.
+- O dado capturado voa do tabuleiro até a área "capturado" do painel, ao lado
+  do tabuleiro, como no esboço.
+
+Passos:
+
+- [ ] R10. Esqueleto de `digital/seks/web/`: Vite, TypeScript, vitest, fontes
+  da Alegreya empacotadas, receitas do `just` e `just check`, mapa e comandos
+  do `AGENTS.md`.
+- [ ] `seks-wasm`: `Game.fromDiagram`, com teste em Rust e em Node.
+- [ ] Invólucro tipado do `Game`, carregador do WASM e testes.
+- [ ] R2. Máquina de seleção pura, ligada às opções do motor, com testes de
+  cada caso (selecionar, mover, incrementar, 6, trocar, clicar fora).
+- [ ] R1, R6. Partida (`Match`): hotseat, jogo contra bot, desfazer em laço até
+  a vez do humano, capturados e última jogada, com testes.
+- [ ] R7. Contador a partir de 80, aviso de repetição, vencedor e motivo, empate
+  e motivo, com testes.
+- [ ] R9. Textos ao jogador com os termos do glossário e teste contra as
+  palavras de `Não usar:`.
+- [ ] R5. Web Worker do bot e bot provisório, níveis, com testes.
+- [ ] R3. Tabuleiro em Three.js: moldura com a malha nórdica, casas, dados com
+  pontos, marcas por forma, câmera de cima e inclinada, clique e toque.
+- [ ] R4. Animações: mover (desliza e gira), incrementar (gira no lugar),
+  captura (voa para a área do painel), marcas da última jogada.
+- [ ] R1, R7, R8. Telas: inicial, jogo (painel do esboço), fim de jogo, retrato e
+  paisagem, toque.
+- [ ] R3. `?fixture=esboco` e captura de tela ao lado de `jogo.png`.
+- [ ] R10. `just check` inteiro, conferência de termos proibidos, issue em
+  `in_review`.
