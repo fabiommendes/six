@@ -1,6 +1,6 @@
 ---
 type: issue
-status: todo
+status: in_progress
 tags: [seks, digital, web, rede, webrtc]
 relatedTo: [dev/rfc/rede-sem-servidor.md, dev/issues/partida-por-correspondencia-do-seks.md]
 kind: enhancement
