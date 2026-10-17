@@ -97,8 +97,26 @@ impl AlphaBeta {
         }
     }
 
+    /// The bot of a spec `ab` or `ab:ARGS`.
+    pub fn from_spec(spec: &str) -> Result<AlphaBeta, String> {
+        match spec.split_once(':') {
+            Some(("ab", args)) if !args.is_empty() => AlphaBeta::from_args(spec, args),
+            None if spec == "ab" => AlphaBeta::from_args(spec, ""),
+            _ => Err(format!("{spec:?} is not an ab bot")),
+        }
+    }
+
     pub fn searcher(&mut self) -> &mut Searcher {
         &mut self.searcher
+    }
+
+    /// The root noise (see [`crate::search::Searcher::search`]).
+    pub fn noise(&self) -> i32 {
+        self.noise
+    }
+
+    pub fn set_noise(&mut self, noise: i32) {
+        self.noise = noise;
     }
 }
 

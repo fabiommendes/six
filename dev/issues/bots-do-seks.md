@@ -192,15 +192,15 @@ que os outros da mesma fase.
 
 ### Fase 3: treinamento
 
-- [ ] `train/dataset.rs`: registros binários de tamanho fixo, little-endian,
+- [x] `train/dataset.rs`: registros binários de tamanho fixo, little-endian,
   com o tabuleiro em 4 bits por casa, o jogador da vez, a nota da busca e o
   resultado final da partida; cabeçalho com versão. Cerca de 64 bytes por
   posição.
-- [ ] `seks-bots selfplay --bot SPEC --openings FILE --games N --threads N
+- [x] `seks-bots selfplay --bot SPEC --openings FILE --games N --threads N
   --out FILE`: autojogo com nós fixos e ruído na raiz nas primeiras jogadas.
   Estimativa: com 5000 nós por jogada, cerca de 50 mil partidas e 7 milhões
   de posições por hora nas 12 threads.
-- [ ] `seks-bots tune --data FILE... --init PESOS --out PESOS`: Texel tuning.
+- [x] `seks-bots tune --data FILE... --init PESOS --out PESOS`: Texel tuning.
   Ajusta K da sigmoide nos pesos iniciais, depois minimiza o erro quadrático
   entre `sigmoid(K * nota)` e o alvo `lambda * sigmoid(K * nota_da_busca) +
   (1 - lambda) * resultado`, com Adam escrito à mão (o gradiente de um
@@ -208,7 +208,7 @@ que os outros da mesma fase.
   para validação. Só entram posições quietas: sem captura nem vitória
   disponível para quem joga, e sem ameaça de vitória do adversário.
   Aumenta os dados pela simetria das colunas.
-- [ ] `seks-bots train CONFIG.json`: repete gerações (autojogo com os pesos
+- [x] `seks-bots train CONFIG.json`: repete gerações (autojogo com os pesos
   atuais, tune, partida em lote contra a geração anterior) e só promove a
   geração que melhora o Elo com o limite inferior do intervalo acima de 0.
   Retoma do ponto onde parou. Saída em `digital/seks/bots/train/runs/<nome>/`
@@ -220,7 +220,7 @@ que os outros da mesma fase.
   `train/*.json`, `openings/`, `tests/positions/`. Fica fora
   (`.gitignore`): `train/runs/`. Promover pesos é um commit com o resumo da
   execução no `EVALUATOR.md`.
-- [ ] Scripts Python de automação do treino em
+- [x] Scripts Python de automação do treino em
   `digital/seks/bots/train/scripts/` (pedido do designer): rodar uma grade de
   experimentos ou calibrações a partir de uma configuração, chamar o
   `seks-bots` (`selfplay`, `tune`, `batch`, `train`), juntar os `log.csv` e os

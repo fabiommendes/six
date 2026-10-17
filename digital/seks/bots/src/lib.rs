@@ -8,8 +8,10 @@
 //! - [`eval`]: the features and the linear evaluation (`EVALUATOR.md`).
 //! - [`search`]: the alpha-beta search, with no clock and no threads.
 //! - [`tactics`]: wins in one move.
+//! - [`stats`] (Elo), [`openings`].
 //! - Native only: [`batch`], [`game`] and [`game_file`] (batches and game
-//!   files), [`stats`] (Elo), [`openings`].
+//!   files), [`bench`], [`train`] (self-play, Texel tuning, the training
+//!   loop).
 
 #![warn(unreachable_pub)]
 
@@ -29,5 +31,8 @@ pub mod rng;
 pub mod search;
 pub mod stats;
 pub mod tactics;
+/// Self-play, tuning and the training loop: native only.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod train;
 
 pub use bot::{by_name, Bot, Decision, Greedy, Random};

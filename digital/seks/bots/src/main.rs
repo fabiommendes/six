@@ -8,14 +8,23 @@
 //!                        [--judge SPEC] [--margin M]
 //!     seks-bots perft --depth N
 //!     seks-bots bench [--bot SPEC]
+//!     seks-bots selfplay --bot SPEC --openings FILE --games N --out FILE
+//!                        [--seed S] [--threads N] [--noise E] [--noise-plies P]
+//!                        [--max-plies N]
+//!     seks-bots tune --data FILE [--data FILE]... --init WEIGHTS --out WEIGHTS
+//!                    [--lambda L] [--epochs N] [--lr X] [--l2 X] [--patience N]
+//!                    [--threads N]
+//!     seks-bots train CONFIG.json
 //!
-//! `batch` plays every opening once with each color (`--games` defaults to
+//! `--bots` splits at the first comma that starts a bot name, so specs
+//! with commas work. `batch` plays every opening once with each color (`--games` defaults to
 //! twice the openings), writes one JSONL line per game to `--out` and the
 //! summary to stderr (and as JSON to `--summary`). `--games-out` writes one
 //! game file per game, which `replay` plays back through the engine.
 //! `openings` writes `--count` openings of `--plies` random plies, dropping
 //! those whose score by the `--judge` bot is beyond `--margin`.
-//! Bot specs: see `seks_bots::by_name`.
+//! `selfplay`, `tune` and `train` are the steps of training: see
+//! `seks_bots::train`. Bot specs: see `seks_bots::by_name`.
 
 use std::io::{IsTerminal, Write};
 use std::num::NonZeroUsize;
@@ -25,8 +34,13 @@ use std::time::Instant;
 
 use seks_bots::batch::{Batch, Summary};
 use seks_bots::by_name;
+use seks_bots::eval::Weights;
 use seks_bots::game_file::GameFile;
 use seks_bots::openings;
+use seks_bots::train::dataset;
+use seks_bots::train::run::Config;
+use seks_bots::train::selfplay::SelfPlay;
+use seks_bots::train::tune::{tune as train_tune, Tune};
 use seks_engine::GameState;
 
 const USAGE: &str = "usage: seks-bots batch --bots A,B --openings FILE [--games N] [--seed S] \
@@ -34,7 +48,12 @@ const USAGE: &str = "usage: seks-bots batch --bots A,B --openings FILE [--games 
        seks-bots replay DIR_OR_FILE...
        seks-bots openings --out FILE [--count N] [--plies K] [--seed S] [--judge SPEC] [--margin M]
        seks-bots perft --depth N
-       seks-bots bench [--bot SPEC]";
+       seks-bots bench [--bot SPEC]
+       seks-bots selfplay --bot SPEC --openings FILE --games N --out FILE [--seed S] [--threads N] \
+[--noise E] [--noise-plies P] [--max-plies N]
+       seks-bots tune --data FILE... --init WEIGHTS --out WEIGHTS [--lambda L] [--epochs N] \
+[--lr X] [--l2 X] [--patience N] [--threads N]
+       seks-bots train CONFIG.json";
 
 fn main() -> ExitCode {
     match run(std::env::args().skip(1).collect()) {
@@ -56,6 +75,12 @@ fn run(args: Vec<String>) -> Result<(), String> {
         "openings" => make_openings(&pairs(rest)?),
         "perft" => perft(&pairs(rest)?),
         "bench" => bench(&pairs(rest)?),
+        "selfplay" => selfplay(&pairs(rest)?),
+        "tune" => tune(&pairs(rest)?),
+        "train" => match rest {
+            [config] => train(config),
+            _ => Err(USAGE.into()),
+        },
         _ => Err(USAGE.into()),
     }
 }
@@ -120,7 +145,7 @@ fn batch(flags: &[(&str, &str)]) -> Result<(), String> {
         }
     }
     let bots = bots.ok_or(format!("--bots is required\n{USAGE}"))?;
-    let (a, b) = bots.split_once(',').ok_or("--bots takes two specs: A,B")?;
+    let (a, b) = split_bots(bots).ok_or("--bots takes two specs: A,B")?;
     batch.bots = [a.to_string(), b.to_string()];
     batch.openings = read_openings(openings.ok_or(format!("--openings is required\n{USAGE}"))?)?;
     batch.games = games.unwrap_or(2 * batch.openings.len());
@@ -156,6 +181,16 @@ fn batch(flags: &[(&str, &str)]) -> Result<(), String> {
         ));
     }
     Ok(())
+}
+
+/// `A,B` split at the first comma that starts a bot name, since the specs
+/// themselves may hold commas (`ab:nodes=500,noise=10,random`).
+fn split_bots(text: &str) -> Option<(&str, &str)> {
+    text.match_indices(',').map(|(i, _)| i).find_map(|i| {
+        let (a, b) = (&text[..i], &text[i + 1..]);
+        let named = ["random", "greedy", "ab"].contains(&b) || b.starts_with("ab:");
+        (named && !a.is_empty()).then_some((a, b))
+    })
 }
 
 /// The `.json` files under `path`, or `path` itself.
@@ -264,4 +299,118 @@ fn perft(flags: &[(&str, &str)]) -> Result<(), String> {
         leaves as f64 / seconds
     );
     Ok(())
+}
+
+fn selfplay(flags: &[(&str, &str)]) -> Result<(), String> {
+    let mut run = SelfPlay {
+        bot: String::new(),
+        openings: Vec::new(),
+        games: 0,
+        seed: 0,
+        threads: default_threads(),
+        noise: 0,
+        noise_plies: 0,
+        max_plies: 1000,
+        first_game: 0,
+    };
+    let mut out = None;
+    for &(flag, value) in flags {
+        match flag {
+            "--bot" => run.bot = value.to_string(),
+            "--openings" => run.openings = read_openings(value)?,
+            "--games" => run.games = number(flag, value)?,
+            "--seed" => run.seed = number(flag, value)?,
+            "--threads" => run.threads = number(flag, value)?,
+            "--noise" => run.noise = number(flag, value)?,
+            "--noise-plies" => run.noise_plies = number(flag, value)?,
+            "--max-plies" => run.max_plies = number(flag, value)?,
+            "--out" => out = Some(value),
+            _ => return Err(format!("unknown flag {flag}\n{USAGE}")),
+        }
+    }
+    let out = out.ok_or(format!("--out is required\n{USAGE}"))?;
+    let file = std::fs::File::create(out).map_err(|e| format!("{out}: {e}"))?;
+    let mut file = std::io::BufWriter::new(file);
+    let clock = Instant::now();
+    let produced = run.run(&mut file, &|_| {})?;
+    file.flush().map_err(|e| format!("{out}: {e}"))?;
+    eprintln!(
+        "{out}: {} games, {} positions in {:.0} s; ends {:?}; white wins {}, black wins {}",
+        produced.games,
+        produced.samples,
+        clock.elapsed().as_secs_f64(),
+        produced.ends,
+        produced.white_wins,
+        produced.black_wins
+    );
+    Ok(())
+}
+
+fn tune(flags: &[(&str, &str)]) -> Result<(), String> {
+    let mut settings = Tune {
+        threads: default_threads(),
+        ..Tune::default()
+    };
+    let (mut data, mut init, mut out) = (Vec::new(), None, None);
+    for &(flag, value) in flags {
+        match flag {
+            "--data" => data.push(value),
+            "--init" => init = Some(value),
+            "--out" => out = Some(value),
+            "--lambda" => settings.lambda = number(flag, value)?,
+            "--epochs" => settings.epochs = number(flag, value)?,
+            "--lr" => settings.learning_rate = number(flag, value)?,
+            "--l2" => settings.l2 = number(flag, value)?,
+            "--patience" => settings.patience = number(flag, value)?,
+            "--threads" => settings.threads = number(flag, value)?,
+            _ => return Err(format!("unknown flag {flag}\n{USAGE}")),
+        }
+    }
+    let init = init.ok_or(format!("--init is required\n{USAGE}"))?;
+    let out = out.ok_or(format!("--out is required\n{USAGE}"))?;
+    if data.is_empty() {
+        return Err(format!("--data is required\n{USAGE}"));
+    }
+    let mut samples = Vec::new();
+    for path in data {
+        samples.extend(dataset::read_file(Path::new(path))?);
+    }
+    let text = std::fs::read_to_string(init).map_err(|e| format!("{init}: {e}"))?;
+    let init = Weights::from_json(&text).map_err(|e| format!("{init}: {e}"))?;
+    let (weights, report) = train_tune(
+        &samples,
+        &init,
+        &settings,
+        &mut |epoch, train, validation| {
+            eprintln!("step {epoch}: train {train:.6}, validation {validation:.6}");
+        },
+    )?;
+    std::fs::write(out, weights.to_json()).map_err(|e| format!("{out}: {e}"))?;
+    eprintln!("{out}: {report:?}");
+    Ok(())
+}
+
+fn train(path: &str) -> Result<(), String> {
+    let text = std::fs::read_to_string(path).map_err(|e| format!("{path}: {e}"))?;
+    let config: Config = serde_json::from_str(&text).map_err(|e| format!("{path}: {e}"))?;
+    seks_bots::train::run::run(&config)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::split_bots;
+
+    #[test]
+    fn bots_split_at_the_comma_that_starts_the_second_spec() {
+        assert_eq!(split_bots("ab,random"), Some(("ab", "random")));
+        assert_eq!(
+            split_bots("ab:nodes=5,weights=@a.json,ab:nodes=5"),
+            Some(("ab:nodes=5,weights=@a.json", "ab:nodes=5"))
+        );
+        assert_eq!(
+            split_bots("greedy,ab:depth=2,noise=3"),
+            Some(("greedy", "ab:depth=2,noise=3"))
+        );
+        assert_eq!(split_bots("ab"), None);
+    }
 }

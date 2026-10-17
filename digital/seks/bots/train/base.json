@@ -1,0 +1,30 @@
+{
+  "name": "base",
+  "seed": 1,
+  "generations": 6,
+  "init": "weights/hand.json",
+  "threads": 10,
+  "out": "train/runs",
+  "selfplay": {
+    "bot": "ab:nodes=5000",
+    "games": 8000,
+    "openings": "openings/base.txt",
+    "noise": 30,
+    "noise_plies": 10,
+    "max_plies": 400
+  },
+  "tune": {
+    "lambda": 0.5,
+    "epochs": 1000,
+    "learning_rate": 1.0,
+    "l2": 0.0001,
+    "patience": 100,
+    "window": 2
+  },
+  "gate": {
+    "bot": "ab:nodes=5000",
+    "games": 2000,
+    "openings": "openings/gate.txt",
+    "max_plies": 400
+  }
+}
