@@ -17,6 +17,45 @@
 //!   `engine` (`Engine`, the entry points), `notation` (text of cells and
 //!   commands).
 
+//! # Playing
+//!
+//! ```
+//! use seks_engine::{legal_commands, Command, Engine, GameEvent};
+//!
+//! let state = Engine::new_game();
+//! let command: Command = "b2-b4".parse().unwrap();
+//! assert!(legal_commands(&state).contains(&command));
+//! let transition = Engine::command(&state, command).unwrap();
+//! assert!(matches!(transition.events[0], GameEvent::Moved { value: 2, .. }));
+//! ```
+//!
+//! # Positions for tests
+//!
+//! `GameState::from_diagram` reads a position from 11 lines of text, row 11
+//! (the Blacks) on top and row 1 (the Whites) at the bottom. A cell is `..`
+//! when empty, or `w`/`b` and the value: `w3`, `b6`.
+//!
+//! ```
+//! use seks_engine::{GameState, Side};
+//!
+//! let state = GameState::from_diagram("
+//!     .. .. .. .. .. .. .. .. .. .. b1
+//!     .. .. .. .. .. .. .. .. .. .. ..
+//!     .. .. .. .. .. .. .. .. .. .. ..
+//!     .. .. .. .. .. .. .. .. .. .. ..
+//!     .. .. .. .. .. .. .. .. .. .. ..
+//!     .. .. .. .. .. .. .. .. .. .. ..
+//!     .. .. .. .. .. .. .. .. .. .. ..
+//!     .. .. .. .. .. .. .. .. .. .. ..
+//!     .. .. .. .. .. .. .. .. .. .. ..
+//!     .. .. .. .. .. .. .. .. .. .. ..
+//!     w3 .. .. .. .. .. .. .. .. .. ..
+//! ", Side::White).unwrap();
+//! assert_eq!(state.board().count(Side::White), 1);
+//! ```
+//!
+//! `Board` prints in the same format, which helps in failing tests.
+
 #![warn(unreachable_pub)]
 
 mod apply;

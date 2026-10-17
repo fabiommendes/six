@@ -41,7 +41,8 @@ impl Board {
         board
     }
 
-    /// Reads a board from the text diagram described in the crate docs.
+    /// Reads a board from the text diagram of the crate docs
+    /// (`GameState::from_diagram` reads a whole game).
     pub fn from_diagram(text: &str) -> Result<Board, DiagramError> {
         diagram::parse(text)
     }

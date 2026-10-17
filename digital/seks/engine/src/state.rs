@@ -29,7 +29,7 @@ impl GameState {
         GameState::from_board(Board::initial(), Side::White)
     }
 
-    /// A game from the position in `diagram` (see the crate docs), with
+    /// A game from the position in `diagram` (format in the crate docs), with
     /// `to_move` to play, as [`GameState::from_board`] does.
     pub fn from_diagram(diagram: &str, to_move: Side) -> Result<GameState, DiagramError> {
         Board::from_diagram(diagram).map(|board| GameState::from_board(board, to_move))

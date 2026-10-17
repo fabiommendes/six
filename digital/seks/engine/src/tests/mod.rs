@@ -5,5 +5,6 @@ mod commands;
 mod ending;
 mod extras;
 mod notation;
+mod random_games;
 mod setup;
 mod turn;

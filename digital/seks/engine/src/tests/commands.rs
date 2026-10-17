@@ -92,3 +92,26 @@ fn a_side_with_only_blocked_6s_has_no_commands() {
     assert!(legal_commands(&state).is_empty());
     assert_eq!(assert_consistent(&state), 0);
 }
+
+/// The number of positions after `depth` plies, counting every legal command.
+fn perft(state: &GameState, depth: u32) -> u64 {
+    let commands = legal_commands(state);
+    if depth == 1 {
+        return commands.len() as u64;
+    }
+    commands
+        .into_iter()
+        .map(|command| perft(&Engine::step(state, command).unwrap(), depth - 1))
+        .sum()
+}
+
+#[test]
+fn perft_of_the_initial_position_matches_the_prototype() {
+    // Counted with an independent move generator written over the prototype's
+    // `Grid` (`digital/seks/prototipo/seks/grid.py`), which also supplied the
+    // captures.
+    let state = GameState::initial();
+    assert_eq!(perft(&state, 1), 98);
+    assert_eq!(perft(&state, 2), 9_604);
+    assert_eq!(perft(&state, 3), 949_032);
+}

@@ -73,7 +73,7 @@ Propostas que o designer revisa antes da implementação estão marcadas com
 - [x] Eventos (`event.rs`): `Moved`, `Incremented`, `Captured`, `GameEnded`.
 - [x] `Engine::view(state, side)` devolve o estado inteiro: o Seks não tem
   informação oculta, mas a interface já é a do ADR 0005 do Rio.
-- [ ] Testes de regra do protótipo traduzidos (`test_grid.py` e
+- [x] Testes de regra do protótipo traduzidos (`test_grid.py` e
   `test_game.py`, sem interface, save, seleção e desfazer), com as
   coordenadas convertidas, e um teste por nota `Detalhe` e por item de
   `regras/seks/04-captura.md`.
