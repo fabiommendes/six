@@ -60,7 +60,7 @@ Propostas que o designer revisa antes da implementação estão marcadas com
   `[Option<Die>; 121]`, jogador da vez, contagem sem captura, hashes e
   resultado. `Die { side, value }`. Posição inicial de
   `regras/seks/02-preparacao.md`.
-- [ ] Jogadas (`command.rs`): `Command::Move { from, to }` e
+- [x] Jogadas (`command.rs`): `Command::Move { from, to }` e
   `Command::Increment { at }`, sem passar a vez. `legal_commands(state)` lista
   todas; `Engine::command(state, command)` devolve `Transition { state,
   events }` ou `GameError` para qualquer comando fora da lista.
@@ -71,7 +71,7 @@ Propostas que o designer revisa antes da implementação estão marcadas com
   mate no xadrez vale na 50ª jogada. Se confirmada, vira nota `Detalhe` em
   `regras/seks/05-fim-do-jogo.md`.
 - [ ] Eventos (`event.rs`): `Moved`, `Incremented`, `Captured`, `GameEnded`.
-- [ ] `Engine::view(state, side)` devolve o estado inteiro: o Seks não tem
+- [x] `Engine::view(state, side)` devolve o estado inteiro: o Seks não tem
   informação oculta, mas a interface já é a do ADR 0005 do Rio.
 - [ ] Testes de regra do protótipo traduzidos (`test_grid.py` e
   `test_game.py`, sem interface, save, seleção e desfazer), com as

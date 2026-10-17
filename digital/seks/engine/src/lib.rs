@@ -12,15 +12,22 @@
 //! - State: `state` (`GameState`), `history` and `zobrist` (hashes of the
 //!   positions since the last capture, for the repetition draw), `outcome`
 //!   (how a game ends).
+//! - Plays: `command` (`Command` and the list of legal ones), `apply` (what
+//!   a play changes), `event` (`GameEvent`, `Transition`, `GameError`),
+//!   `engine` (`Engine`, the entry points).
 
 #![warn(unreachable_pub)]
 // Removed with the plays, which use the helpers below.
 #![allow(dead_code)]
 
+mod apply;
 mod board;
 mod cell;
+mod command;
 mod diagram;
 mod die;
+mod engine;
+mod event;
 mod history;
 mod outcome;
 mod state;
@@ -33,8 +40,11 @@ mod tests;
 
 pub use board::Board;
 pub use cell::{Cell, BOARD_SIZE, CELL_COUNT};
+pub use command::{legal_commands, legal_commands_into, Command};
 pub use diagram::DiagramError;
 pub use die::{Die, Side, MAX_VALUE};
+pub use engine::Engine;
+pub use event::{GameError, GameEvent, Transition};
 pub use outcome::{
     DrawReason, Outcome, WinReason, MAX_PLIES_WITHOUT_CAPTURE, REPETITIONS_FOR_DRAW,
 };
