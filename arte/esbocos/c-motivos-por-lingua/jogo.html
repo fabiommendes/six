@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seks · six</title>
+<link rel="stylesheet" href="six.css">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Alegreya Sans", sans-serif; }
+  .screen { display: grid; grid-template-columns: 852px 1fr; gap: 40px; padding: 24px 32px 24px 24px; box-sizing: border-box; height: 100vh; min-height: 900px; }
+  #board { width: 852px; height: 852px; }
+  #board svg { display: block; }
+
+  .panel { display: flex; flex-direction: column; min-width: 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: "Alegreya Sans SC"; font-weight: 700; letter-spacing: 0.14em; font-size: 15px; }
+  .brand .of { margin-left: auto; font-family: "Alegreya Sans"; font-weight: 500; letter-spacing: 0.02em; font-size: 14px; color: var(--muted); }
+  h1 { font-weight: 800; font-size: 76px; line-height: 0.9; margin: 18px 0 6px; letter-spacing: -0.01em; }
+  .sub { font-size: 17px; color: var(--muted); margin: 0 0 16px; }
+  .band { display: block; margin: 0 0 22px; }
+
+  .turn { display: flex; align-items: center; gap: 14px; }
+  .turn svg { flex: none; }
+  .turn .who { font-size: 32px; font-weight: 800; line-height: 1; }
+  .turn .what { font-size: 17px; color: var(--muted); margin-top: 4px; }
+
+  .note { margin: 18px 0 0; padding: 12px 14px; border-left: 4px solid var(--seks); background: var(--wool); font-size: 17px; line-height: 1.35; }
+  .note b { font-weight: 800; }
+  .last { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 17px; }
+
+  .sides { margin-top: 22px; border-top: 1.5px solid var(--ink); }
+  .side { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 17px; }
+  .side .name { font-weight: 800; font-size: 19px; }
+  .side .n { color: var(--muted); font-weight: 500; margin-left: 6px; }
+  .side .cap { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+  .side.active { box-shadow: inset 4px 0 0 var(--seks); padding-left: 12px; margin-left: 0; background: var(--wool); grid-template-columns: 34px 1fr auto; }
+  .side .now { font-size: 14px; font-weight: 700; color: var(--seks); letter-spacing: 0.04em; margin-left: 8px; }
+
+  .count { margin-top: 20px; display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: end; }
+  .count .num { font-size: 44px; font-weight: 800; line-height: 0.9; font-variant-numeric: lining-nums tabular-nums; }
+  .count .lbl { font-size: 17px; line-height: 1.2; }
+  .count .lbl span { color: var(--muted); }
+  .count #tally { grid-column: 1 / 3; margin-top: 8px; line-height: 0; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 18px; font-size: 15px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+  .actions { display: flex; gap: 12px; margin-top: 22px; }
+  button { font: 700 18px "Alegreya Sans", sans-serif; color: var(--ink); background: var(--wool); border: 2px solid var(--ink); border-radius: 3px; padding: 11px 22px; cursor: pointer; box-shadow: 0 2px 0 var(--ink); }
+  button:active { transform: translateY(2px); box-shadow: none; }
+  button .k { font-weight: 500; color: var(--muted); margin-left: 6px; }
+
+  .foot { margin-top: auto; line-height: 0; }
+  .foot-cap { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+
+  /* Phone, portrait */
+  @media (max-width: 700px) {
+    .screen { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 10px 8px 12px; min-height: 0; height: auto; }
+    #board { width: 374px; height: 374px; margin: 0 auto; }
+    .panel { padding: 0 6px; }
+    .top { display: grid; grid-template-columns: 1fr auto; align-items: center; }
+    .brand { font-size: 12px; gap: 6px; }
+    .brand .of { display: none; }
+    h1 { font-size: 34px; margin: 6px 0 0; }
+    .sub, .band.wide, .legend, .foot, .foot-cap { display: none; }
+    .panel { display: contents; }
+    .head { order: -1; padding: 0 6px 8px; }
+    .turn { justify-content: flex-end; gap: 8px; }
+    .turn .who { font-size: 20px; }
+    .turn .what { display: none; }
+    .rest { padding: 0 6px; }
+    .note { font-size: 15px; margin-top: 10px; padding: 8px 10px; }
+    .last { font-size: 15px; margin-top: 8px; }
+    .sides { margin-top: 10px; }
+    .side { font-size: 15px; padding: 5px 0; grid-template-columns: 26px 1fr auto; }
+    .side .name { font-size: 16px; }
+    .count { margin-top: 10px; }
+    .count .num { font-size: 32px; }
+    .count .lbl { font-size: 15px; }
+    .actions { margin-top: 14px; }
+    .actions button { flex: 1; font-size: 16px; padding: 10px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div id="board" role="img" aria-label="Tabuleiro do Seks: o 6 branco em f6 está selecionado"></div>
+  <div class="panel">
+    <div class="head top">
+      <div>
+        <div class="brand"><span id="mark"></span>six<span class="of">jogo 1 de 6 · malha nórdica</span></div>
+        <h1>Seks</h1>
+      </div>
+      <div class="turn mobile-turn"></div>
+    </div>
+    <p class="sub">Partida local · Brancas contra Pretas</p>
+    <div class="band wide" id="band"></div>
+    <div class="rest">
+      <div class="turn desk-turn">
+        <span id="turnDie"></span>
+        <div><div class="who">Vez das Brancas</div><div class="what">Mova ou incremente um dado.</div></div>
+      </div>
+      <p class="note"><b>6 em f6 selecionado.</b> Toque numa casa marcada para mover: 23 casas ao alcance. Um 6 não pode ser incrementado; toque nele de novo para tirar a seleção.</p>
+      <div class="last"><span id="lastMark"></span>Última jogada: Pretas, de g8 para g6.</div>
+      <div class="sides">
+        <div class="side"><span id="sideB"></span><div><span class="name">Pretas</span><span class="n">15 dados</span></div><div class="cap">capturado <span id="capB"></span></div></div>
+        <div class="side active"><span id="sideW"></span><div><span class="name">Brancas</span><span class="n">15 dados</span><span class="now">JOGA AGORA</span></div><div class="cap">capturado <span id="capW"></span></div></div>
+      </div>
+      <div class="count">
+        <div class="num">23</div>
+        <div class="lbl">jogadas sem captura<br><span>o empate vem em 100</span></div>
+        <div id="tally"></div>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="actions">
+        <button type="button">Desfazer</button>
+        <button type="button">Nova partida</button>
+      </div>
+    </div>
+    <div class="foot" id="foot"></div>
+    <p class="foot-cap">Malha nórdica: <i>seks</i> é seis em norueguês, dinamarquês e feroês.</p>
+  </div>
+</div>
+
+<script src="six.js"></script>
+<script>
+const C = SIX.COLORS, F = SIX.f;
+const POSITION = `
+b1 .. b1 .. .. .. b1 .. b1 .. b1
+b2 b2 .. b2 b3 .. b2 b2 .. b2 ..
+.. .. b4 .. .. .. .. .. .. .. ..
+.. .. .. .. .. b5 .. .. .. .. ..
+.. .. .. w3 .. .. .. .. .. .. ..
+.. .. .. .. .. w6 b2 .. .. .. ..
+.. .. .. .. .. .. .. .. w4 .. ..
+.. w2 .. .. .. .. .. .. .. .. ..
+.. .. .. .. .. .. .. .. .. .. ..
+w2 .. w2 w2 .. .. w2 .. .. w2 ..
+w1 .. w1 .. w1 .. w1 .. w1 .. w1`;
+const FILES = "abcdefghijk";
+// grid[row][col], row 0 is rank 11
+const grid = POSITION.trim().split("\n").map(l => l.trim().split(/\s+/).map(t => t === ".." ? null : { side: t[0], v: +t[1] }));
+const at = (file, rank) => grid[11 - rank][file];
+const sq = (s) => [FILES.indexOf(s[0]), +s.slice(1)];
+
+const SELECTED = sq("f6");
+const LAST = { from: sq("g8"), to: sq("g6") };
+
+// Destinations of the selected die: 8 directions, 1..value cells, no jumps.
+function destinations([f0, r0]) {
+  const v = at(f0, r0).v, out = [];
+  for (const [df, dr] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]) {
+    for (let k = 1; k <= v; k++) {
+      const f = f0 + df * k, r = r0 + dr * k;
+      if (f < 0 || f > 10 || r < 1 || r > 11 || at(f, r)) break;
+      out.push([f, r]);
+    }
+  }
+  return out;
+}
+const DEST = destinations(SELECTED);
+console.log("destinations", DEST.length, DEST.map(([f, r]) => FILES[f] + r).join(" "));
+
+function boardSVG(S, compact) {
+  const u = compact ? 2.5 : 3.6;
+  const kind = compact ? "thin" : "band";
+  const fr = SIX.frame("seks", kind, 0, 0, S, S, u, C.seks, SIX.cornerFace(0, C.seks, C.ink));
+  const t = fr.thickness, gap = compact ? 3 : 7, gut = compact ? 13 : 26;
+  const x0 = t + gap, plate = S - 2 * x0;
+  const cell = (plate - 2 * gut) / 11, bx = x0 + gut, by = x0 + gut;
+  const cx = (f) => bx + (f + 0.5) * cell, cy = (r) => by + (11 - r + 0.5) * cell;
+  let s = SIX.diceDefs() + fr.svg;
+  s += `<rect x="${F(x0)}" y="${F(x0)}" width="${F(plate)}" height="${F(plate)}" fill="${C.wool}" stroke="${C.ink}" stroke-width="${compact ? 1.2 : 2}"/>`;
+  // grid lines
+  let g = "";
+  for (let i = 0; i <= 11; i++) {
+    g += `M${F(bx + i * cell)} ${F(by)}V${F(by + 11 * cell)}M${F(bx)} ${F(by + i * cell)}H${F(bx + 11 * cell)}`;
+  }
+  s += `<path d="${g}" stroke="${C.line}" stroke-width="1" fill="none"/>`;
+  s += `<rect x="${F(bx)}" y="${F(by)}" width="${F(11 * cell)}" height="${F(11 * cell)}" fill="none" stroke="${C.ink}" stroke-width="${compact ? 1 : 1.4}"/>`;
+  // coordinates
+  const fs = compact ? 9.5 : 15;
+  for (let i = 0; i < 11; i++) {
+    s += `<text x="${F(cx(i))}" y="${F(by + 11 * cell + gut * 0.68)}" text-anchor="middle" font-size="${fs}" font-weight="500" fill="${C.muted}">${FILES[i]}</text>`;
+    s += `<text x="${F(cx(i))}" y="${F(by - gut * 0.32)}" text-anchor="middle" font-size="${fs}" font-weight="500" fill="${C.muted}">${FILES[i]}</text>`;
+    s += `<text x="${F(x0 + gut * 0.5)}" y="${F(cy(i + 1) + fs * 0.35)}" text-anchor="middle" font-size="${fs}" font-weight="500" fill="${C.muted}">${i + 1}</text>`;
+    s += `<text x="${F(bx + 11 * cell + gut * 0.5)}" y="${F(cy(i + 1) + fs * 0.35)}" text-anchor="middle" font-size="${fs}" font-weight="500" fill="${C.muted}">${i + 1}</text>`;
+  }
+  // last move: origin as a dashed square, destination as corner brackets
+  const lw = compact ? 1.4 : 2;
+  {
+    const [f, r] = LAST.from, i = cell * 0.2, x = bx + f * cell + i, y = by + (11 - r) * cell + i, w = cell - 2 * i;
+    s += `<rect x="${F(x)}" y="${F(y)}" width="${F(w)}" height="${F(w)}" fill="none" stroke="${C.ink}" stroke-width="${lw}" stroke-dasharray="${F(w / 7)} ${F(w / 7)}"/>`;
+  }
+  {
+    const [f, r] = LAST.to, i = cell * 0.05, x = bx + f * cell + i, y = by + (11 - r) * cell + i, w = cell - 2 * i, k = cell * 0.22;
+    s += `<path d="M${F(x)} ${F(y + k)}V${F(y)}H${F(x + k)}M${F(x + w - k)} ${F(y)}H${F(x + w)}V${F(y + k)}M${F(x + w)} ${F(y + w - k)}V${F(y + w)}H${F(x + w - k)}M${F(x + k)} ${F(y + w)}H${F(x)}V${F(y + w - k)}" fill="none" stroke="${C.ink}" stroke-width="${lw * 1.2}"/>`;
+  }
+  // destinations: a ring, like an empty stitch
+  for (const [f, r] of DEST) {
+    s += `<circle cx="${F(cx(f))}" cy="${F(cy(r))}" r="${F(cell * 0.14)}" fill="none" stroke="${C.seks}" stroke-width="${compact ? 2 : 3}"/>`;
+  }
+  // selection: heavy square in the game colour
+  {
+    const [f, r] = SELECTED, i = compact ? 1.5 : 2.5, x = bx + f * cell + i, y = by + (11 - r) * cell + i, w = cell - 2 * i;
+    s += `<rect x="${F(x)}" y="${F(y)}" width="${F(w)}" height="${F(w)}" fill="#F3E2DA" stroke="${C.seks}" stroke-width="${compact ? 2.5 : 4}"/>`;
+  }
+  // dice
+  const ds = cell * 0.78;
+  for (let r = 11; r >= 1; r--) for (let f = 0; f < 11; f++) {
+    const d = at(f, r); if (!d) continue;
+    const sel = f === SELECTED[0] && r === SELECTED[1];
+    s += SIX.die(cx(f) - (sel ? 1.5 : 0), cy(r) - (sel ? 2 : 0), ds, d.v, d.side, { lifted: sel });
+  }
+  return `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" font-family="Alegreya Sans">${s}</svg>`;
+}
+
+function markSVG(kind, size = 22) {
+  const c = size / 2, k = size * 0.28;
+  let s = "";
+  if (kind === "ring") s = `<circle cx="${c}" cy="${c}" r="${size * 0.22}" fill="none" stroke="${C.seks}" stroke-width="2.5"/>`;
+  if (kind === "sel") s = `<rect x="2" y="2" width="${size - 4}" height="${size - 4}" fill="#F3E2DA" stroke="${C.seks}" stroke-width="3"/>`;
+  if (kind === "from") s = `<rect x="3" y="3" width="${size - 6}" height="${size - 6}" fill="none" stroke="${C.ink}" stroke-width="1.6" stroke-dasharray="2.3 2.3"/>`;
+  if (kind === "to") s = `<path d="M1 ${1 + k}V1H${1 + k}M${size - 1 - k} 1H${size - 1}V${1 + k}M${size - 1} ${size - 1 - k}V${size - 1}H${size - 1 - k}M${1 + k} ${size - 1}H1V${size - 1 - k}" fill="none" stroke="${C.ink}" stroke-width="2.2"/>`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">${s}</svg>`;
+}
+
+// 100 stitches, 23 knitted: the draw counter as a row of wool.
+function tally(n, total, width, compact) {
+  const cols = 50, rows = total / cols, u = width / cols, r = u * 0.32;
+  let s = "";
+  for (let i = 0; i < total; i++) {
+    const x = (i % cols + 0.5) * u, y = (Math.floor(i / cols) + 0.5) * u;
+    s += i < n ? `<circle cx="${F(x)}" cy="${F(y)}" r="${F(r)}" fill="${C.seks}"/>`
+               : `<circle cx="${F(x)}" cy="${F(y)}" r="${F(r * 0.75)}" fill="none" stroke="${C.line}" stroke-width="1"/>`;
+  }
+  return `<svg width="${F(width)}" height="${F(rows * u)}" aria-label="${n} de ${total}">${s}</svg>`;
+}
+
+function render() {
+  const compact = window.innerWidth <= 700;
+  const S = compact ? 374 : 852;
+  document.getElementById("board").innerHTML = boardSVG(S, compact);
+  document.getElementById("mark").innerHTML = `<svg width="${compact ? 18 : 26}" height="${compact ? 18 : 26}" viewBox="0 0 26 26">${SIX.face6(13, 13, 24, 0, C.seks, C.ink)}</svg>`;
+  const bandW = Math.floor(document.querySelector(".panel").getBoundingClientRect().width) || 492;
+  document.getElementById("band").innerHTML = `<svg width="${bandW}" height="21">${SIX.fill("seks", "thin", 0, 0, bandW, 21, 3, C.seks)}</svg>`;
+  const turn = SIX.dieSVG(6, "w", compact ? 22 : 40);
+  document.getElementById("turnDie").innerHTML = turn;
+  document.querySelector(".mobile-turn").innerHTML = compact ? `${SIX.dieSVG(6, "w", 22)}<div class="who">Vez das Brancas</div>` : "";
+  document.querySelector(".desk-turn").style.display = compact ? "none" : "";
+  document.getElementById("sideB").innerHTML = SIX.dieSVG(6, "b", compact ? 18 : 24);
+  document.getElementById("sideW").innerHTML = SIX.dieSVG(6, "w", compact ? 18 : 24);
+  document.getElementById("capB").innerHTML = SIX.dieSVG(1, "b", compact ? 20 : 26);
+  document.getElementById("capW").innerHTML = SIX.dieSVG(2, "w", compact ? 20 : 26);
+  document.getElementById("lastMark").innerHTML = markSVG("from", 20) + " " + markSVG("to", 20);
+  document.getElementById("foot").innerHTML = compact ? "" : `<svg width="${bandW}" height="54">${SIX.fill("seks", "band", 0, 0, bandW, 54, 3.6, C.seks)}</svg>`;
+  document.getElementById("tally").innerHTML = tally(23, 100, compact ? 362 : bandW, compact);
+  document.getElementById("legend").innerHTML =
+    `<span>${markSVG("sel")}dado selecionado</span><span>${markSVG("ring")}casa ao alcance</span>` +
+    `<span>${markSVG("from")}origem</span><span>${markSVG("to")}destino da última jogada</span>`;
+}
+render();
+addEventListener("resize", render);
+</script>
+</body>
+</html>

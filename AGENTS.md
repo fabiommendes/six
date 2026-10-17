@@ -45,7 +45,8 @@ Nível 1 do ADR 0002 do tooling-root:
 | `digital/seks/engine/` | Motor do Seks em Rust (`seks-engine`), no workspace Cargo de `digital/` |
 | `digital/seks/bots/` | Bots do Seks (`seks-bots`): aleatório, guloso e alfa-beta, lotes e treino |
 | `digital/seks/prototipo/` | Protótipo do Seks em Python e Pyxel, referência de comportamento |
-| `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` fica fora do git |
+| `arte/` | Identidade visual (ADR 0005); `esbocos/` guarda as quatro direções esboçadas, como referência |
+| `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` e `esbocos/` (temporários) ficam fora do git |
 
 ## Regras
 

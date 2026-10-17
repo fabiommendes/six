@@ -1,0 +1,25 @@
+/* Fonts: Alegreya and Alegreya Sans, SIL Open Font License 1.1 (fonts/OFL-*.txt). */
+@font-face { font-family: "Alegreya Sans"; src: url("fonts/AlegreyaSans-Regular.ttf"); font-weight: 400; }
+@font-face { font-family: "Alegreya Sans"; src: url("fonts/AlegreyaSans-Italic.ttf"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "Alegreya Sans"; src: url("fonts/AlegreyaSans-Medium.ttf"); font-weight: 500; }
+@font-face { font-family: "Alegreya Sans"; src: url("fonts/AlegreyaSans-Bold.ttf"); font-weight: 700; }
+@font-face { font-family: "Alegreya Sans"; src: url("fonts/AlegreyaSans-ExtraBold.ttf"); font-weight: 800; }
+@font-face { font-family: "Alegreya Sans"; src: url("fonts/AlegreyaSans-Black.ttf"); font-weight: 900; }
+@font-face { font-family: "Alegreya Sans SC"; src: url("fonts/AlegreyaSansSC-Medium.ttf"); font-weight: 500; }
+@font-face { font-family: "Alegreya Sans SC"; src: url("fonts/AlegreyaSansSC-Bold.ttf"); font-weight: 700; }
+@font-face { font-family: "Alegreya"; src: url("fonts/Alegreya-VF.ttf"); font-weight: 400 900; }
+@font-face { font-family: "Alegreya"; src: url("fonts/Alegreya-Italic-VF.ttf"); font-weight: 400 900; font-style: italic; }
+
+:root {
+  --ink: #1E1B18;
+  --paper: #F4EEE2;
+  --wool: #FBF8F1;
+  --line: #CDC3B0;
+  --muted: #6B6257;
+  --seks: #A3302A;
+  --liu: #4C7A34;
+  --zes: #1F4E9B;
+  --ono: #6B3F22;
+  --suqta: #A8740C;
+  --shesh: #167F88;
+}

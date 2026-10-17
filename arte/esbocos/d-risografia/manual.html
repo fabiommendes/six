@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Seks · Captura · manual</title>
+<link rel="stylesheet" href="riso.css">
+<style>
+  @page { size: A5; margin: 0; }
+  :root { --k: #161616; --k2: #6b6b6b; --star-eye: #fff; }
+  body { background: #d9d4c8; color: var(--k); }
+  .sheet {
+    width: 148mm; height: 210mm; overflow: hidden;
+    background: #fff; position: relative;
+    padding: 11mm 13mm 10mm 14mm;
+    display: flex; flex-direction: column;
+  }
+  @media print { body { background: none; } }
+
+  .run {
+    display: flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 7.5pt; letter-spacing: .08em; text-transform: uppercase;
+    border-bottom: 1.2pt solid var(--k); padding-bottom: 4px;
+  }
+  .run svg { width: 13px; height: 13px; }
+  .run .r { margin-left: auto; }
+
+  .title { position: relative; height: 26mm; margin-top: 6mm; }
+  .title .num {
+    position: absolute; left: -2mm; top: -3mm;
+    font-weight: 800; font-stretch: 80%; font-variation-settings: "opsz" 96;
+    font-size: 104pt; line-height: .8; color: var(--k);
+    -webkit-text-fill-color: transparent;
+    background-image: radial-gradient(circle, var(--k) 1.05px, transparent 1.35px);
+    background-size: 4.4px 4.4px;
+    -webkit-background-clip: text; background-clip: text;
+  }
+  .title h1 {
+    position: absolute; left: 17mm; bottom: 2mm; margin: 0;
+    font-weight: 800; font-stretch: 85%; font-variation-settings: "opsz" 72;
+    font-size: 40pt; line-height: .9; letter-spacing: -.03em;
+  }
+  .title h1 .sh {
+    position: absolute; left: 2.2px; top: 2.2px; z-index: -1;
+    color: transparent;
+    background-image: radial-gradient(circle, var(--k) .9px, transparent 1.2px);
+    background-size: 3.4px 3.4px;
+    -webkit-background-clip: text; background-clip: text;
+  }
+  .title h1 { isolation: isolate; }
+  .band { height: 5mm; margin-top: 3mm; display: flex; gap: 2mm; overflow: hidden; opacity: .5; }
+  .band svg { flex: none; width: 5mm; height: 5mm; }
+  .title .kick {
+    position: absolute; left: 18mm; top: 0;
+    font-family: var(--mono); font-size: 7.5pt; letter-spacing: .08em; text-transform: uppercase;
+  }
+
+  p.lead {
+    font-size: 10pt; line-height: 1.42; margin: 3mm 0 0;
+    font-variation-settings: "opsz" 12;
+    hyphens: auto;
+  }
+  p.lead b { font-weight: 700; }
+  ul.rules { margin: 2.5mm 0 0; padding: 0; list-style: none; font-size: 9pt; line-height: 1.35; }
+  ul.rules li { padding-left: 4.2mm; position: relative; margin-top: 1mm; }
+  ul.rules li::before {
+    content: ""; position: absolute; left: 0; top: 1.25mm; width: 2mm; height: 2mm;
+    background: var(--k); transform: rotate(45deg) scale(.7);
+  }
+
+  figure { margin: 4.5mm 0 0; display: grid; grid-template-columns: auto 1fr; gap: 4mm; align-items: end; }
+  figcaption { font-size: 8.3pt; line-height: 1.38; padding-bottom: 6mm; }
+  figcaption b { font-family: var(--mono); font-size: 7.5pt; letter-spacing: .06em; text-transform: uppercase; display: block; margin-bottom: 1.5mm; }
+  .key { margin-top: 3mm; display: grid; gap: 1.6mm; font-size: 7.8pt; }
+  .key div { display: grid; grid-template-columns: 6mm 1fr; align-items: center; gap: 2mm; }
+  .key svg { width: 6mm; height: 6mm; }
+
+  .band { margin-top: auto; }
+  .foot {
+    margin-top: 2.5mm; display: flex; justify-content: space-between; align-items: end;
+    font-family: var(--mono); font-size: 7.5pt;
+  }
+  .foot .pg { font-family: var(--display); font-weight: 800; font-size: 15pt; line-height: 1; }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="run"><span id="runStar"></span>Seks<span class="r">Regras · seção 4</span></div>
+
+  <div class="title">
+    <div class="num" aria-hidden="true">4</div>
+    <div class="kick">Seção 4</div>
+    <h1><span class="sh" aria-hidden="true">Captura</span>Captura</h1>
+  </div>
+
+  <p class="lead">A captura é <b>por custódia</b>. Depois que um dado do jogador termina um movimento, o jogador olha as 4 casas ortogonais vizinhas da casa onde ele parou: acima, abaixo, à esquerda e à direita. Um dado adversário numa dessas casas é capturado quando a casa seguinte, na mesma direção, tem um dado do jogador. O dado capturado sai do tabuleiro e não volta.</p>
+  <ul class="rules">
+    <li>Só um dado é capturado por direção. Dois dados adversários seguidos entre dois dados do jogador não são capturados.</li>
+    <li>Diagonais não capturam nem são capturadas.</li>
+  </ul>
+
+  <figure>
+    <svg id="diagram" width="330" height="290" viewBox="0 0 330 290" aria-label="Diagrama de captura"></svg>
+    <figcaption>
+      <b>Figura 4.1</b>
+      O 4 branco anda três casas, de e7 a e4, e vira um 3. Ele captura os dados pretos de d4 e e3. Os de f4 e g4 ficam: são dois seguidos.
+      <div class="key">
+        <div><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3" fill="none" stroke="#161616" stroke-width="1.4" stroke-dasharray="3 2.2"/></svg>Casa de onde o dado saiu</div>
+        <div><svg viewBox="0 0 24 24"><g stroke="#161616" stroke-linecap="round"><path d="M5 5L19 19M19 5L5 19" stroke-width="3"/></g></svg>Dado capturado</div>
+      </div>
+    </figcaption>
+  </figure>
+
+  <div class="band" id="band" aria-hidden="true"></div>
+  <div class="foot"><span>six · Seks · regras</span><span class="pg">21</span></div>
+</div>
+
+<script src="riso.js"></script>
+<script>
+  // Print versions of the dice: flat greys only, so a laser printer keeps them.
+  const PRINT_DEFS = `
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <linearGradient id="face-w"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff"/></linearGradient>
+    <linearGradient id="edge-w"><stop offset="0" stop-color="#9a9a9a"/><stop offset="1" stop-color="#9a9a9a"/></linearGradient>
+    <radialGradient id="pip-w"><stop offset="0" stop-color="#161616"/><stop offset="1" stop-color="#161616"/></radialGradient>
+    <linearGradient id="face-b"><stop offset="0" stop-color="#2e2e2e"/><stop offset="1" stop-color="#2e2e2e"/></linearGradient>
+    <linearGradient id="edge-b"><stop offset="0" stop-color="#000"/><stop offset="1" stop-color="#000"/></linearGradient>
+    <radialGradient id="pip-b"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff"/></radialGradient>
+    <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="1.6" height="5" fill="#161616"/>
+    </pattern>
+  </defs></svg>`;
+  document.body.insertAdjacentHTML("afterbegin", PRINT_DEFS);
+
+  const cols = "bcdefgh", rows = [7, 6, 5, 4, 3, 2];
+  const C = 42, X0 = 16, Y0 = 4;
+  const at = (key) => [X0 + cols.indexOf(key[0]) * C, Y0 + rows.indexOf(+key.slice(1)) * C];
+  const pos = {
+    c4: ["w", 2], e2: ["w", 2], h4: ["w", 1], e4: ["w", 3],
+    d4: ["b", 2], e3: ["b", 5], f4: ["b", 1], g4: ["b", 3],
+  };
+  const captured = ["d4", "e3"];
+  let svg = "";
+  // grid
+  for (let i = 0; i <= cols.length; i++) svg += `<line x1="${X0 + i * C}" y1="${Y0}" x2="${X0 + i * C}" y2="${Y0 + rows.length * C}" stroke="#161616" stroke-width="${i % cols.length ? .6 : 1.4}"/>`;
+  for (let j = 0; j <= rows.length; j++) svg += `<line x1="${X0}" y1="${Y0 + j * C}" x2="${X0 + cols.length * C}" y2="${Y0 + j * C}" stroke="#161616" stroke-width="${j % rows.length ? .6 : 1.4}"/>`;
+  // open edges: the board goes on
+  svg += `<g font-family="Space Mono" font-size="9" fill="#161616" text-anchor="middle">`;
+  [...cols].forEach((c, i) => svg += `<text x="${X0 + i * C + C / 2}" y="${Y0 + rows.length * C + 12}">${c}</text>`);
+  rows.forEach((r, j) => svg += `<text x="${X0 - 9}" y="${Y0 + j * C + C / 2 + 3}">${r}</text>`);
+  svg += `</g>`;
+  // capture hatch under captured dice
+  for (const k of captured) { const [x, y] = at(k); svg += `<rect x="${x + .5}" y="${y + .5}" width="${C - 1}" height="${C - 1}" fill="url(#hatch)" opacity=".35"/>`; }
+  // origin of the move
+  { const [x, y] = at("e7"); svg += `<rect x="${x + 4}" y="${y + 4}" width="${C - 8}" height="${C - 8}" rx="4" fill="#fff" stroke="#161616" stroke-width="1.3" stroke-dasharray="3.5 2.5"/>`; }
+  // move arrow
+  { const [x1, y1] = at("e7"), [x2, y2] = at("e4");
+    svg += `<line x1="${x1 + C / 2}" y1="${y1 + C - 3}" x2="${x2 + C / 2}" y2="${y2 - 9}" stroke="#161616" stroke-width="2.6"/>`;
+    svg += `<path d="M${x2 + C / 2 - 6} ${y2 - 11} L${x2 + C / 2 + 6} ${y2 - 11} L${x2 + C / 2} ${y2 - 2}Z" fill="#161616"/>`; }
+  // dice
+  for (const [k, [side, v]] of Object.entries(pos)) {
+    const [x, y] = at(k);
+    svg += `<g transform="translate(${x + 3.5} ${y + 3.5}) scale(${(C - 7) / 100})">${dieSVG(v, side, { shadow: null }).replace(/<svg[^>]*>/, "").replace("</svg>", "")}
+      ${side === "w" ? `<rect x="2" y="2" width="88" height="88" rx="17" fill="none" stroke="#161616" stroke-width="4"/>` : ""}</g>`;
+  }
+  // capture marks
+  for (const k of captured) {
+    const [x, y] = at(k), m = 6;
+    svg += `<g stroke-linecap="round"><path d="M${x + m} ${y + m}L${x + C - m} ${y + C - m}M${x + C - m} ${y + m}L${x + m} ${y + C - m}" stroke="#fff" stroke-width="7"/>
+      <path d="M${x + m} ${y + m}L${x + C - m} ${y + C - m}M${x + C - m} ${y + m}L${x + m} ${y + C - m}" stroke="#161616" stroke-width="3.2"/></g>`;
+  }
+  document.getElementById("diagram").innerHTML = svg;
+  document.getElementById("band").innerHTML = Array(24).fill(selbuStar("5mm", "#161616")).join("");
+  document.getElementById("runStar").innerHTML = selbuStar("13px", "#161616");
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+/* Shared base for the risograph direction: fonts, inks, paper. */
+
+@font-face {
+  font-family: "Bricolage";
+  src: url("fonts/BricolageGrotesque.ttf") format("truetype");
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+}
+@font-face {
+  font-family: "Space Mono";
+  src: url("fonts/SpaceMono-Regular.ttf") format("truetype");
+  font-weight: 400;
+}
+@font-face {
+  font-family: "Space Mono";
+  src: url("fonts/SpaceMono-Bold.ttf") format("truetype");
+  font-weight: 700;
+}
+
+:root {
+  /* Paper */
+  --paper: #f1eadb;
+  --paper-light: #f8f4ea;
+  --paper-shade: #e6dcc8;
+
+  /* Seks pair: Riso Federal Blue + Riso Fluorescent Orange */
+  --ink-a: #3d5588;
+  --ink-b: #ff7477;
+  /* What you get printing ink-a over ink-b (multiply) */
+  --overprint: #3d273f;
+
+  /* Other pairs of the collection */
+  --teal: #00838a;
+  --fl-pink: #ff48b0;
+  --green: #00a95c;
+  --sunflower: #ffb511;
+  --aqua: #5ec8e5;
+  --purple: #765ba7;
+  --bright-red: #f15060;
+  --yellow: #ffe800;
+  --burgundy: #914e72;
+  --mint: #82d8d5;
+
+  --die-white: #fbf8f0;
+  --die-black: #26262c;
+
+  --display: "Bricolage", "Arial Narrow", sans-serif;
+  --mono: "Space Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  background: var(--paper);
+  color: var(--ink-a);
+  font-family: var(--display);
+  font-variation-settings: "opsz" 14;
+}
+
+/* Paper fibre: a faint noise over the whole sheet. */
+.paper {
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' seed='4'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .48  0 0 0 0 .36  0 0 0 -1.6 1.05'/></filter><rect width='100%' height='100%' filter='url(%23f)' opacity='.3'/></svg>");
+}
+
+/* Ink layers: rough edges and speckle come from the #ink filter. */
+.ink { filter: url(#ink); }
+.ink-soft { filter: url(#ink-soft); }
+.mult { mix-blend-mode: multiply; }
+
+/* Halftone tint in any ink. */
+.halftone {
+  background-image: radial-gradient(circle, currentColor 1.15px, transparent 1.5px);
+  background-size: 6px 6px;
+}
+
+.mono { font-family: var(--mono); }

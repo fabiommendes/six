@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seks</title>
+<style>
+@font-face {
+  font-family: "Archivo";
+  src: url("fonts/Archivo.ttf") format("truetype");
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+}
+:root {
+  --ink: #141414;
+  --paper: #F3F1EC;
+  --rule: #141414;
+  --muted: #6E6A62;
+  --accent: #E2231A;
+  --m: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--paper); color: var(--ink); }
+body {
+  font-family: "Archivo", sans-serif;
+  font-size: 16px;
+  line-height: 1.35;
+  font-feature-settings: "tnum" 1;
+}
+.app {
+  display: grid;
+  grid-template-columns: 820px 1fr;
+  column-gap: 56px;
+  padding: 40px 48px 40px 40px;
+  height: 100vh;
+  max-width: 1440px;
+}
+.board-wrap { width: 820px; height: 820px; }
+.board { width: 100%; height: 100%; display: block; }
+.board .coord { font: 600 26px "Archivo"; }
+.board [data-target], .board [data-cell] { cursor: pointer; }
+
+.side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto 1fr auto;
+  column-gap: 24px;
+  align-content: start;
+}
+.id { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; }
+.title {
+  font-weight: 800;
+  font-size: 148px;
+  line-height: 0.8;
+  letter-spacing: -0.045em;
+  margin-left: -6px;
+}
+.title-bar { display: block; flex-basis: 100%; height: 12px; background: var(--accent); margin-top: 22px; }
+.collection { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 22px; letter-spacing: -0.02em; }
+.collection .no { font-weight: 500; font-size: 13px; color: var(--muted); letter-spacing: 0; margin-left: 4px; margin-bottom: -2px; }
+
+.label {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  padding-top: 10px;
+  border-top: 2px solid var(--rule);
+  margin-bottom: 10px;
+}
+.block { margin-top: 32px; }
+.turn { grid-column: 1 / -1; }
+.turn-line { display: flex; align-items: center; gap: 16px; }
+.turn-line .who { font-weight: 800; font-size: 44px; letter-spacing: -0.02em; word-spacing: 0.08em; line-height: 1; }
+.turn .hint { margin-top: 12px; font-size: 15px; max-width: 34em; }
+.turn .hint b { font-weight: 700; }
+.dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); vertical-align: -1px; }
+
+.big { font-weight: 800; font-size: 36px; letter-spacing: -0.03em; line-height: 1; font-stretch: 100%; }
+.big .arrow { font-weight: 400; margin: 0 4px; }
+.sub { font-size: 14px; color: var(--muted); margin-top: 6px; }
+.legend { display: flex; gap: 14px; margin-top: 12px; font-size: 13px; align-items: center; }
+.legend svg { flex: none; }
+
+.cap-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 15px; }
+.cap-row .n { font-weight: 800; font-size: 28px; width: 22px; }
+
+.count-line { display: flex; align-items: baseline; gap: 10px; }
+.count-line .big { font-size: 64px; letter-spacing: -0.05em; }
+.ticks { display: grid; grid-template-columns: repeat(25, 1fr); gap: 3px; margin-top: 14px; }
+.ticks i { display: block; aspect-ratio: 1; background: #D3CEC4; }
+.ticks i.on { background: var(--ink); }
+.ticks i:nth-child(n+51):nth-child(-n+75) { margin-top: 6px; }
+.ticks-note { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+.actions { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-self: end; }
+button {
+  font: 700 17px "Archivo";
+  height: 56px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  padding: 0 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+}
+button.primary { background: var(--ink); color: var(--paper); }
+button .k { font-weight: 500; font-size: 13px; opacity: 0.6; }
+
+@media (max-width: 700px) {
+  .app {
+    grid-template-columns: 1fr;
+    padding: 14px 12px 20px;
+    height: auto;
+    column-gap: 0;
+  }
+  .board-wrap { width: 100%; height: auto; order: 2; margin: 8px 0 0; }
+  .board { height: auto; }
+  .side { display: contents; }
+  .id { order: 1; align-items: flex-end; }
+  .title { font-size: 64px; margin-left: -3px; }
+  .board .coord { font-size: 34px; }
+  .title-bar { height: 6px; margin-top: 10px; }
+  .collection { font-size: 17px; }
+  .turn { order: 3; margin-top: 10px; }
+  .turn .label, .last .label, .captured .label, .count .label { display: none; }
+  .turn-line .who { font-size: 26px; }
+  .turn-line .die-icon { width: 36px; height: 36px; }
+  .turn-line { gap: 12px; }
+  .turn .hint { font-size: 13.5px; margin-top: 6px; }
+  .block { margin-top: 0; }
+  .mob-grid { order: 4; }
+  .last, .captured, .count { order: 4; }
+  .actions { order: 5; margin-top: 14px; gap: 10px; }
+  button { height: 48px; font-size: 15px; padding: 0 12px; }
+  button .k { display: none; }
+}
+@media (max-width: 700px) {
+  .info {
+    order: 4; display: grid; grid-template-columns: 1fr 1fr 1fr; column-gap: 12px;
+    border-top: 2px solid var(--ink); margin-top: 12px; padding-top: 8px;
+  }
+  .info .big { font-size: 22px; }
+  .info .count-line .big { font-size: 22px; }
+  .info .sub, .info .legend, .info .ticks, .info .ticks-note, .info .cap-row span:last-child { display: none; }
+  .info .count-line .sub { display: inline; font-size: 12px; margin: 0; }
+  .info .mini { display: block; font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin-bottom: 4px; }
+  .info .cap-row { margin-bottom: 2px; gap: 6px; font-size: 13px; }
+  .info .cap-row .n { font-size: 20px; width: auto; }
+  .info .cap-row .die-icon { width: 20px; height: 20px; }
+}
+@media (min-width: 701px) {
+  .info { display: contents; }
+  .mini { display: none; }
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="board-wrap" id="board"></div>
+
+  <section class="side">
+    <header class="id">
+      <h1 class="title">Seks</h1>
+      <div class="collection" id="collection"><span class="no">1/6</span></div>
+      <span class="title-bar"></span>
+    </header>
+
+    <div class="turn block">
+      <div class="label">Vez</div>
+      <div class="turn-line"><span id="turn-die"></span><span class="who">Brancas jogam</span></div>
+      <p class="hint">Dado selecionado: <b>6 em f6</b>. Toque numa casa marcada com <span class="dot"></span> para mover. Um 6 não pode ser incrementado.</p>
+    </div>
+
+    <div class="info">
+      <div class="last block">
+        <div class="label">Última jogada</div>
+        <span class="mini">Última jogada</span>
+        <div class="big">g8<span class="arrow">→</span>g6</div>
+        <div class="sub">O dado preto andou 2 casas e agora mostra 2.</div>
+        <div class="legend"><span id="leg-from"></span>origem <span id="leg-to"></span>destino</div>
+      </div>
+
+      <div class="captured block">
+        <div class="label">Capturados</div>
+        <span class="mini">Capturados</span>
+        <div class="cap-row"><span class="n">1</span><span id="cap-b"></span><span>pelas Brancas</span></div>
+        <div class="cap-row"><span class="n">1</span><span id="cap-w"></span><span>pelas Pretas</span></div>
+      </div>
+
+      <div class="count block">
+        <div class="label">Jogadas sem captura</div>
+        <span class="mini">Sem captura</span>
+        <div class="count-line"><span class="big">23</span><span class="sub">de 100</span></div>
+        <div class="ticks" id="ticks"></div>
+        <div class="ticks-note"><span>50 de cada lado</span><span>100: empate</span></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button">Desfazer <span class="k">Ctrl Z</span></button>
+      <button type="button" class="primary">Nova partida <span class="k">N</span></button>
+    </div>
+  </section>
+</main>
+
+<script src="comum.js"></script>
+<script>
+const POSITION = [
+  "b1 .. b1 .. .. .. b1 .. b1 .. b1",
+  "b2 b2 .. b2 b3 .. b2 b2 .. b2 ..",
+  ".. .. b4 .. .. .. .. .. .. .. ..",
+  ".. .. .. .. .. b5 .. .. .. .. ..",
+  ".. .. .. w3 .. .. .. .. .. .. ..",
+  ".. .. .. .. .. w6 b2 .. .. .. ..",
+  ".. .. .. .. .. .. .. .. w4 .. ..",
+  ".. w2 .. .. .. .. .. .. .. .. ..",
+  ".. .. .. .. .. .. .. .. .. .. ..",
+  "w2 .. w2 w2 .. .. w2 .. .. w2 ..",
+  "w1 .. w1 .. w1 .. w1 .. w1 .. w1",
+];
+const pos = parsePosition(POSITION);
+const targets = destinations(pos, "f6");
+document.getElementById("board").appendChild(
+  board(pos, { selected: "f6", targets, lastFrom: "g8", lastTo: "g6" })
+);
+document.querySelector(".board").setAttribute("aria-label", `Tabuleiro. Dado branco 6 em f6 selecionado, ${targets.length} casas de destino.`);
+document.getElementById("turn-die").appendChild(dieIcon(6, "w", 56));
+document.getElementById("cap-b").appendChild(dieIcon(2, "b", 30));
+document.getElementById("cap-w").appendChild(dieIcon(1, "w", 30));
+document.getElementById("collection").prepend(lockup(PALETTE.ink, PALETTE.paper, PALETTE.seks, 26));
+
+const legend = (dashed) => {
+  const s = el("svg", { viewBox: "0 0 40 40", width: 22, height: 22 });
+  s.appendChild(el("rect", dashed
+    ? { x: 4, y: 4, width: 32, height: 32, rx: 6, fill: "none", stroke: PALETTE.ink, "stroke-width": 2.5, "stroke-dasharray": "5 3.5" }
+    : { x: 2, y: 2, width: 36, height: 36, fill: "none", stroke: PALETTE.ink, "stroke-width": 3.5 }));
+  return s;
+};
+document.getElementById("leg-from").appendChild(legend(true));
+document.getElementById("leg-to").appendChild(legend(false));
+
+const ticks = document.getElementById("ticks");
+for (let i = 0; i < 100; i++) {
+  const t = document.createElement("i");
+  if (i < 23) t.className = "on";
+  ticks.appendChild(t);
+}
+</script>
+</body>
+</html>

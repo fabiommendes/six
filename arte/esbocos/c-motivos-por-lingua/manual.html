@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Seks · Regras · Captura</title>
+<link rel="stylesheet" href="six.css">
+<style>
+  @page { size: A5; margin: 0; }
+  html, body { margin: 0; background: #fff; }
+  .page { width: 148mm; height: 210mm; box-sizing: border-box; position: relative; overflow: hidden; color: #000; background: #fff; padding: 15mm 15mm 0 16mm; font-family: "Alegreya", serif; }
+  .band { position: absolute; left: 0; right: 0; line-height: 0; }
+  .band.top { top: 5mm; }
+  .band.bottom { bottom: 5mm; }
+  .head { display: flex; align-items: center; gap: 6px; font-family: "Alegreya Sans SC"; font-weight: 700; font-size: 9pt; letter-spacing: 0.12em; border-bottom: 0.6pt solid #000; padding-bottom: 2mm; }
+  .head .r { margin-left: auto; font-family: "Alegreya Sans"; font-weight: 500; letter-spacing: 0.02em; }
+  h2 { font-family: "Alegreya Sans"; font-weight: 800; font-size: 22pt; line-height: 1; margin: 6mm 0 3mm; display: flex; align-items: baseline; gap: 3mm; }
+  h2 .n { font-size: 12pt; font-weight: 700; border: 1.2pt solid #000; padding: 0.4mm 1.6mm; position: relative; top: -1.2mm; }
+  p { font-size: 10pt; line-height: 1.42; margin: 0 0 2.4mm; hyphens: auto; text-align: left; }
+  b { font-weight: 700; }
+  ul { margin: 0 0 3mm; padding: 0; list-style: none; font-size: 9.6pt; line-height: 1.38; }
+  li { padding-left: 4.5mm; position: relative; margin-bottom: 0.8mm; }
+  li::before { content: ""; position: absolute; left: 0.6mm; top: 1.9mm; width: 1.6mm; height: 1.6mm; border-radius: 50%; background: #000; }
+  .fig { margin-top: 3mm; display: grid; grid-template-columns: auto 1fr; gap: 4mm; align-items: end; }
+  .cap { font-family: "Alegreya Sans"; font-size: 8.6pt; line-height: 1.35; margin: 0; }
+  .cap b { font-weight: 800; }
+  .key { font-family: "Alegreya Sans"; font-size: 8pt; line-height: 1.3; margin-top: 2.5mm; }
+  .key div { display: flex; align-items: center; gap: 1.6mm; margin-top: 1.2mm; }
+  .detail { margin-top: 4mm; font-family: "Alegreya Sans"; font-size: 9pt; line-height: 1.38; padding: 2mm 0 2mm 3.5mm; border-left: 2.2pt solid #000; }
+  .detail b { font-weight: 800; }
+  .folio { position: absolute; bottom: 11.5mm; left: 0; right: 0; text-align: center; font-family: "Alegreya Sans"; font-weight: 700; font-size: 9pt; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="band top" id="bandTop"></div>
+  <div class="head"><span id="mark"></span>six · Seks<span class="r">Regras</span></div>
+  <h2><span class="n">4</span>Captura</h2>
+  <p>A captura é <b>por custódia</b>. Depois que um dado do jogador termina um movimento, o jogador olha as 4 casas ortogonais vizinhas da casa onde ele parou: acima, abaixo, à esquerda e à direita. Um dado adversário numa dessas casas é capturado quando a casa seguinte, na mesma direção, tem um dado do jogador. O dado capturado sai do tabuleiro e não volta.</p>
+  <ul>
+    <li>Um só movimento pode capturar em várias direções ao mesmo tempo, até 4 dados.</li>
+    <li>O valor dos dados não importa: um 1 e um 3 capturam um 6.</li>
+    <li>Diagonais não capturam nem são capturadas.</li>
+    <li>Incrementar nunca captura.</li>
+  </ul>
+  <div class="fig">
+    <div id="diagram"></div>
+    <div>
+      <p class="cap"><b>Diagrama 7.</b> O 3 branco anda de d1 até d4 e continua 3. Ele captura dois dados pretos: o 6 em e4, entre d4 e f4, e o 4 em d5, entre d4 e d6.</p>
+      <p class="cap">O 5 preto em e5 fica: está na diagonal.</p>
+      <div class="key" id="key"></div>
+    </div>
+  </div>
+  <div class="detail"><b>Detalhe.</b> O dado que se move é sempre uma das duas pontas do cerco. Um dado adversário que já estava entre dois dados do jogador antes do movimento, sem que nenhum deles tenha se movido para formar o cerco, não é capturado.</div>
+  <div class="folio">23</div>
+  <div class="band bottom" id="bandBottom"></div>
+</div>
+
+<script src="six.js"></script>
+<script>
+const F = SIX.f, K = "#000";
+const W = Math.round(148 / 25.4 * 96);
+document.getElementById("bandTop").innerHTML = `<svg width="${W}" height="16">${SIX.fill("seks", "thin", 0, 0, W, 16, 16 / 7, K)}</svg>`;
+document.getElementById("bandBottom").innerHTML = `<svg width="${W}" height="16">${SIX.fill("seks", "thin", 0, 0, W, 16, 16 / 7, K, { rotate: 180 })}</svg>`;
+document.getElementById("mark").innerHTML = `<svg width="15" height="15" viewBox="0 0 15 15">${SIX.face6(7.5, 7.5, 13.5, 0, K, K)}</svg>`;
+
+// Diagram: files a..f, ranks 1..6, flat dice for printing.
+const FILES = "abcdef", NF = 6, NR = 6;
+const dice = { d4: ["w", 3], e4: ["b", 6], f4: ["w", 1], d5: ["b", 4], d6: ["w", 2], e5: ["b", 5], b5: ["b", 2], b2: ["w", 2] };
+const captured = ["e4", "d5"];
+function diagram() {
+  const cell = 41, g = 13, S = cell * NF + 2 * g, H = cell * NR + 2 * g;
+  const cx = (fi) => g + (fi + 0.5) * cell, cy = (r) => g + (NR - r + 0.5) * cell;
+  const pos = (sq) => [FILES.indexOf(sq[0]), +sq.slice(1)];
+  let s = `<rect x="${g}" y="${g}" width="${cell * NF}" height="${cell * NR}" fill="#fff"/>`;
+  let p = "";
+  for (let i = 0; i <= NF; i++) p += `M${g + i * cell} ${g}V${g + NR * cell}`;
+  for (let i = 0; i <= NR; i++) p += `M${g} ${g + i * cell}H${g + NF * cell}`;
+  s += `<path d="${p}" stroke="#8a8a8a" stroke-width="0.6" fill="none"/>`;
+  // open edges: the section continues beyond f and 6
+  s += `<path d="M${g} ${g}V${g + NR * cell}H${g + NF * cell}" stroke="#000" stroke-width="1.4" fill="none"/>`;
+  for (let i = 0; i < NF; i++) s += `<text x="${F(cx(i))}" y="${H - 2.5}" text-anchor="middle" font-size="8.5" font-weight="500">${FILES[i]}</text>`;
+  for (let r = 1; r <= NR; r++) s += `<text x="${g / 2 - 0.5}" y="${F(cy(r) + 3)}" text-anchor="middle" font-size="8.5" font-weight="500">${r}</text>`;
+  // origin and path
+  const [of, or] = pos("d1"), [tf, tr] = pos("d4");
+  const i = cell * 0.2;
+  s += `<rect x="${F(g + of * cell + i)}" y="${F(g + (NR - or) * cell + i)}" width="${F(cell - 2 * i)}" height="${F(cell - 2 * i)}" fill="none" stroke="#000" stroke-width="1" stroke-dasharray="2.4 2.4"/>`;
+  s += `<path d="M${F(cx(of))} ${F(cy(or) - cell * 0.32)}V${F(cy(tr) + cell * 0.62)}" stroke="#000" stroke-width="1.3" fill="none"/>`;
+  s += `<path d="M${F(cx(tf) - 4)} ${F(cy(tr) + cell * 0.62 + 1)}L${F(cx(tf))} ${F(cy(tr) + cell * 0.5)}L${F(cx(tf) + 4)} ${F(cy(tr) + cell * 0.62 + 1)}Z" fill="#000"/>`;
+  // captured: a heavy ring around the die, never over its face
+  for (const sq of captured) {
+    const [fi, r] = pos(sq);
+    s += `<circle cx="${F(cx(fi))}" cy="${F(cy(r))}" r="${F(cell * 0.47)}" fill="none" stroke="#000" stroke-width="1.8"/>`;
+  }
+  for (const [sq, [side, v]] of Object.entries(dice)) {
+    const [fi, r] = pos(sq);
+    s += SIX.die(cx(fi), cy(r), cell * 0.66, v, side, { flat: true });
+  }
+  return `<svg width="${S}" height="${H}" viewBox="0 0 ${S} ${H}" font-family="Alegreya Sans">${s}</svg>`;
+}
+document.getElementById("diagram").innerHTML = diagram();
+
+function keyIcon(kind) {
+  let s = "";
+  if (kind === "from") s = `<rect x="2" y="2" width="12" height="12" fill="none" stroke="#000" stroke-width="1" stroke-dasharray="2.2 2.2"/>`;
+  if (kind === "cap") s = `<circle cx="8" cy="8" r="6.6" fill="none" stroke="#000" stroke-width="1.4"/>`;
+  return `<svg width="16" height="16" viewBox="0 0 16 16">${s}</svg>`;
+}
+document.getElementById("key").innerHTML =
+  `<div>${keyIcon("from")} casa de onde o dado saiu</div><div>${keyIcon("cap")} dado capturado</div>`;
+</script>
+</body>
+</html>

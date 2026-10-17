@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seks · six</title>
+<link rel="stylesheet" href="riso.css">
+<style>
+  body { min-height: 100vh; overflow-x: hidden; }
+
+  .screen {
+    display: grid;
+    grid-template-columns: 380px 1fr 270px;
+    height: 100vh;
+    min-height: 860px;
+  }
+
+  /* ---------- Left panel: the printed, textured part ---------- */
+  .panel {
+    position: relative;
+    overflow: hidden;
+    padding: 34px 34px 30px 38px;
+    color: var(--paper-light);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    isolation: isolate;
+  }
+  .panel-ink {
+    position: absolute; inset: 0; z-index: -2;
+    background: var(--ink-a);
+  }
+  .panel-star {
+    position: absolute; z-index: -1;
+    right: -150px; bottom: -120px;
+    color: var(--ink-b);
+    mix-blend-mode: multiply;
+    opacity: 1;
+  }
+  .panel-star.reg { right: -146px; bottom: -123px; color: var(--ink-b); mix-blend-mode: screen; opacity: .22; }
+
+  .collection {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .collection b { font-family: var(--display); font-size: 22px; letter-spacing: -.02em; text-transform: none; font-weight: 800; }
+  .collection .tag { border: 1.5px solid currentColor; padding: 2px 7px 1px; }
+
+  .wordmark { position: relative; height: 128px; margin-top: -4px; }
+  .wordmark span {
+    position: absolute; left: -4px; top: 0;
+    font-family: var(--display);
+    font-weight: 800; font-stretch: 78%;
+    font-variation-settings: "opsz" 96;
+    font-size: 150px; line-height: .8; letter-spacing: -.045em;
+  }
+  .wordmark .b { color: var(--ink-b); transform: translate(6px, 5px); }
+  .wordmark .a { color: var(--paper-light); mix-blend-mode: normal; }
+
+  .meaning { font-family: var(--mono); font-size: 12.5px; line-height: 1.5; opacity: .92; margin-top: -8px; }
+
+  .card {
+    background: var(--paper-light);
+    color: var(--ink-a);
+    padding: 16px 18px 16px;
+    position: relative;
+  }
+  .card::after { /* misregistered second-ink outline */
+    content: ""; position: absolute; inset: 0;
+    border: 2px solid var(--ink-b);
+    transform: translate(5px, 5px);
+    z-index: -1;
+  }
+  .turn { display: grid; grid-template-columns: 54px 1fr; gap: 14px; align-items: center; }
+  .turn .die { width: 54px; height: 54px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; }
+  .turn h2 {
+    margin: 2px 0 0; font-weight: 800; font-size: 34px; line-height: .95;
+    font-variation-settings: "opsz" 48; letter-spacing: -.02em;
+  }
+  .hint { margin: 12px 0 0; font-size: 15.5px; line-height: 1.35; color: var(--overprint); }
+  .hint b { font-weight: 700; }
+
+  .facts { display: grid; gap: 14px; }
+  .fact .eyebrow { opacity: .85; }
+  .fact .val { font-size: 21px; font-weight: 700; margin-top: 3px; }
+  .fact .val .mono { font-size: 19px; }
+
+  .tally { display: flex; gap: 9px; margin-top: 8px; align-items: end; flex-wrap: wrap; }
+  .tally svg { height: 26px; }
+  .tally-note { font-family: var(--mono); font-size: 12px; opacity: .85; margin-top: 6px; }
+
+  .actions { margin-top: auto; display: flex; gap: 14px; }
+  .btn {
+    font: inherit; font-weight: 700; font-size: 17px;
+    padding: 11px 18px 12px;
+    border: 0; cursor: pointer; position: relative;
+    background: var(--paper-light); color: var(--ink-a);
+  }
+  .btn::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: var(--ink-b); transform: translate(4px, 4px);
+  }
+  .btn.ghost { background: transparent; color: var(--paper-light); box-shadow: inset 0 0 0 2px var(--paper-light); }
+  .btn.ghost::before { display: none; }
+  .btn .key { font-family: var(--mono); font-size: 11px; opacity: .7; margin-left: 6px; }
+
+  /* ---------- Board ---------- */
+  .stage { display: grid; place-items: center; position: relative; }
+
+  .plate {
+    --cell: 62px;
+    --frame: 38px;
+    position: relative;
+    padding: var(--frame);
+    isolation: isolate;
+  }
+  .plate-ink {
+    position: absolute; inset: 0; z-index: -1;
+    background: var(--ink-b);
+  }
+  .plate-reg { /* a blue rule printed slightly off the orange frame */
+    position: absolute; inset: 5px; z-index: -1;
+    border: 2px solid var(--ink-a);
+    transform: translate(2px, -1px);
+    mix-blend-mode: multiply;
+  }
+  .coords {
+    position: absolute; font-family: var(--mono); font-weight: 700; font-size: 12px;
+    color: var(--overprint); display: grid;
+  }
+  .coords.top, .coords.bottom { left: var(--frame); right: var(--frame); grid-template-columns: repeat(11, 1fr); text-align: center; }
+  .coords.top { top: 12px; } .coords.bottom { bottom: 11px; }
+  .coords.left, .coords.right { top: var(--frame); bottom: var(--frame); grid-template-rows: repeat(11, 1fr); align-items: center; }
+  .coords.left { left: 0; width: var(--frame); text-align: center; }
+  .coords.right { right: 0; width: var(--frame); text-align: center; }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(11, var(--cell));
+    grid-template-rows: repeat(11, var(--cell));
+    background: var(--paper-light);
+    position: relative;
+    outline: 2px solid var(--ink-a);
+  }
+  .cell {
+    position: relative;
+    border-right: 1px solid rgba(61,85,136,.45);
+    border-bottom: 1px solid rgba(61,85,136,.45);
+  }
+  .cell.c-k { border-right: 0; }
+  .cell.r-1 { border-bottom: 0; }
+  .cell.backrow { background: #efe7d6; }
+  .cell .die {
+    position: absolute; left: 9%; top: 9%; width: 84%; height: 84%;
+  }
+  .cell.selected { z-index: 3; }
+  .cell.selected::before { /* two-ink selection frame */
+    content: ""; position: absolute; inset: 0;
+    border: 4px solid var(--ink-b);
+  }
+  .cell.selected::after {
+    content: ""; position: absolute; inset: -3px;
+    border: 2px solid var(--ink-a);
+    transform: translate(1px, 1px);
+  }
+  .dest::before {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 24%; height: 24%; transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--ink-b);
+    box-shadow: 0 0 0 2px var(--ink-a);
+  }
+  .from::before { /* last move origin: dashed square */
+    content: ""; position: absolute; inset: 8px;
+    border: 2px dashed var(--ink-a);
+  }
+  .to::after { /* last move destination: corner marks */
+    content: ""; position: absolute; inset: 2px; z-index: 2;
+    --c: var(--ink-a); --l: 13px; --w: 3px;
+    background:
+      linear-gradient(var(--c),var(--c)) top left / var(--l) var(--w),
+      linear-gradient(var(--c),var(--c)) top left / var(--w) var(--l),
+      linear-gradient(var(--c),var(--c)) top right / var(--l) var(--w),
+      linear-gradient(var(--c),var(--c)) top right / var(--w) var(--l),
+      linear-gradient(var(--c),var(--c)) bottom left / var(--l) var(--w),
+      linear-gradient(var(--c),var(--c)) bottom left / var(--w) var(--l),
+      linear-gradient(var(--c),var(--c)) bottom right / var(--l) var(--w),
+      linear-gradient(var(--c),var(--c)) bottom right / var(--w) var(--l);
+    background-repeat: no-repeat;
+  }
+
+  /* ---------- Right column ---------- */
+  .side {
+    padding: 34px 34px 30px 4px;
+    display: flex; flex-direction: column; gap: 26px;
+    position: relative;
+  }
+  .side h3 {
+    margin: 0 0 10px; font-size: 13px; font-family: var(--mono);
+    letter-spacing: .08em; text-transform: uppercase; font-weight: 700;
+  }
+  .tray {
+    border: 2px solid var(--ink-a);
+    padding: 12px 14px 12px;
+    position: relative;
+    background: var(--paper-light);
+  }
+  .tray + .tray { margin-top: 12px; }
+  .tray .who { font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; align-items: baseline; }
+  .tray .who .mono { font-size: 12px; font-weight: 400; }
+  .tray .dice { display: flex; gap: 8px; margin-top: 10px; min-height: 46px; }
+  .tray .dice .die { width: 46px; height: 46px; }
+  .tray .empty { width: 46px; height: 46px; border: 1.5px dashed rgba(61,85,136,.45); }
+
+  .legend { display: grid; gap: 11px; font-size: 14.5px; }
+  .legend .row { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: center; }
+  .legend .sw { width: 34px; height: 34px; position: relative; background: var(--paper-light); outline: 1px solid rgba(61,85,136,.45); }
+
+  .side-star { position: absolute; right: 26px; bottom: 26px; color: var(--ink-a); opacity: .9; }
+  .side-foot { margin-top: auto; font-family: var(--mono); font-size: 11.5px; line-height: 1.5; opacity: .8; }
+
+  /* ---------- Phone ---------- */
+  @media (max-width: 700px) {
+    .screen { grid-template-columns: 1fr; height: auto; min-height: 0; }
+    .panel { padding: 16px 16px 18px; gap: 14px; }
+    .panel-star { right: -120px; bottom: auto; top: -60px; }
+    .panel-star svg { width: 300px; height: 300px; }
+    .collection b { font-size: 18px; }
+    .collection { font-size: 11px; }
+    .wordmark { height: 64px; margin-top: -6px; }
+    .wordmark span { font-size: 78px; }
+    .wordmark .b { transform: translate(3px, 3px); }
+    .meaning { display: none; }
+    .card { padding: 12px 14px; }
+    .card::after { transform: translate(4px, 4px); }
+    .turn { grid-template-columns: 40px 1fr; gap: 10px; }
+    .turn .die { width: 40px; height: 40px; }
+    .turn h2 { font-size: 26px; }
+    .hint { font-size: 14px; margin-top: 8px; }
+    .facts { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .fact .val { font-size: 17px; }
+    .fact .val .mono { font-size: 15px; }
+    .tally svg { height: 18px; }
+    .tally { gap: 6px; }
+    .actions { margin-top: 2px; }
+    .btn { font-size: 15px; padding: 9px 14px 10px; flex: 1; }
+    .panel .actions { display: none; }
+    .stage { padding: 14px 0 6px; }
+    .plate { --cell: 31px; --frame: 16px; }
+    .plate-reg { inset: 4px; }
+    .coords { font-size: 9px; }
+    .coords.top { top: 2px; } .coords.bottom { bottom: 1px; }
+    .to::after { --l: 7px; --w: 2px; inset: 1px; }
+    .from::before { inset: 4px; border-width: 1.5px; }
+    .cell.selected::before { inset: -2px; border-width: 3px; }
+    .cell.selected::after { inset: -4px; border-width: 1.5px; }
+    .dest::before { box-shadow: 0 0 0 1.5px var(--ink-a); }
+    .side { padding: 8px 16px 22px; gap: 16px; }
+    .trays { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tray + .tray { margin-top: 0; }
+    .tray { padding: 9px 10px; }
+    .tray .who { font-size: 14px; flex-direction: column; }
+    .tray .dice .die, .tray .empty { width: 34px; height: 34px; }
+    .tray .dice { min-height: 34px; margin-top: 6px; }
+    .legend { grid-template-columns: 1fr 1fr; gap: 8px 12px; font-size: 13px; }
+    .legend .row { grid-template-columns: 24px 1fr; gap: 8px; }
+    .legend .sw { width: 24px; height: 24px; }
+    .side-star, .side-foot { display: none; }
+    .phone-actions { display: flex !important; order: -1; }
+    .plate-reg { display: none; }
+    .plate { --frame: 18px; }
+    .coords { font-size: 8.5px; }
+    .panel { gap: 10px; padding-bottom: 14px; }
+    .wordmark { height: 56px; }
+    .wordmark span { font-size: 68px; }
+    .tally { margin-top: 4px; }
+    .side { padding-top: 6px; }
+  }
+  .phone-actions { display: none; gap: 14px; }
+  .phone-actions .btn { background: var(--ink-a); color: var(--paper-light); }
+  .phone-actions .btn.ghost { background: transparent; color: var(--ink-a); box-shadow: inset 0 0 0 2px var(--ink-a); }
+</style>
+</head>
+<body class="paper">
+<div class="screen">
+
+  <aside class="panel">
+    <div class="panel-ink ink-soft"></div>
+    <div class="panel-star ink" id="panelStar"></div>
+
+    <div class="collection"><b>six</b><span class="tag">jogo 1 de 6</span></div>
+
+    <div class="wordmark" aria-label="Seks">
+      <span class="a" aria-hidden="true">Seks</span>
+      <span class="b ink mult" aria-hidden="true">Seks</span>
+    </div>
+    <div class="meaning">“seis” em dinamarquês e norueguês</div>
+
+    <section class="card" aria-live="polite">
+      <div class="turn">
+        <div id="turnDie"></div>
+        <div>
+          <div class="eyebrow">Sua vez</div>
+          <h2>Brancas jogam</h2>
+        </div>
+      </div>
+      <p class="hint">Dado <b>6</b> em <b class="mono">f6</b> selecionado: alcança <b id="nDest">23</b> casas. Um 6 não pode ser incrementado.</p>
+    </section>
+
+    <div class="facts">
+      <div class="fact">
+        <div class="eyebrow">Última jogada</div>
+        <div class="val">Pretas <span class="mono">g8 → g6</span></div>
+      </div>
+      <div class="fact">
+        <div class="eyebrow">Jogadas sem captura</div>
+        <div class="val"><span class="mono">23</span> de 100</div>
+        <div class="tally" id="tally" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn">Desfazer</button>
+      <button class="btn ghost">Nova partida</button>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="plate" id="plate">
+      <div class="plate-ink ink"></div>
+      <div class="plate-reg"></div>
+      <div class="coords top" id="cTop"></div>
+      <div class="coords bottom" id="cBottom"></div>
+      <div class="coords left" id="cLeft"></div>
+      <div class="coords right" id="cRight"></div>
+      <div class="board" id="board" role="grid" aria-label="Tabuleiro"></div>
+    </div>
+  </main>
+
+  <aside class="side">
+    <section>
+      <h3>Capturados</h3>
+      <div class="trays">
+        <div class="tray">
+          <div class="who">Pelas Brancas <span class="mono">1 de 16</span></div>
+          <div class="dice" id="capByWhite"></div>
+        </div>
+        <div class="tray">
+          <div class="who">Pelas Pretas <span class="mono">1 de 16</span></div>
+          <div class="dice" id="capByBlack"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h3>No tabuleiro</h3>
+      <div class="legend">
+        <div class="row"><div class="sw cell selected" style="outline:0"></div>Dado selecionado</div>
+        <div class="row"><div class="sw dest"></div>Casa aonde ele pode ir</div>
+        <div class="row"><div class="sw from"></div>Origem da última jogada</div>
+        <div class="row"><div class="sw to"></div>Destino da última jogada</div>
+        <div class="row"><div class="sw" style="background:#efe7d6"></div>Fileira de fundo: chegar à do adversário vence</div>
+      </div>
+    </section>
+
+    <div class="phone-actions">
+      <button class="btn">Desfazer</button>
+      <button class="btn ghost">Nova partida</button>
+    </div>
+
+    <div class="side-foot">Clique numa casa marcada para mover. Clique de novo no dado para incrementar.</div>
+  </aside>
+</div>
+
+<script src="riso.js"></script>
+<script>
+  installFilters();
+  const board = parsePosition();
+  const selected = "f6";
+  const dests = new Set(destinations(board, selected));
+  const lastFrom = "g8", lastTo = "g6";
+  document.getElementById("nDest").textContent = dests.size;
+
+  const el = document.getElementById("board");
+  for (let r = 11; r >= 1; r--) {
+    for (let c = 0; c < 11; c++) {
+      const key = COLS[c] + r;
+      const cell = document.createElement("div");
+      cell.className = `cell c-${COLS[c]} r-${r}`;
+      if (r === 1 || r === 11) cell.classList.add("backrow");
+      if (key === lastFrom) cell.classList.add("from");
+      if (key === lastTo) cell.classList.add("to");
+      if (dests.has(key)) cell.classList.add("dest");
+      if (key === selected) cell.classList.add("selected");
+      const d = board[key];
+      if (d) {
+        cell.innerHTML = key === selected
+          ? dieSVG(d.value, d.side, { lift: 6, shadow: "rgba(61,85,136,.38)" })
+          : dieSVG(d.value, d.side);
+      }
+      cell.setAttribute("aria-label", key + (d ? ` ${d.side === "w" ? "branco" : "preto"} ${d.value}` : ""));
+      el.appendChild(cell);
+    }
+  }
+  const fill = (id, items) => document.getElementById(id).innerHTML = items.map(t => `<span>${t}</span>`).join("");
+  fill("cTop", [...COLS]); fill("cBottom", [...COLS]);
+  const rows = Array.from({ length: 11 }, (_, i) => 11 - i);
+  fill("cLeft", rows); fill("cRight", rows);
+
+  document.getElementById("turnDie").innerHTML = dieSVG(6, "w", { shadow: "rgba(255,116,119,.9)" });
+  document.getElementById("capByWhite").innerHTML = dieSVG(3, "b") + '<div class="empty"></div>';
+  document.getElementById("capByBlack").innerHTML = dieSVG(2, "w") + '<div class="empty"></div>';
+
+  // Tally marks, grouped by five, the way you would count on paper.
+  const tallyGroup = (n) => {
+    const strokes = [];
+    for (let i = 0; i < Math.min(n, 4); i++) strokes.push(`<line x1="${4 + i * 6}" y1="2" x2="${4 + i * 6}" y2="24"/>`);
+    if (n === 5) strokes.push(`<line x1="0" y1="20" x2="26" y2="6"/>`);
+    return `<svg viewBox="0 0 28 26" width="28"><g stroke="currentColor" stroke-width="2.4" stroke-linecap="round">${strokes.join("")}</g></svg>`;
+  };
+  let t = 23, html = "";
+  while (t > 0) { html += tallyGroup(Math.min(5, t)); t -= 5; }
+  document.getElementById("tally").innerHTML = html;
+
+  document.getElementById("panelStar").innerHTML = selbuStar(520);
+</script>
+</body>
+</html>

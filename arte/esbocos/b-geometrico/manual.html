@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Seks: Captura (página do manual, A5)</title>
+<style>
+@font-face {
+  font-family: "Archivo";
+  src: url("fonts/Archivo.ttf") format("truetype");
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+}
+@page { size: A5; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #fff; color: #000; }
+body { font-family: "Archivo", sans-serif; }
+.page {
+  width: 148mm; height: 210mm; position: relative; overflow: hidden;
+  padding: 12mm 12mm 16mm 16mm;
+  display: grid; grid-template-columns: repeat(6, 1fr); column-gap: 4mm;
+  grid-template-rows: auto auto auto 1fr auto;
+  align-content: start;
+}
+.run {
+  grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center;
+  font-size: 7.5pt; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  border-bottom: 0.6mm solid #000; padding-bottom: 2mm;
+}
+.run .lockup { vertical-align: middle; }
+.head { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; margin-top: 9mm; align-items: end; }
+.head .num { grid-column: 1 / 2; font-weight: 800; font-size: 54pt; line-height: 0.74; letter-spacing: -0.05em; }
+.head h1 { grid-column: 2 / -1; font-weight: 800; font-size: 30pt; line-height: 0.8; letter-spacing: -0.035em; }
+.text { grid-column: 2 / -1; margin-top: 6mm; font-size: 9.2pt; line-height: 1.42; }
+.text p + p, .text ul { margin-top: 2.2mm; }
+.text ul { list-style: none; }
+.text li { padding-left: 4mm; position: relative; }
+.text li + li { margin-top: 1mm; }
+.text li::before { content: ""; position: absolute; left: 0.6mm; top: 1.55mm; width: 1.5mm; height: 1.5mm; border-radius: 50%; background: #000; }
+.fig { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; margin-top: 6mm; align-items: end; }
+.fig .board-box { grid-column: 1 / 5; }
+.fig .board { width: 100%; display: block; }
+.fig .board .coord { font: 600 34px "Archivo"; }
+.fig figcaption { grid-column: 5 / -1; font-size: 7.6pt; line-height: 1.38; padding-bottom: 7mm; }
+.fig figcaption b { font-weight: 800; display: block; font-size: 8pt; margin-bottom: 1.5mm; border-top: 0.6mm solid #000; padding-top: 1.5mm; }
+.fig figcaption .key { display: flex; align-items: center; gap: 1.5mm; margin-top: 2mm; }
+.foot {
+  position: absolute; left: 16mm; right: 12mm; bottom: 9mm;
+  display: flex; justify-content: space-between; font-size: 7.5pt; font-weight: 600;
+}
+.foot .pg { font-weight: 800; font-size: 10pt; }
+</style>
+</head>
+<body>
+<article class="page">
+  <div class="run"><span id="run-logo"></span><span>Seks · Regras</span></div>
+
+  <header class="head">
+    <div class="num">4</div>
+    <h1>Captura</h1>
+  </header>
+
+  <div class="text">
+    <p>A captura é <b>por custódia</b>. Depois que um dado do jogador termina um movimento, o jogador olha as 4 casas ortogonais vizinhas da casa onde ele parou: acima, abaixo, à esquerda e à direita. Um dado adversário numa dessas casas é capturado quando a casa seguinte, na mesma direção, tem um dado do jogador. O dado capturado sai do tabuleiro e não volta.</p>
+    <ul>
+      <li>Só um dado é capturado por direção. Dois dados adversários seguidos entre dois dados do jogador não são capturados.</li>
+      <li>Diagonais não capturam nem são capturadas.</li>
+    </ul>
+  </div>
+
+  <figure class="fig">
+    <div class="board-box" id="diagram"></div>
+    <figcaption>
+      <b>Figura 4.1</b>
+      O 5 branco anda de d2 a d5 e passa a mostrar 3. O 2 preto em e5 fica entre ele e o 1 branco em f5 e é capturado. O 4 e o 1 pretos em d6 e d7 são dois seguidos e ficam. O 3 preto em c6 também fica: a diagonal não captura.
+      <span class="key" id="key-x">dado capturado</span>
+      <span class="key" id="key-o">casa de onde o dado saiu</span>
+    </figcaption>
+  </figure>
+
+  <div class="foot"><span>Seks</span><span class="pg">17</span></div>
+</article>
+
+<script src="comum.js"></script>
+<script>
+const pos = new Map([
+  ["d5", { side: "w", value: 3 }],
+  ["f5", { side: "w", value: 1 }],
+  ["d8", { side: "w", value: 2 }],
+  ["b7", { side: "w", value: 2 }],
+  ["e5", { side: "b", value: 2 }],
+  ["d6", { side: "b", value: 4 }],
+  ["d7", { side: "b", value: 1 }],
+  ["c6", { side: "b", value: 3 }],
+]);
+document.getElementById("diagram").appendChild(board(pos, {
+  cols: [1, 6], rows: [2, 8], print: true, pad: 64,
+  ghosts: ["d2"], arrows: [["d2", "d5"]], captured: ["e5"],
+}));
+document.getElementById("run-logo").appendChild(lockup("#000", "#fff", "#000", 14));
+
+const key = (id, draw) => {
+  const s = el("svg", { viewBox: "0 0 40 40", width: 14, height: 14 });
+  draw(s);
+  document.getElementById(id).prepend(s);
+};
+key("key-x", (s) => s.appendChild(el("path", { d: "M 8 8 L 32 32 M 32 8 L 8 32", stroke: "#000", "stroke-width": 5 })));
+key("key-o", (s) => s.appendChild(el("rect", { x: 5, y: 5, width: 30, height: 30, rx: 5, fill: "none", stroke: "#000", "stroke-width": 3, "stroke-dasharray": "6 4" })));
+</script>
+</body>
+</html>

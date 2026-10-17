@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>six · logo, capa do Seks e a coleção</title>
+<link rel="stylesheet" href="six.css">
+<style>
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Alegreya Sans", sans-serif; }
+  .page { width: 1440px; box-sizing: border-box; padding: 48px 56px 56px; }
+  .row1 { display: grid; grid-template-columns: 1fr 660px; gap: 56px; align-items: start; }
+  .label { font-family: "Alegreya Sans SC"; font-weight: 700; letter-spacing: 0.14em; font-size: 14px; color: var(--muted); margin: 0 0 14px; }
+  .logo { display: flex; align-items: center; gap: 26px; }
+  .logo .word { font-weight: 800; font-size: 168px; line-height: 0.8; letter-spacing: -0.02em; margin-top: -14px; }
+  .tag { font-size: 21px; color: var(--muted); margin: 18px 0 0; max-width: 560px; line-height: 1.35; }
+  .variants { display: flex; gap: 28px; align-items: center; margin: 26px 0 40px; }
+  .variants div { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 38px; padding: 10px 16px; }
+  .variants .inv { background: var(--ink); color: var(--wool); }
+  .variants small { display: block; font-size: 12px; font-weight: 500; color: var(--muted); }
+  .spines svg { display: block; }
+  .cover svg { display: block; box-shadow: 0 1px 0 rgba(0,0,0,.25), 6px 8px 0 rgba(30,27,24,.12); }
+  .row2 { margin-top: 56px; }
+  .cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; }
+  .card { background: var(--wool); border: 1.5px solid var(--ink); }
+  .card .tile { border-bottom: 1.5px solid var(--ink); line-height: 0; }
+  .card .body { padding: 12px 14px 14px; }
+  .card .top { display: flex; align-items: center; justify-content: space-between; }
+  .card h3 { margin: 0; font-weight: 800; font-size: 40px; line-height: 1; }
+  .card .lang { font-size: 15px; margin: 8px 0 2px; line-height: 1.3; }
+  .card .lang i { font-family: "Alegreya"; font-size: 16px; }
+  .card .meta { font-size: 14px; color: var(--muted); line-height: 1.35; margin: 0; }
+  .card .sw { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .card .sw span { width: 22px; height: 14px; display: inline-block; }
+  .grid-note { display: grid; grid-template-columns: 300px 1fr; gap: 32px; margin-top: 30px; align-items: center; }
+  .grid-note p { font-size: 17px; line-height: 1.45; margin: 0; max-width: 760px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="row1">
+    <div>
+      <p class="label">A coleção</p>
+      <div class="logo"><span id="logoFace"></span><span class="word">six</span></div>
+      <p class="tag">Seis jogos de dados, um só kit. Cada ponto da face de seis é um jogo; cada jogo veste um padrão da língua do seu nome.</p>
+      <div class="variants">
+        <div><span id="v1"></span>six<small>&nbsp;uma cor</small></div>
+        <div class="inv"><span id="v2"></span>six</div>
+      </div>
+      <p class="label">Lombadas na estante</p>
+      <div class="spines" id="spines"></div>
+    </div>
+    <div class="cover">
+      <p class="label">Capa da caixa do Seks · 25 × 25 cm</p>
+      <div id="cover"></div>
+    </div>
+  </div>
+
+  <div class="row2">
+    <p class="label">Os seis jogos: a mesma moldura, a mesma grade, um motivo por língua</p>
+    <div class="cards" id="cards"></div>
+    <div class="grid-note">
+      <div id="gridDemo"></div>
+      <p>Todos os motivos são desenhados na mesma grade de pontos, com três marcas só: o ponto (do tamanho de um ponto de dado), o traço entre dois pontos e a área fechada com vértices na grade. A malha nórdica do Seks usa só pontos, como pontos de tricô; a treliça do Liu, só traços; os outros misturam. A moldura (faixa do motivo, cantos com a face de seis) e a tipografia (Alegreya Sans) são as mesmas nos seis.</p>
+    </div>
+  </div>
+</div>
+
+<script src="six.js"></script>
+<script>
+const C = SIX.COLORS, F = SIX.f, G = SIX.GAMES;
+const svg = (w, h, body, extra = "") => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" ${extra}>${body}</svg>`;
+
+// Logo: the six face, one pip per game, in collection order.
+const gameColors = G.map(g => C[g.id]);
+document.getElementById("logoFace").innerHTML = svg(150, 150, SIX.face6(75, 75, 140, null, null, C.ink, { colors: gameColors }));
+document.getElementById("v1").innerHTML = svg(40, 40, SIX.face6(20, 20, 36, null, null, C.ink));
+document.getElementById("v2").innerHTML = svg(40, 40, SIX.face6(20, 20, 36, null, null, C.wool));
+
+// Cover of the Seks box.
+function cover(S) {
+  const u = 4.4;
+  const fr = SIX.frame("seks", "band", 0, 0, S, S, u, C.wool, SIX.cornerFace(0, C.wool, C.wool), C.seks);
+  const t = fr.thickness;
+  let s = SIX.diceDefs("c") + `<rect width="${S}" height="${S}" fill="${C.wool}"/>` + fr.svg;
+  const inner = t + 14;
+  s += `<rect x="${inner}" y="${inner}" width="${S - 2 * inner}" height="${S - 2 * inner}" fill="none" stroke="${C.ink}" stroke-width="1.5"/>`;
+  // collection mark, top left of the field
+  s += SIX.face6(inner + 30, inner + 30, 30, 0, C.seks, C.ink);
+  s += `<text x="${inner + 54}" y="${inner + 36}" font-family="Alegreya Sans SC" font-weight="700" font-size="17" letter-spacing="2.4" fill="${C.ink}">six</text>`;
+  s += `<text x="${S - inner - 18}" y="${inner + 36}" text-anchor="end" font-size="16" fill="${C.muted}">jogo 1 de 6</text>`;
+  // the star
+  const su = 12.5, st = SIX.MOTIFS.seks.star(su, C.seks);
+  const sx = S / 2 - (17 * su) / 2, sy = inner + 62;
+  s += `<g transform="translate(${F(sx)} ${F(sy)})">${st.svg}</g>`;
+  // title
+  const ty = sy + 17 * su + 112;
+  s += `<text x="${S / 2}" y="${ty}" text-anchor="middle" font-weight="800" font-size="128" letter-spacing="-1" fill="${C.ink}">Seks</text>`;
+  s += `<text x="${S / 2}" y="${ty + 40}" text-anchor="middle" font-size="22" fill="${C.ink}">estratégia abstrata · 2 jogadores · sem sorte</text>`;
+  // two dice, as the real objects
+  s += SIX.die(inner + 70, ty - 40, 58, 6, "w", { p: "c" });
+  s += SIX.die(S - inner - 70, ty - 40, 58, 6, "b", { p: "c" });
+  return svg(S, S, s, 'font-family="Alegreya Sans"');
+}
+document.getElementById("cover").innerHTML = cover(640);
+
+// Box spines on a shelf.
+function spines(W) {
+  const h = 46, gap = 6;
+  let s = SIX.diceDefs("s");
+  G.forEach((g, i) => {
+    const y = i * (h + gap), c = C[g.id];
+    s += `<rect x="0" y="${y}" width="${W}" height="${h}" fill="${C.wool}" stroke="${C.ink}" stroke-width="1.2"/>`;
+    s += `<rect x="0" y="${y}" width="${h}" height="${h}" fill="${c}"/>`;
+    s += SIX.face6(h / 2, y + h / 2, 30, i, C.wool, C.wool);
+    s += `<text x="${h + 14}" y="${y + 32}" font-weight="800" font-size="26" fill="${C.ink}">${g.name}</text>`;
+    const bx = h + 120, bw = W - bx - 70;
+    const m = SIX.MOTIFS[g.id].thin(4.6, c);
+    const bh = m.h * 4.6, by = y + (h - bh) / 2;
+    s += SIX.fill(g.id, "thin", bx, by, bw, bh, 4.6, c);
+    s += `<text x="${W - 14}" y="${y + 30}" text-anchor="end" font-family="Alegreya Sans SC" font-weight="700" font-size="16" letter-spacing="2" fill="${C.ink}">six</text>`;
+  });
+  return svg(W, 6 * h + 5 * gap, s, 'font-family="Alegreya Sans"');
+}
+document.getElementById("spines").innerHTML = spines(560);
+
+// Cards.
+const cards = document.getElementById("cards");
+const cw = Math.floor((1440 - 112 - 5 * 18) / 6) - 3;
+G.forEach((g, i) => {
+  const c = C[g.id];
+  const tileH = 170;
+  const tile = svg(cw, tileH, `<rect width="${cw}" height="${tileH}" fill="${C.wool}"/>` +
+    SIX.fill(g.id, "tile", 0, 0, cw, tileH, 7, c, { fit: false }));
+  const face = svg(34, 34, SIX.face6(17, 17, 30, i, c, C.ink));
+  cards.insertAdjacentHTML("beforeend", `
+    <div class="card">
+      <div class="tile">${tile}</div>
+      <div class="body">
+        <div class="top"><h3>${g.name}</h3>${face}</div>
+        <p class="lang">seis em ${g.lang}: <i>${g.word}</i></p>
+        <p class="meta">${g.motif}<br>${g.genre} · ${g.state}</p>
+        <div class="sw"><span style="background:${c}"></span>${c}</div>
+      </div>
+    </div>`);
+});
+
+// The shared grid: the same 3 marks on the same points.
+(function () {
+  const u = 14, W = 300, H = 112;
+  let s = "";
+  for (let x = 0; x <= 20; x++) for (let y = 0; y <= 7; y++)
+    s += `<circle cx="${x * u + 10}" cy="${y * u + 7}" r="1.2" fill="${C.line}"/>`;
+  s += `<g transform="translate(10 7)">`;
+  s += SIX.pip(1, 2, u, C.ink) + SIX.pip(2, 3, u, C.ink) + SIX.pip(3, 2, u, C.ink) + SIX.pip(2, 1, u, C.ink);
+  s += `<path d="M${7 * u} ${5 * u}V${2 * u}H${11 * u}V${4 * u}H${9 * u}" fill="none" stroke="${C.ink}" stroke-width="${0.26 * u}" stroke-linecap="square"/>`;
+  s += `<path d="M${14 * u} ${5 * u}L${18 * u} ${5 * u}L${16 * u} ${2 * u}Z" fill="${C.ink}"/>`;
+  s += `</g>`;
+  s += `<text x="38" y="${H - 2}" text-anchor="middle" font-size="13" fill="${C.muted}">ponto</text>`;
+  s += `<text x="${9 * u + 10}" y="${H - 2}" text-anchor="middle" font-size="13" fill="${C.muted}">traço</text>`;
+  s += `<text x="${16 * u + 10}" y="${H - 2}" text-anchor="middle" font-size="13" fill="${C.muted}">área</text>`;
+  document.getElementById("gridDemo").innerHTML = svg(W, H, s, 'font-family="Alegreya Sans"');
+})();
+</script>
+</body>
+</html>

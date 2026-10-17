@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>six: logo, capa do Seks e os seis jogos</title>
+<style>
+@font-face {
+  font-family: "Archivo";
+  src: url("fonts/Archivo.ttf") format("truetype");
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+}
+:root { --ink: #141414; --paper: #F3F1EC; --muted: #6E6A62; --seks: #E2231A; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font-family: "Archivo", sans-serif; width: 1440px; }
+.page { padding: 56px 64px 72px; display: grid; grid-template-columns: repeat(12, 1fr); column-gap: 24px; }
+.label {
+  grid-column: 1 / -1;
+  font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted);
+  border-top: 2px solid var(--ink); padding-top: 10px; margin-bottom: 28px;
+  display: flex; justify-content: space-between;
+}
+.label span:last-child { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 13px; }
+
+/* logo */
+.logo-main { grid-column: 1 / 8; display: flex; align-items: flex-end; margin-bottom: 64px; }
+.wordmark { font-weight: 800; font-size: 210px; line-height: 0.74; letter-spacing: -0.055em; position: relative; display: inline-block; }
+.wordmark .i { position: relative; }
+.wordmark .tittle { position: absolute; left: 50%; top: -0.06em; width: 0.205em; height: 0.205em; transform: translateX(-46%); border-radius: 50%; background: var(--seks); }
+.logo-variants { grid-column: 8 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 64px; align-self: end; }
+.variant { aspect-ratio: 1.15; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 16px; }
+.variant .lock { display: flex; align-items: flex-end; gap: 10px; }
+.variant .wm { font-weight: 800; font-size: 54px; line-height: 0.74; letter-spacing: -0.055em; position: relative; }
+.variant .wm .tittle { position: absolute; left: 50%; top: -0.06em; width: 0.205em; height: 0.205em; transform: translateX(-46%); border-radius: 50%; }
+.variant small { font-size: 12px; font-weight: 500; }
+.v1 { background: #fff; outline: 1px solid #D3CEC4; }
+.v1 small { color: #000; }
+.v2 { background: var(--ink); color: var(--paper); }
+.v3 { background: var(--seks); color: var(--ink); }
+
+/* box */
+.box-area { grid-column: 1 / 8; }
+.box {
+  width: 100%; aspect-ratio: 1; background: var(--seks); color: var(--ink);
+  display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr);
+  padding: 36px; gap: 0; position: relative;
+}
+.box .pips { grid-column: 1 / 5; grid-row: 1 / 6; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); padding: 0 6% 0 0; }
+.box .pips i { display: block; width: 74%; aspect-ratio: 1; border-radius: 50%; background: var(--paper); margin: auto; }
+.box .pips i.die-pip { background: none; border-radius: 0; }
+.box .head { grid-column: 5 / 7; grid-row: 1 / 2; display: flex; justify-content: flex-end; align-items: flex-start; gap: 8px; font-weight: 800; font-size: 26px; letter-spacing: -0.03em; }
+.box .head { align-items: flex-end; align-self: start; }
+.box .head small { font-weight: 600; font-size: 14px; letter-spacing: 0; }
+.box .info { grid-column: 5 / 7; grid-row: 2 / 6; font-size: 14.5px; line-height: 1.35; font-weight: 500; align-self: end; padding-bottom: 6px; }
+.box .info p + p { margin-top: 10px; }
+.box .info b { font-weight: 800; }
+.box .name { grid-column: 1 / 7; grid-row: 6 / 7; font-weight: 800; font-size: 150px; line-height: 0.72; letter-spacing: -0.05em; align-self: end; margin-left: -6px; }
+.box-caption { margin-top: 14px; font-size: 13px; color: var(--muted); }
+
+.box-area, .box-side { min-width: 0; }
+.box-side { grid-column: 8 / -1; display: flex; flex-direction: column; gap: 24px; }
+.mono { background: #fff; outline: 1px solid #D3CEC4; aspect-ratio: 1; padding: 16px; min-width: 0; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr); }
+.mono .pips { grid-column: 1 / 5; grid-row: 1 / 6; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); padding-right: 6%; }
+.mono .pips i { display: block; width: 74%; aspect-ratio: 1; border-radius: 50%; border: 4px solid #000; margin: auto; }
+.mono .pips i.full { background: #000; }
+.mono .name { grid-column: 1 / 7; grid-row: 6 / 7; font-weight: 800; font-size: 50px; line-height: 0.72; letter-spacing: -0.05em; align-self: end; }
+.mono .head { grid-column: 5 / 7; grid-row: 1; display: flex; justify-content: flex-end; font-weight: 800; font-size: 13px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.side-note { font-size: 13px; color: var(--muted); line-height: 1.4; }
+.dice-row { display: grid; grid-template-columns: repeat(6, 48px); gap: 14px 22px; margin-top: 4px; }
+
+/* band */
+.band { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px; margin-top: 72px; }
+.band .label { grid-column: 1 / -1; margin-bottom: 4px; }
+.game .tile { aspect-ratio: 1; display: grid; place-items: center; position: relative; }
+.game .tile .no { position: absolute; left: 12px; top: 10px; font-weight: 700; font-size: 14px; }
+.game .tile .kitdie { position: absolute; right: 12px; bottom: 12px; }
+.game h3 { font-weight: 800; font-size: 40px; letter-spacing: -0.04em; margin-top: 14px; line-height: 1; }
+.game .meta { font-size: 13px; line-height: 1.45; margin-top: 8px; border-top: 1px solid var(--ink); padding-top: 8px; min-height: 76px; }
+.game .meta .muted { color: var(--muted); }
+.game .bw { display: flex; gap: 10px; margin-top: 12px; align-items: center; }
+.game .bw svg { outline: 1px solid #000; background: #fff; }
+.band-note { grid-column: 1 / -1; font-size: 13px; color: var(--muted); margin-top: 28px; max-width: 64em; line-height: 1.45; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="label"><span>Logo da coleção</span><span>Archivo ExtraBold, pingo do i no vermelho do Seks</span></div>
+  <div class="logo-main" id="logo-main"></div>
+  <div class="logo-variants">
+    <div class="variant v1"><div class="lock" data-lock="#000000/#FFFFFF/#000000"></div><small>Uma cor: preto</small></div>
+    <div class="variant v2"><div class="lock" data-lock="#F3F1EC/#141414/#F3F1EC"></div><small>Uma cor, invertida</small></div>
+    <div class="variant v3"><div class="lock" data-lock="#141414/#E2231A/#141414"></div><small>Sobre a cor do jogo</small></div>
+  </div>
+
+  <div class="label"><span>Capa da caixa: Seks</span><span>tampa de 1 por 1</span></div>
+  <div class="box-area">
+    <div class="box">
+      <div class="pips"><i></i><i></i><i></i><i></i><i></i><i class="die-pip" id="die-pip"></i></div>
+      <div class="head" id="box-head"><small>1/6</small></div>
+      <div class="info">
+        <p><b>Estratégia abstrata para 2 jogadores.</b></p>
+        <p>32 dados num tabuleiro de 11 por 11. O valor de cima diz até onde o dado anda; andar gasta valor.</p>
+        <p>Cerque um dado adversário para capturá-lo. Chegue à fileira de fundo do outro lado para vencer.</p>
+      </div>
+      <div class="name">seks</div>
+    </div>
+    <p class="box-caption">Seis pontos chapados na grade de 6 por 6; o sexto é um dado de verdade, visto de cima. O nome sempre embaixo, na mesma posição nos seis jogos.</p>
+  </div>
+  <div class="box-side">
+    <div class="pair">
+      <div class="mono">
+        <div class="pips"><i class="full"></i><i class="full"></i><i class="full"></i><i class="full"></i><i class="full"></i><i></i></div>
+        <div class="head">six 1/6</div>
+        <div class="name">seks</div>
+      </div>
+      <div class="mono" style="background:#000;outline:none;color:#fff">
+        <div class="pips"><i class="full" style="background:#fff;border-color:#fff"></i><i class="full" style="background:#fff;border-color:#fff"></i><i class="full" style="background:#fff;border-color:#fff"></i><i class="full" style="background:#fff;border-color:#fff"></i><i class="full" style="background:#fff;border-color:#fff"></i><i style="border-color:#fff"></i></div>
+        <div class="head">six 1/6</div>
+        <div class="name">seks</div>
+      </div>
+    </div>
+    <p class="side-note">A mesma tampa em uma cor só, positiva e negativa. Sem o vermelho, a capa ainda se lê: o motivo e o nome bastam para reconhecer o jogo, a cor só reforça.</p>
+    <div>
+      <div class="label" style="margin-bottom:14px"><span>Os dados do Seks</span><span>16 mm, casa de 20 mm</span></div>
+      <div class="dice-row" id="dice-row"></div>
+    </div>
+  </div>
+
+  <div class="band" id="band">
+    <div class="label"><span>Os seis jogos</span><span>uma cor do kit e um arranjo de seis pontos para cada um</span></div>
+  </div>
+  <p class="band-note">As seis cores estão a 60 graus uma da outra no círculo cromático e são também as cores dos dados do kit. O arranjo dos pontos identifica o jogo sem cor, por isso cada motivo aparece também em preto. Os cinco nomes depois do Seks ainda são candidatos.</p>
+</div>
+
+<script src="comum.js"></script>
+<script>
+document.getElementById("logo-main").appendChild(lockup(PALETTE.ink, PALETTE.paper, PALETTE.seks, 200));
+for (const lock of document.querySelectorAll("[data-lock]")) {
+  const [ink, pip, dot] = lock.dataset.lock.split("/");
+  lock.appendChild(lockup(ink, pip, dot, 40));
+}
+document.getElementById("box-head").prepend(lockup(PALETTE.ink, PALETTE.seks, PALETTE.ink, 30));
+
+// the sixth pip of the cover is a real die seen from above
+const dp = document.getElementById("die-pip");
+const ds = el("svg", { viewBox: "0 0 84 84", width: "100%", height: "100%" });
+ds.appendChild(die(0, 0, 6, "w"));
+dp.appendChild(ds);
+
+const row = document.getElementById("dice-row");
+for (let v = 1; v <= 6; v++) row.appendChild(dieIcon(v, "w", 48));
+for (let v = 1; v <= 6; v++) row.appendChild(dieIcon(v, "b", 48));
+
+const band = document.getElementById("band");
+GAMES.forEach((g, i) => {
+  const div = document.createElement("div");
+  div.className = "game";
+  const tile = document.createElement("div");
+  tile.className = "tile";
+  tile.style.background = g.color;
+  const dark = g.name === "Liu" || g.name === "Zes";
+  const pipColor = dark ? PALETTE.ink : PALETTE.paper;
+  tile.appendChild(motif(g.motif, pipColor, 150));
+  const no = document.createElement("span");
+  no.className = "no";
+  no.textContent = `${i + 1}/6`;
+  no.style.color = pipColor;
+  tile.appendChild(no);
+  const kd = el("svg", { viewBox: "-2 -2 90 90", width: 40, height: 40, class: "kitdie" });
+  kd.appendChild(die(0, 0, 6, { side: shade(g.color), face: g.color, pip: pipColor, edge: "#FFFFFF", edgeOpacity: 0.35, shadow: 0.3 }));
+  tile.appendChild(kd);
+  div.appendChild(tile);
+  const h = document.createElement("h3");
+  h.textContent = g.name.toLowerCase();
+  div.appendChild(h);
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.innerHTML = `“seis” em ${g.lang}<br><span class="muted">${g.colorName} ${g.color}<br>${g.status}</span>`;
+  div.appendChild(meta);
+  const bw = document.createElement("div");
+  bw.className = "bw";
+  bw.appendChild(motif(g.motif, "#000", 44));
+  const t = document.createElement("span");
+  t.style.fontSize = "12px";
+  t.style.color = "var(--muted)";
+  t.textContent = "em preto";
+  bw.appendChild(t);
+  div.appendChild(bw);
+  band.appendChild(div);
+});
+
+function shade(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const f = (v) => Math.round(v * 0.72).toString(16).padStart(2, "0");
+  return "#" + f(n >> 16) + f((n >> 8) & 255) + f(n & 255);
+}
+</script>
+</body>
+</html>

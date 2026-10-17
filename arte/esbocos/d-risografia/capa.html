@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>six · capa</title>
+<link rel="stylesheet" href="riso.css">
+<style>
+  body { width: 1440px; }
+  .page { padding: 56px 56px 64px; display: grid; gap: 56px; }
+
+  .label {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .08em;
+    text-transform: uppercase; margin-bottom: 14px; display: flex; gap: 14px; align-items: baseline;
+  }
+  .label i { font-style: normal; opacity: .7; text-transform: none; letter-spacing: 0; }
+
+  .top { display: grid; grid-template-columns: 1fr 560px; gap: 56px; align-items: start; }
+
+  /* ---------- Collection logo ---------- */
+  .logo-wrap { position: relative; height: 440px; }
+  .logo { position: absolute; left: -10px; top: 70px; width: 640px; height: 360px; }
+  .logo .letters {
+    position: absolute; left: 0; top: 0; display: flex; align-items: baseline;
+    font-weight: 800; font-stretch: 80%; font-variation-settings: "opsz" 96;
+    font-size: 420px; line-height: .8;
+  }
+  .logo .L { display: inline-block; }
+  .logo .ls { color: var(--ink-a); }
+  .logo .li { color: var(--ink-b); margin-left: -.065em; }
+  .logo .lx { color: var(--ink-a); margin-left: -.075em; }
+  .logo .dot { position: absolute; width: 96px; height: 96px; }
+  .tagline { font-size: 30px; font-weight: 700; line-height: 1.1; max-width: 620px; letter-spacing: -.01em; font-variation-settings: "opsz" 36; }
+  .tagline span { color: var(--overprint); }
+  .notes { margin-top: 26px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 700px; }
+  .notes div { border-top: 2px solid var(--ink-a); padding-top: 8px; font-size: 14px; line-height: 1.35; }
+  .notes b { display: block; font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+
+  /* ---------- Box cover ---------- */
+  .box { width: 560px; height: 560px; position: relative; overflow: hidden; isolation: isolate; color: var(--paper-light); }
+  .box .field { position: absolute; inset: 0; background: var(--ink-a); z-index: -3; }
+  .box .star { position: absolute; z-index: -2; left: 196px; top: -6px; width: 370px; height: 370px; color: var(--ink-b); }
+  .box .star.knock { color: var(--paper-light); transform: translate(-5px, -4px); }
+  .box .hero { position: absolute; left: 335px; top: 132px; width: 100px; height: 100px; }
+  .box .head { position: absolute; left: 30px; top: 26px; right: 30px; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+  .box .head b { font-family: var(--display); font-size: 30px; letter-spacing: -.02em; text-transform: none; line-height: .8; }
+  .box .name { position: absolute; left: 22px; bottom: 76px; height: 190px; width: 520px; }
+  .box .name span {
+    position: absolute; left: 0; bottom: 0;
+    font-weight: 800; font-stretch: 78%; font-variation-settings: "opsz" 96;
+    font-size: 236px; line-height: .78; letter-spacing: -.05em;
+  }
+  .box .name .na { color: var(--paper-light); }
+  .box .name .nb { color: var(--ink-b); transform: translate(9px, 7px); }
+  .box .foot {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 56px;
+    background: var(--paper-light); color: var(--ink-a);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
+    font-family: var(--mono); font-size: 13px;
+  }
+  .box .foot b { font-family: var(--display); font-size: 17px; }
+  .box .lang { position: absolute; left: 30px; top: 92px; font-family: var(--mono); font-size: 13px; line-height: 1.5; max-width: 170px; }
+
+  .spines { display: grid; gap: 6px; }
+  .spine { position: relative; height: 40px; overflow: hidden; isolation: isolate; color: var(--paper-light); display: flex; align-items: center; gap: 14px; padding: 0 14px; }
+  .spine .field { position: absolute; inset: 0; background: var(--A); z-index: -3; }
+  .spine .pat { position: absolute; right: 0; top: 0; bottom: 0; width: 260px; display: flex; z-index: -2; }
+  .spine .pat > div { position: relative; width: 52px; height: 52px; margin-top: -6px; }
+  .spine .pat .m { position: absolute; inset: 0; color: var(--B); }
+  .spine .pat .k { position: absolute; inset: 0; color: var(--paper-light); transform: translate(-2px, -2px); }
+  .spine .die { width: 26px; height: 26px; }
+  .spine .sn { font-weight: 800; font-stretch: 80%; font-size: 30px; letter-spacing: -.03em; font-variation-settings: "opsz" 48; position: relative; line-height: 1; }
+  .spine .sn .nb { position: absolute; left: 2px; top: 2px; color: var(--B); }
+  .spine .sx { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; margin-left: auto; margin-right: 270px; opacity: .9; }
+
+  /* ---------- Collection strip ---------- */
+  .strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+  .tile { position: relative; height: 300px; overflow: hidden; isolation: isolate; color: var(--paper-light); }
+  .tile .field { position: absolute; inset: 0; background: var(--A); z-index: -3; }
+  .tile .motif { position: absolute; z-index: -2; right: -40px; top: -30px; width: 250px; height: 250px; color: var(--B); }
+  .tile .motif.knock { color: var(--paper-light); transform: translate(-4px, -3px); }
+  .tile .num { position: absolute; left: 16px; top: 16px; width: 40px; height: 40px; }
+  .tile .gname { position: absolute; left: 14px; bottom: 58px; height: 70px; width: 100%; }
+  .tile .gname span {
+    position: absolute; left: 0; bottom: 0;
+    font-weight: 800; font-stretch: 80%; font-variation-settings: "opsz" 72;
+    font-size: 78px; line-height: .8; letter-spacing: -.04em;
+  }
+  .tile .gname .na { color: var(--paper-light); }
+  .tile .gname .nb { color: var(--B); transform: translate(4px, 3px); }
+  .tile .meta {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 46px; padding: 6px 14px;
+    background: var(--paper-light); color: var(--A);
+    font-family: var(--mono); font-size: 11px; line-height: 1.35;
+  }
+  .tile .meta b { font-family: var(--display); font-size: 13px; }
+  .tile .inks { position: absolute; right: 12px; top: 16px; display: flex; gap: 4px; }
+  .tile .inks i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--paper-light); }
+
+  /* One-ink version: what the home printer and the B&W manual get. */
+  .strip.bw .tile { height: 210px; color: #1b1b1b; outline: 1.5px solid #1b1b1b; outline-offset: -1.5px; }
+  .strip.bw .tile .field { background: var(--paper-light); }
+  .strip.bw .tile .motif { color: #1b1b1b; opacity: .9; width: 140px; height: 140px; right: -18px; top: -16px; }
+  .strip.bw .tile .gname { bottom: 50px; height: 56px; }
+  .strip.bw .tile .gname span { font-size: 56px; }
+  .strip.bw .tile .gname .na { color: #1b1b1b; text-shadow: 0 0 0 #1b1b1b, 3px 0 0 var(--paper-light), -3px 0 0 var(--paper-light), 0 3px 0 var(--paper-light), 0 -3px 0 var(--paper-light), 3px 3px 0 var(--paper-light), -3px -3px 0 var(--paper-light), 3px -3px 0 var(--paper-light), -3px 3px 0 var(--paper-light); }
+  .strip.bw .tile .gname .nb { display: none; }
+  .strip.bw .tile .meta { color: #1b1b1b; height: 40px; border-top: 1.5px solid #1b1b1b; }
+  .strip.bw .tile .inks { display: none; }
+</style>
+</head>
+<body class="paper">
+<div class="page">
+
+  <section class="top">
+    <div>
+      <div class="label">Logo da coleção <i>a palavra “six”; o pingo do i é a face de seis de um dado</i></div>
+      <div class="logo-wrap">
+        <div class="logo" aria-label="six">
+          <div class="letters">
+            <span class="L ls ink mult">s</span><span class="L li ink mult">ı</span><span class="L lx ink mult">x</span>
+          </div>
+          <div class="dot" id="logoDot"></div>
+        </div>
+      </div>
+      <div class="tagline">Seis jogos de dados, um kit. <span>Cada jogo se chama “seis” numa língua e tem o seu par de tintas.</span></div>
+      <div class="notes">
+        <div><b>Duas tintas</b>Cada peça sai com duas tintas de risografia. Onde elas se cruzam, aparece a terceira cor.</div>
+        <div><b>Motivo</b>Um padrão da cultura da língua do nome. É ele, não a cor, que separa os jogos em preto e branco.</div>
+        <div><b>Dado no centro</b>A arte fica nas bordas. Tabuleiro e dados ficam limpos, no papel e na tela.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="label">Tampa da caixa <i>Seks · azul-federal e laranja fluorescente</i></div>
+      <div class="box">
+        <div class="field ink-soft"></div>
+        <div class="star knock" id="boxStarK"></div>
+        <div class="star ink mult" id="boxStar"></div>
+        <div class="head"><b>six</b><span>jogo 1 de 6</span></div>
+        <div class="lang">“seis” em dinamarquês e norueguês. Oito pétalas: as oito direções de um dado.</div>
+        <div class="hero" id="boxDie"></div>
+        <div class="name" aria-label="Seks">
+          <span class="na">Seks</span>
+          <span class="nb ink mult">Seks</span>
+        </div>
+        <div class="foot"><b>16 dados contra 16</b><span>2 jogadores · estratégia · sem sorte</span></div>
+      </div>
+      <div class="label" style="margin-top:30px">Lombadas na estante <i>a coleção inteira, de lado</i></div>
+      <div class="spines" id="spines"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="label">A coleção <i>mesma grade, mesmo tipo, mesmo dado como número; muda o par de tintas e o motivo</i></div>
+    <div class="strip" id="strip"></div>
+  </section>
+
+  <section>
+    <div class="label">A uma tinta <i>impressora de casa e manual em preto e branco: o motivo e a face do dado bastam</i></div>
+    <div class="strip bw" id="stripBw"></div>
+  </section>
+</div>
+
+<script src="riso.js"></script>
+<script>
+  installFilters();
+
+  // Motifs, one per game, drawn in currentColor on a 100x100 box.
+  const motif = {
+    seks: () => selbuStar(),
+    // Lo Shu: the 3x3 magic square, as dot clusters joined like the old diagrams.
+    liu: () => {
+      const sq = [[4, 9, 2], [3, 5, 7], [8, 1, 6]];
+      let g = "";
+      sq.forEach((row, r) => row.forEach((n, c) => {
+        const cx = 20 + c * 30, cy = 20 + r * 30;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2 - Math.PI / 2, rr = n === 1 ? 0 : 7.5;
+          g += `<circle cx="${(cx + rr * Math.cos(a)).toFixed(1)}" cy="${(cy + rr * Math.sin(a)).toFixed(1)}" r="2.6"/>`;
+        }
+      }));
+      return `<svg viewBox="0 0 100 100"><g fill="currentColor">${g}</g><g stroke="currentColor" stroke-width="1.6"><path d="M20 20H80V80H20Z M50 20V80 M20 50H80" fill="none"/></g></svg>`;
+    },
+    // Aalsmeer auction clock: a ring of lights and a falling hand.
+    zes: () => {
+      let g = "";
+      for (let i = 0; i < 40; i++) {
+        const a = (i / 40) * Math.PI * 2;
+        g += `<circle cx="${(50 + 40 * Math.cos(a)).toFixed(1)}" cy="${(50 + 40 * Math.sin(a)).toFixed(1)}" r="${i % 5 ? 2.2 : 3.8}"/>`;
+      }
+      return `<svg viewBox="0 0 100 100"><g fill="currentColor">${g}<circle cx="50" cy="50" r="7"/><path d="M47 50 L50 14 L53 50Z"/></g><circle cx="50" cy="50" r="27" fill="none" stroke="currentColor" stroke-width="3"/></svg>`;
+    },
+    // Ono: Pacific swell, stacked wave lines as on tapa cloth.
+    ono: () => {
+      let g = "";
+      for (let r = 0; r < 7; r++) {
+        const y = 10 + r * 13;
+        g += `<path d="M-5 ${y} q 10 -9 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0"/>`;
+      }
+      return `<svg viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round">${g}</g></svg>`;
+    },
+    // Suqta: the Andean stepped cross (chakana).
+    suqta: () => `<svg viewBox="0 0 100 100"><path fill="currentColor" fill-rule="evenodd" d="M38 4H62V16H74V26H84V38H96V62H84V74H74V84H62V96H38V84H26V74H16V62H4V38H16V26H26V16H38Z M50 38A12 12 0 1 0 50.01 38Z"/></svg>`,
+    // Shesh: the points of a backgammon board.
+    shesh: () => {
+      let g = "";
+      for (let i = 0; i < 6; i++) {
+        const x = 2 + i * 16;
+        g += `<path d="M${x} 0 L${x + 16} 0 L${x + 8} 44Z" ${i % 2 ? 'opacity=".55"' : ""}/>`;
+        g += `<path d="M${x} 100 L${x + 16} 100 L${x + 8} 56Z" ${i % 2 ? "" : 'opacity=".55"'}/>`;
+      }
+      return `<svg viewBox="0 0 100 100"><g fill="currentColor">${g}</g></svg>`;
+    },
+  };
+
+  const games = [
+    { id: "seks", name: "Seks", n: 1, lang: "norueguês", kind: "estratégia", A: "var(--ink-a)", B: "var(--ink-b)", inks: "Azul-federal + Laranja fluor." },
+    { id: "liu", name: "Liu", n: 2, lang: "mandarim", kind: "estilo sudoku", A: "var(--teal)", B: "var(--fl-pink)", inks: "Verde-azulado + Rosa fluor." },
+    { id: "zes", name: "Zes", n: 3, lang: "holandês", kind: "leilão", A: "var(--green)", B: "var(--sunflower)", inks: "Verde + Girassol" },
+    { id: "ono", name: "Ono", n: 4, lang: "havaiano, maori", kind: "cooperativo", A: "var(--purple)", B: "var(--aqua)", inks: "Roxo + Água" },
+    { id: "suqta", name: "Suqta", n: 5, lang: "quíchua", kind: "dados mentirosos", A: "var(--bright-red)", B: "var(--yellow)", inks: "Vermelho + Amarelo" },
+    { id: "shesh", name: "Shesh", n: 6, lang: "persa", kind: "gamão", A: "var(--burgundy)", B: "var(--mint)", inks: "Vinho + Menta" },
+  ];
+
+  const tile = (g, bw) => `
+    <div class="tile" style="--A:${g.A};--B:${g.B}">
+      <div class="field ink-soft"></div>
+      ${bw ? "" : `<div class="motif knock">${motif[g.id]()}</div>`}
+      <div class="motif ink ${bw ? "" : "mult"}">${motif[g.id]()}</div>
+      <div class="num">${dieSVG(g.n, bw ? "w" : "w", { shadow: bw ? "rgba(0,0,0,.85)" : g.B })}</div>
+      <div class="inks"><i style="background:${g.A}"></i><i style="background:${g.B}"></i></div>
+      <div class="gname"><span class="na">${g.name}</span><span class="nb ink mult">${g.name}</span></div>
+      <div class="meta"><b>${g.kind}</b><br>“seis” em ${g.lang}</div>
+    </div>`;
+  document.getElementById("strip").innerHTML = games.map(g => tile(g, false)).join("");
+  document.getElementById("stripBw").innerHTML = games.map(g => tile(g, true)).join("");
+
+  document.getElementById("spines").innerHTML = games.map(g => `
+    <div class="spine" style="--A:${g.A};--B:${g.B}">
+      <div class="field ink-soft"></div>
+      <div class="pat">${Array(5).fill(`<div><div class="k">${motif[g.id]()}</div><div class="m ink mult">${motif[g.id]()}</div></div>`).join("")}</div>
+      ${dieSVG(g.n, "w", { shadow: g.B })}
+      <span class="sn"><span class="nb ink mult">${g.name}</span><span style="position:relative">${g.name}</span></span>
+      <span class="sx">six · ${g.n} de 6</span>
+    </div>`).join("");
+  document.getElementById("boxStar").innerHTML = selbuStar();
+  document.getElementById("boxStarK").innerHTML = selbuStar();
+  document.getElementById("boxDie").innerHTML = dieSVG(6, "w", { shadow: "rgba(61,39,63,.9)", lift: 4 });
+  // Put the die where the dot of the i would be.
+  const li = document.querySelector(".logo .li").getBoundingClientRect();
+  const lo = document.querySelector(".logo").getBoundingClientRect();
+  const dot = document.getElementById("logoDot");
+  dot.style.left = (li.left - lo.left + li.width / 2 - 48 + 4) + "px";
+  dot.style.top = "-22px";
+  document.getElementById("logoDot").innerHTML = dieSVG(6, "w", { shadow: "var(--ink-b)" });
+</script>
+</body>
+</html>

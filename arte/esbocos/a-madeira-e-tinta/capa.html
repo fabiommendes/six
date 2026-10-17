@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>six · logo, caixa do Seks e a coleção</title>
+<link rel="stylesheet" href="comum.css">
+<style>
+  body { padding: 64px 88px 80px; }
+  h2 { font: 500 15px/1 "Alegreya SC", serif; letter-spacing: 0.16em; color: var(--tinta-suave); margin: 0 0 22px; padding-bottom: 10px; border-bottom: 1px solid var(--tinta); }
+
+  .logo { display: grid; grid-template-columns: auto auto 1fr; gap: 64px; align-items: center; margin-bottom: 72px; }
+  .logo .marca svg { display: block; height: 170px; }
+  .logo .marca-madeira svg { display: block; height: 170px; box-shadow: 0 2px 0 #9c7448, 0 10px 18px -10px rgba(60, 35, 15, 0.55); }
+  .logo .texto { font-size: 19px; line-height: 1.5; max-width: 26em; color: var(--tinta); }
+  .logo .texto b { font-weight: 600; }
+
+  .caixa { display: grid; grid-template-columns: auto auto 1fr; gap: 36px; align-items: start; margin-bottom: 76px; }
+  .tampa svg { display: block; width: 640px; height: 640px; box-shadow: 0 3px 0 #9c7448, 0 4px 0 #6f4f2f, 0 22px 30px -16px rgba(60, 35, 15, 0.6); }
+  .lombada svg { display: block; width: 92px; height: 640px; box-shadow: 0 3px 0 #9c7448, 0 22px 30px -16px rgba(60, 35, 15, 0.5); }
+  .caixa .notas { font-size: 18px; line-height: 1.5; padding-top: 4px; }
+  .caixa .notas p { margin: 0 0 14px; }
+  .caixa .notas .sc { font-size: 14px; color: var(--tinta-suave); display: block; margin-bottom: 4px; }
+
+  .faixa { display: grid; grid-template-columns: repeat(6, 1fr); gap: 22px; }
+  .jogo .lasca svg { display: block; width: 100%; aspect-ratio: 1; box-shadow: 0 2px 0 #9c7448, 0 12px 18px -12px rgba(60, 35, 15, 0.55); }
+  .jogo h3 { margin: 16px 0 2px; font: 600 34px/1 "Alegreya", serif; }
+  .jogo .lingua { font-style: italic; font-size: 17px; color: var(--tinta-suave); min-height: 2.7em; line-height: 1.35; }
+  .jogo .genero { margin-top: 8px; font-size: 16px; line-height: 1.35; min-height: 2.7em; }
+  .jogo .tinta { margin-top: 10px; display: flex; align-items: center; gap: 10px; font: 500 14px/1 "Alegreya SC", serif; letter-spacing: 0.08em; }
+  .jogo .tinta span { line-height: 1.3; }
+  .jogo .tinta i { display: block; width: 34px; height: 18px; border: 1px solid var(--tinta); }
+  .pb { margin-top: 34px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 22px; align-items: center; }
+  .pb div { display: flex; align-items: center; gap: 14px; font: 500 15px/1 "Alegreya SC", serif; letter-spacing: 0.08em; }
+  .pb svg { width: 54px; height: 54px; background: #fff; border: 1px solid #111; }
+  .rodape { margin-top: 18px; font-size: 16px; font-style: italic; color: var(--tinta-suave); }
+</style>
+</head>
+<body>
+
+<h2>A marca da coleção</h2>
+<section class="logo">
+  <div class="marca" id="logo-tinta"></div>
+  <div class="marca-madeira" id="logo-madeira"></div>
+  <div class="texto">
+    A marca é a face de seis de um dado ao lado da palavra <b>six</b>, em
+    Alegreya. No papel, sai a tinta; na caixa e no tabuleiro, é gravada na
+    madeira, como a marca de fogo de um marceneiro. O pingo do <i>i</i> é um
+    ponto fundo, o mesmo dos dados.
+  </div>
+</section>
+
+<h2>Caixa do Seks</h2>
+<section class="caixa">
+  <div class="tampa" id="tampa"></div>
+  <div class="lombada" id="lombada"></div>
+  <div class="notas">
+    <p><span class="sc">Material</span>Tampa de bordo claro com gravação a laser preenchida a tinta. A
+      versão de gráfica imprime a mesma arte em papel com fibra de madeira.</p>
+    <p><span class="sc">Dados na capa</span>A faixa de baixo mostra uma captura em tamanho real:
+      casas de 20 mm, dados de 16 mm. Quem abre a caixa reconhece os mesmos objetos.</p>
+    <p><span class="sc">Tinta do Seks</span>Vermelho de Falun, o pigmento de ferro das casas de madeira
+      da Escandinávia. Ornamento: a roseta de seis pétalas traçada a compasso, gravada em vigas e
+      portas nórdicas.</p>
+    <p><span class="sc">Lombada</span>A cor e o ornamento identificam o jogo na estante; o nome
+      fica em pé, como num livro.</p>
+  </div>
+</section>
+
+<h2>Os seis jogos</h2>
+<section class="faixa" id="faixa"></section>
+<section class="pb" id="pb"></section>
+<p class="rodape">Em preto e branco, o ornamento sozinho distingue os jogos. Todos são traçados com régua e
+  compasso, na mesma espessura de linha.</p>
+
+<script src="comum.js"></script>
+<script>
+  const GAMES = [
+    { key: "seks", name: "Seks", lang: "dinamarquês e norueguês", genre: "Estratégia abstrata, 2 jogadores", ink: "#8B2F22", inkName: "Falun" },
+    { key: "liu", name: "Liu", lang: "mandarim", genre: "Quebra-cabeça numérico, da família do sudoku", ink: "#2B4A7A", inkName: "cobalto" },
+    { key: "zes", name: "Zes", lang: "holandês", genre: "Leilão e sequências", ink: "#B0601E", inkName: "laranja" },
+    { key: "ono", name: "Ono", lang: "havaiano e maori", genre: "Cooperativo", ink: "#3D6534", inkName: "folha" },
+    { key: "suqta", name: "Suqta", lang: "quíchua", genre: "Dados mentirosos", ink: "#6B2C55", inkName: "cochonilha" },
+    { key: "shesh", name: "Shesh", lang: "persa", genre: "Corrida, da família do gamão", ink: "#1E7A80", inkName: "turquesa" },
+  ];
+
+  const defs = sharedDefs();
+
+  function wood(W, H, extra = "") {
+    return `<rect width="${W}" height="${H}" fill="#E6CD9F"/>
+      <rect width="${W}" height="${H}" fill="#fff" filter="url(#woodGrain)" opacity="0.85"/>${extra}`;
+  }
+
+  // Logo: six-pip face plus the word, the i dot replaced by a sunken pip.
+  function logo(color, onWood) {
+    const pipFill = onWood ? "url(#pipIvory)" : color;
+    let face = `<rect x="4" y="4" width="92" height="92" rx="14" fill="none" stroke="${color}" stroke-width="3.2"/>
+      <rect x="11" y="11" width="78" height="78" rx="9" fill="none" stroke="${color}" stroke-width="1"/>`;
+    for (const [x, y] of [[32, 27], [68, 27], [32, 50], [68, 50], [32, 73], [68, 73]]) {
+      face += `<circle cx="${x}" cy="${y}" r="8" fill="${pipFill}"/>`;
+    }
+    const word = `<text class="wm" x="122" y="88" font-family="Alegreya" font-weight="600" font-size="118" fill="${color}" letter-spacing="-1">sıx</text>
+      <circle class="tittle" r="9" fill="${pipFill}"/>`;
+    const W = 300, H = 100;
+    const bg = onWood ? wood(W + 40, H + 40) : "";
+    const g = onWood ? `<g transform="translate(20 20)">${face}${word}</g>` : face + word;
+    return svgWrap(defs + bg + g, onWood ? W + 40 : W, onWood ? H + 40 : H);
+  }
+  document.getElementById("logo-tinta").innerHTML = logo("#2A1D14", false);
+  document.getElementById("logo-madeira").innerHTML = logo("#2A1D14", true);
+  // Put the sunken pip where the dot of the i would be.
+  document.fonts.ready.then(() => document.querySelectorAll("text.wm").forEach((t) => {
+    const box = t.getExtentOfChar(1);
+    const c = t.parentNode.querySelector("circle.tittle");
+    c.setAttribute("cx", box.x + box.width / 2 + 2);
+    c.setAttribute("cy", 17);
+  }));
+
+  // Box lid, 300 x 300 mm.
+  (function lid() {
+    const W = 300;
+    let s = defs + wood(W, W);
+    s += `<rect x="12" y="12" width="276" height="276" fill="none" stroke="${INK}" stroke-width="1.1"/>
+      <rect x="15.5" y="15.5" width="269" height="269" fill="none" stroke="${INK}" stroke-width="0.4"/>`;
+    // collection mark, top
+    s += `<g transform="translate(30 28) scale(0.16)">
+      <rect x="4" y="4" width="92" height="92" rx="14" fill="none" stroke="${INK}" stroke-width="5"/>
+      ${[[32, 27], [68, 27], [32, 50], [68, 50], [32, 73], [68, 73]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="${INK}"/>`).join("")}</g>`;
+    s += `<text x="49" y="39.5" font-family="Alegreya SC" font-weight="500" font-size="7.5" letter-spacing="0.9" fill="${INK}">six · um jogo da coleção</text>`;
+    // rosette and title
+    s += motif("seks", 150, 96, 78, ACCENT, 1.2);
+    s += `<text x="150" y="186" text-anchor="middle" font-family="Alegreya" font-weight="600" font-size="62" letter-spacing="-0.5" fill="${INK}">Seks</text>`;
+    s += `<text x="150" y="203" text-anchor="middle" font-family="Alegreya" font-style="italic" font-size="9.5" fill="${INK}">“seis”, em dinamarquês e norueguês</text>`;
+    // a strip of real-size cells with a capture: w4 - b5 - w6 - . - b1 - w2 - . ...
+    const cells = 11, cell = 20, x0 = 150 - (cells * cell) / 2, y0 = 218;
+    let grid = "";
+    for (let i = 0; i <= cells; i++) grid += `M${x0 + i * cell} ${y0}V${y0 + cell}`;
+    grid += `M${x0} ${y0}H${x0 + cells * cell}M${x0} ${y0 + cell}H${x0 + cells * cell}`;
+    s += `<path d="${grid}" transform="translate(0.28 0.32)" stroke="rgba(255,244,214,0.75)" stroke-width="0.35" fill="none"/>`;
+    s += `<path d="${grid}" stroke="${INK}" stroke-width="0.42" fill="none" opacity="0.88"/>`;
+    const strip = [null, ["b", 2], null, ["w", 1], ["b", 5], ["w", 6], null, ["w", 3], null, ["b", 4], null];
+    strip.forEach((d, i) => { if (d) s += die(x0 + i * cell + cell / 2, y0 + cell / 2, d[1], d[0]); });
+    s += `<text x="150" y="261" text-anchor="middle" font-family="Alegreya SC" font-weight="500" font-size="8" letter-spacing="1.2" fill="${INK}">2 jogadores  ·  32 dados  ·  nenhuma sorte</text>`;
+    s += `<path d="M128 268H172" stroke="${ACCENT}" stroke-width="0.8"/>`;
+    document.getElementById("tampa").innerHTML = svgWrap(s, W, W);
+  })();
+
+  // Spine.
+  (function spine() {
+    const W = 43, H = 300;
+    let s = defs + wood(W, H);
+    s += `<rect x="0" y="0" width="${W}" height="34" fill="${ACCENT}"/>`;
+    s += motif("seks", W / 2, 17, 22, "#F2E6D0", 0.6);
+    s += `<text transform="translate(${W / 2 + 6} 52) rotate(90)" font-family="Alegreya" font-weight="600" font-size="20" fill="${INK}">Seks</text>`;
+    s += `<g transform="translate(${W / 2 - 7} 262) scale(0.14)">
+      <rect x="4" y="4" width="92" height="92" rx="14" fill="none" stroke="${INK}" stroke-width="5"/>
+      ${[[32, 27], [68, 27], [32, 50], [68, 50], [32, 73], [68, 73]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="${INK}"/>`).join("")}</g>`;
+    s += `<text x="${W / 2}" y="288" text-anchor="middle" font-family="Alegreya" font-weight="600" font-size="9" fill="${INK}">six</text>`;
+    s += `<path d="M0 34H${W}" stroke="${INK}" stroke-width="0.6"/>`;
+    document.getElementById("lombada").innerHTML = svgWrap(s, W, H);
+  })();
+
+  // The six games.
+  document.getElementById("faixa").innerHTML = GAMES.map((g) => {
+    const W = 100;
+    let s = defs + wood(W, W);
+    s += `<rect x="6" y="6" width="88" height="88" fill="none" stroke="${INK}" stroke-width="0.5" opacity="0.8"/>`;
+    s += motif(g.key, 50, 50, 64, g.ink, 1.3);
+    return `<article class="jogo">
+      <div class="lasca">${svgWrap(s, W, W)}</div>
+      <h3>${g.name}</h3>
+      <div class="lingua">“seis” em ${g.lang}</div>
+      <div class="genero">${g.genre}</div>
+      <div class="tinta"><i style="background:${g.ink}"></i><span>${g.inkName}<br><span class="tabular" style="opacity:.7">${g.ink}</span></span></div>
+    </article>`;
+  }).join("");
+
+  document.getElementById("pb").innerHTML = GAMES.map((g) =>
+    `<div><svg viewBox="-12 -12 24 24">${motif(g.key, 0, 0, 20, "#111", 0.9)}</svg>${g.name}</div>`
+  ).join("");
+</script>
+</body>
+</html>

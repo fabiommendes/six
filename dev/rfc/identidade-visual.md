@@ -1,9 +1,10 @@
 ---
 type: rfc
-status: draft
+status: accepted
 tags: [estetica, arte, fisico]
 relatedTo: [dev/rfc/estrutura-do-repositorio.md]
 created: 2026-10-17
+decided: 2026-10-17
 creator: claude
 ---
 
@@ -18,7 +19,8 @@ estética. A estética do Rio não se aplica.
 
 ## Proposal
 
-Ainda não há proposta. Restrições que qualquer proposta precisa cumprir:
+Um motivo por língua (ADR 0005), escolhido entre quatro direções esboçadas em
+`arte/esbocos/`. Restrições que qualquer proposta precisa cumprir:
 
 - **Imprimível em casa e em gráfica**: funciona em preto e branco e numa
   impressora comum; nenhuma informação depende só de cor.
@@ -36,12 +38,25 @@ Ainda não há proposta. Restrições que qualquer proposta precisa cumprir:
 
 ## Alternatives
 
+As quatro direções esboçadas, com a tela do jogo, a capa e uma página do
+manual (`arte/esbocos/index.html`):
+
+- Madeira e tinta: `arte/esbocos/a-madeira-e-tinta/`.
+- Geométrico: `arte/esbocos/b-geometrico/`.
+- Motivo por língua, a escolhida: `arte/esbocos/c-motivos-por-lingua/`.
+- Risografia: `arte/esbocos/d-risografia/`.
+
 ## Open questions
 
-- Uma cor por jogo, tirada das seis cores do kit físico comum, se ele existir?
-- Os motivos de cada jogo vêm da cultura da língua do nome (padrões têxteis,
-  caligrafia, azulejos) ou de algo neutro como formas geométricas e os pontos
-  do dado?
-- O logo da coleção: o algarismo 6, a face de seis pontos, ou a palavra "six"?
+Respondidas pela escolha da direção (ADR 0005):
+
+- Uma cor por jogo: sim, da paleta da direção escolhida. A relação com as
+  cores dos dados do kit físico fica para a composição do kit.
+- Os motivos vêm da cultura da língua do nome, desenhados numa grade de pontos
+  comum.
+- O logo é a face de seis ao lado de "six"; cada ponto é um jogo.
 
 ## Outcome
+
+Aceito em 2026-10-17. Gerou o ADR 0005. As quatro direções ficam em
+`arte/esbocos/` como referência para temas futuros da versão digital.

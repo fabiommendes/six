@@ -1,0 +1,50 @@
+/* Shared tokens for the "madeira e tinta" sketch. */
+@font-face { font-family: "Alegreya"; src: url("fonts/Alegreya-VF.ttf") format("truetype"); font-weight: 400 900; font-style: normal; }
+@font-face { font-family: "Alegreya"; src: url("fonts/Alegreya-Italic-VF.ttf") format("truetype"); font-weight: 400 900; font-style: italic; }
+@font-face { font-family: "Alegreya SC"; src: url("fonts/AlegreyaSC-Regular.ttf") format("truetype"); font-weight: 400; }
+@font-face { font-family: "Alegreya SC"; src: url("fonts/AlegreyaSC-Medium.ttf") format("truetype"); font-weight: 500; }
+@font-face { font-family: "Alegreya SC"; src: url("fonts/AlegreyaSC-Bold.ttf") format("truetype"); font-weight: 700; }
+
+:root {
+  --linho: #ECE5D6;
+  --linho-fio: #D8CDB6;
+  --papel: #F6F1E6;
+  --bordo: #E2C79A;      /* maple */
+  --bordo-escuro: #B98E5C;
+  --nogueira: #4A3324;   /* walnut */
+  --tinta: #2A1D14;      /* sepia-black ink */
+  --tinta-suave: #6B5646;
+  --marfim: #EFE6D2;
+  --ebano: #1C1410;
+  --acento: #8B2F22;     /* Seks: Falun red */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  color: var(--tinta);
+  font-family: "Alegreya", serif;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  background-color: var(--linho);
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.9 0.05' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.28  0 0 0 0 0.18  0 0 0 0.10 0'/></filter><rect width='240' height='240' filter='url(%23f)'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.05 0.9' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.28  0 0 0 0 0.18  0 0 0 0.10 0'/></filter><rect width='240' height='240' filter='url(%23f)'/></svg>");
+}
+
+.sc { font-family: "Alegreya SC", serif; letter-spacing: 0.06em; }
+.tabular { font-variant-numeric: lining-nums tabular-nums; }
+
+.botao {
+  font: 500 17px/1 "Alegreya SC", serif;
+  letter-spacing: 0.08em;
+  color: var(--tinta);
+  background: transparent;
+  border: 1.5px solid var(--tinta);
+  border-radius: 1px;
+  padding: 11px 18px 12px;
+  cursor: pointer;
+}
+.botao.cheio { background: var(--tinta); color: var(--papel); }
+.botao:hover { background: rgba(42, 29, 20, 0.07); }
+.botao.cheio:hover { background: #3d2b1f; }

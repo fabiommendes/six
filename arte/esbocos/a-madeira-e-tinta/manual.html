@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Seks · manual · Captura (A5, preto e branco)</title>
+<link rel="stylesheet" href="comum.css">
+<style>
+  @page { size: 148mm 210mm; margin: 0; }
+  body { padding: 40px 0; display: flex; justify-content: center; }
+  .pagina {
+    width: 148mm; height: 210mm;
+    background: #fff;
+    color: #111;
+    padding: 13mm 15mm 12mm 17mm;
+    display: flex; flex-direction: column;
+    box-shadow: 0 1px 0 #cfc6b4, 0 16px 26px -14px rgba(60, 40, 20, 0.45);
+    font-size: 9.3pt;
+    line-height: 1.42;
+    hyphens: auto;
+  }
+  @media print {
+    body { padding: 0; background: none; display: block; }
+    .pagina { box-shadow: none; }
+  }
+  .cabeca { display: flex; justify-content: space-between; font: 500 7.5pt/1 "Alegreya SC", serif; letter-spacing: 0.12em; padding-bottom: 2mm; border-bottom: 0.3mm solid #111; }
+  .titulo { display: flex; align-items: baseline; gap: 4mm; margin: 6mm 0 3.5mm; }
+  .titulo .num { font: 500 30pt/0.8 "Alegreya", serif; font-variant-numeric: oldstyle-nums; }
+  .titulo h1 { margin: 0; font: 600 22pt/1 "Alegreya", serif; letter-spacing: -0.01em; }
+  .titulo svg { width: 7mm; height: 7mm; margin-left: auto; align-self: center; }
+  p { margin: 0 0 2.4mm; text-align: justify; }
+  p.abre::first-line { font-family: "Alegreya SC"; letter-spacing: 0.04em; }
+  b { font-weight: 700; }
+  figure { margin: 3mm 0 3mm; display: grid; grid-template-columns: 58mm 1fr; gap: 4.5mm; align-items: end; }
+  figure svg { width: 58mm; display: block; }
+  figcaption { font-size: 8.4pt; line-height: 1.35; font-style: italic; }
+  figcaption .sc { font-style: normal; font-size: 7.6pt; display: block; margin-bottom: 1mm; }
+  ul { margin: 0 0 2.4mm; padding: 0; list-style: none; }
+  li { padding-left: 4.2mm; position: relative; margin-bottom: 1mm; }
+  li::before { content: ""; position: absolute; left: 0.6mm; top: 1.9mm; width: 1.5mm; height: 1.5mm; border-radius: 50%; background: #111; }
+  .tiras { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; margin: 1mm 0 1.5mm; }
+  figure.tira { display: block; margin: 0; }
+  figure.tira svg { width: 100%; }
+  figure.tira figcaption { margin-top: 1.5mm; }
+  .detalhe { margin-top: 1.5mm; border-top: 0.25mm solid #111; border-bottom: 0.25mm solid #111; padding: 2mm 0 2.2mm; font-size: 8.6pt; line-height: 1.36; }
+  .detalhe .sc { font-size: 7.6pt; margin-right: 1.5mm; }
+  .pe { margin-top: auto; padding-top: 3mm; display: flex; justify-content: center; align-items: center; gap: 2.5mm; font: 500 8pt/1 "Alegreya", serif; font-variant-numeric: oldstyle-nums; }
+  .pe svg { width: 3.6mm; height: 3.6mm; }
+</style>
+</head>
+<body>
+<article class="pagina">
+  <header class="cabeca"><span>Seks</span><span>Captura</span></header>
+
+  <div class="titulo">
+    <span class="num">4</span>
+    <h1>Captura</h1>
+    <svg viewBox="-11 -11 22 22" id="orn"></svg>
+  </div>
+
+  <p class="abre">A captura é <b>por custódia</b>. Depois que um dado do jogador termina um movimento,
+    o jogador olha as 4 casas ortogonais vizinhas da casa onde ele parou: acima, abaixo, à esquerda e
+    à direita. Um dado adversário numa dessas casas é capturado quando a casa seguinte, na mesma
+    direção, tem um dado do jogador. O dado capturado sai do tabuleiro e não volta.</p>
+
+  <figure>
+    <div id="diagrama"></div>
+    <figcaption><span class="sc">Diagrama 4.1</span>O 3 branco anda de d1 a d4 e continua 3. Ele
+      captura o 2 preto em d5, entre d4 e o 1 branco em d6, e o 4 preto em e4, entre d4 e o 2 branco
+      em f4. O 5 preto em c5 fica: diagonais não capturam.</figcaption>
+  </figure>
+
+  <ul>
+    <li>Um só movimento pode capturar em várias direções, até 4 dados.</li>
+    <li>O valor dos dados não importa: um 1 e um 2 capturam um 6.</li>
+    <li>Só um dado é capturado por direção, e a borda não conta como dado do jogador.</li>
+  </ul>
+
+  <div class="tiras">
+    <figure class="tira"><div id="tira1"></div><figcaption><span class="sc">Diagrama 4.2</span>Dois
+      pretos seguidos entre dois brancos: nenhum é capturado.</figcaption></figure>
+    <figure class="tira"><div id="tira2"></div><figcaption><span class="sc">Diagrama 4.3</span>O 6
+      branco parou entre dois pretos: está a salvo.</figcaption></figure>
+  </div>
+
+  <div class="detalhe"><span class="sc">Detalhe</span>Só quem move captura. Um dado que para entre
+    dois dados adversários está a salvo, e incrementar nunca captura.</div>
+
+  <footer class="pe"><svg viewBox="-11 -11 22 22" id="orn2"></svg>17</footer>
+</article>
+
+<script src="comum.js"></script>
+<script>
+  const pos = {
+    d4: ["w", 3], d5: ["b", 2], d6: ["w", 1], e4: ["b", 4], f4: ["w", 2], c5: ["b", 5],
+    b2: ["w", 2], g2: ["w", 2], f6: ["b", 3], c3: ["b", 1],
+  };
+  const b = board({
+    pos, style: "print", cols: [1, 6], rows: [1, 6], margin: 9,
+    arrow: { from: "d1", to: "d4" }, captured: ["d5", "e4"],
+  });
+  document.getElementById("diagrama").innerHTML = svgWrap(b.svg, b.W, b.H);
+  const strip = (p, id, arrow) => {
+    const t = board({ pos: p, style: "print", cols: [2, 6], rows: [4, 4], margin: 4, coords: false, frame: false, arrow });
+    document.getElementById(id).innerHTML = svgWrap(t.svg, t.W, t.H);
+  };
+  strip({ c4: ["w", 2], d4: ["b", 4], e4: ["b", 1], f4: ["w", 5] }, "tira1");
+  strip({ d4: ["b", 3], e4: ["w", 6], f4: ["b", 2] }, "tira2");
+  document.getElementById("orn").innerHTML = motif("seks", 0, 0, 20, "#111", 0.8);
+  document.getElementById("orn2").innerHTML = motif("seks", 0, 0, 20, "#111", 1.1);
+</script>
+</body>
+</html>
