@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["seks/engine", "seks/bots"]
+members = ["seks/engine", "seks/bots", "seks/wasm"]
 
 [workspace.package]
 edition = "2021"

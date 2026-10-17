@@ -74,7 +74,7 @@ Passos:
 - [ ] R3. Crate `seks-wasm` (`digital/seks/wasm/`) com `Game`: criar, ler
   estado, aplicar comando com eventos, destinos e incremento de um dado,
   comandos legais, desfazer, visão.
-- [ ] R3. Testes do `Game` em Rust (nativo).
+- [x] R3. Testes do `Game` em Rust (nativo).
 - [ ] R3. `wasm-pack build` e teste em Node que joga uma partida inteira
   pelo `Game`; README com pré-requisitos e comandos.
 - [ ] R5. Receita `just seks-wasm` e build WASM no `just check`.
