@@ -88,7 +88,7 @@ Passos:
   da Alegreya empacotadas, receitas do `just` e `just check`, mapa e comandos
   do `AGENTS.md`.
 - [x] `seks-wasm`: `Game.fromDiagram`, com teste em Rust e em Node.
-- [ ] Invólucro tipado do `Game`, carregador do WASM e testes.
+- [x] Invólucro tipado do `Game`, carregador do WASM e testes.
 - [ ] R2. Máquina de seleção pura, ligada às opções do motor, com testes de
   cada caso (selecionar, mover, incrementar, 6, trocar, clicar fora).
 - [ ] R1, R6. Partida (`Match`): hotseat, jogo contra bot, desfazer em laço até
