@@ -1,6 +1,6 @@
 ---
 type: issue
-status: in_progress
+status: in_review
 tags: [seks, digital, web, rede, webrtc]
 relatedTo: [dev/rfc/rede-sem-servidor.md, dev/issues/partida-por-correspondencia-do-seks.md]
 kind: enhancement
@@ -84,6 +84,18 @@ longo.
 - [x] P9. Interface: criar partida ao vivo, painel (convite, conexão, vez,
   fallback para correspondência), entrar pelo convite, desistir e continuar
   contra o bot.
-- [ ] P10. Verificação no navegador com duas abas (sinalização pública),
+- [x] P10. Verificação no navegador com duas abas (sinalização pública),
   README da web com a escolha da biblioteca, `just check`, issue em
   `in_review`.
+
+## Verificação
+
+Com a sinalização pública (relays Nostr da biblioteca, pelo Chromium com dois
+contextos): convite, partida curta nos dois sentidos, queda (aba fechada) e volta
+pela lista, jogada feita com o outro fora e vista ao voltar, reload do
+anfitrião, desistência com o outro conectado (o outro escolhe "Continuar contra o
+bot"), desistência sem conexão, e fallback para correspondência com a rede
+cortada (contexto offline) e com a queda sem volta. Pendências: o par de redes que
+não conecta de verdade (NAT simétrico) não foi reproduzido; a perda de uma
+mensagem com a conexão de pé só tem teste com o transporte falso (reenvio do
+`state` a cada 10 s).
