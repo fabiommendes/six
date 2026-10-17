@@ -171,10 +171,49 @@ impl Searcher {
         seed: u64,
         stop: &mut dyn FnMut() -> bool,
     ) -> SearchResult {
-        let mut root = legal_commands(state);
-        assert!(!root.is_empty(), "the game is over");
+        self.search_root(
+            state,
+            legal_commands(state),
+            false,
+            limits,
+            noise,
+            seed,
+            stop,
+        )
+    }
+
+    /// [`Searcher::search`] with the root restricted to `root`, a non-empty
+    /// subset of the legal commands of `state`. The replies below the root
+    /// are not restricted. The result is not stored in the table: it is not
+    /// the score of the position.
+    pub fn search_among(
+        &mut self,
+        state: &GameState,
+        root: Vec<Command>,
+        limits: Limits,
+        noise: i32,
+        seed: u64,
+        stop: &mut dyn FnMut() -> bool,
+    ) -> SearchResult {
+        self.search_root(state, root, true, limits, noise, seed, stop)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn search_root(
+        &mut self,
+        state: &GameState,
+        mut root: Vec<Command>,
+        restricted: bool,
+        limits: Limits,
+        noise: i32,
+        seed: u64,
+        stop: &mut dyn FnMut() -> bool,
+    ) -> SearchResult {
+        assert!(!root.is_empty(), "the game is over or the root is empty");
         self.nodes = 1;
-        if let Some(win) = winning_move(state.board(), state.to_move()) {
+        if let Some(win) = winning_move(state.board(), state.to_move())
+            .filter(|win| !restricted || root.contains(win))
+        {
             return SearchResult {
                 command: win,
                 score: WIN - 1,
@@ -257,13 +296,15 @@ impl Searcher {
             done_depth = depth;
             done_scores = scores.clone();
             done_root = root.clone();
-            self.table.store(
-                state.position_hash(),
-                code(root[0]),
-                scores[0],
-                depth as i32,
-                Bound::Exact,
-            );
+            if !restricted {
+                self.table.store(
+                    state.position_hash(),
+                    code(root[0]),
+                    scores[0],
+                    depth as i32,
+                    Bound::Exact,
+                );
+            }
             if is_decisive(scores[0]) && (WIN - scores[0].abs()) < depth as i32 {
                 break;
             }

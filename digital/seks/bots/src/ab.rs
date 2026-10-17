@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use seks_engine::GameState;
+use seks_engine::{Command, GameState};
 
 use crate::bot::{Bot, Decision};
 use crate::eval::{Evaluator, Weights};
@@ -151,6 +151,39 @@ fn load_weights(path: &str) -> Result<Weights, String> {
     Ok(weights)
 }
 
+impl AlphaBeta {
+    /// [`Bot::choose`] with the root restricted to `root`, a non-empty
+    /// subset of the legal commands of `state`
+    /// ([`Searcher::search_among`]).
+    pub fn choose_among(&mut self, state: &GameState, root: Vec<Command>, seed: u64) -> Decision {
+        self.decide(state, Some(root), seed)
+    }
+
+    fn decide(&mut self, state: &GameState, root: Option<Vec<Command>>, seed: u64) -> Decision {
+        let (limits, noise) = (self.limits, self.noise);
+        let searcher = &mut self.searcher;
+        let run = |stop: &mut dyn FnMut() -> bool| match root {
+            Some(root) => searcher.search_among(state, root, limits, noise, seed, stop),
+            None => searcher.search(state, limits, noise, seed, stop),
+        };
+        let result = match self.ms {
+            #[cfg(not(target_arch = "wasm32"))]
+            Some(ms) => {
+                let start = std::time::Instant::now();
+                let budget = std::time::Duration::from_millis(ms);
+                run(&mut || start.elapsed() >= budget)
+            }
+            _ => run(&mut || false),
+        };
+        Decision {
+            command: result.command,
+            nodes: result.nodes,
+            depth: result.depth,
+            score: Some(result.score),
+        }
+    }
+}
+
 impl Bot for AlphaBeta {
     fn name(&self) -> String {
         self.spec.clone()
@@ -161,25 +194,6 @@ impl Bot for AlphaBeta {
     }
 
     fn choose(&mut self, state: &GameState, seed: u64) -> Decision {
-        let result = match self.ms {
-            #[cfg(not(target_arch = "wasm32"))]
-            Some(ms) => {
-                let start = std::time::Instant::now();
-                let budget = std::time::Duration::from_millis(ms);
-                self.searcher
-                    .search(state, self.limits, self.noise, seed, &mut || {
-                        start.elapsed() >= budget
-                    })
-            }
-            _ => self
-                .searcher
-                .search(state, self.limits, self.noise, seed, &mut || false),
-        };
-        Decision {
-            command: result.command,
-            nodes: result.nodes,
-            depth: result.depth,
-            score: Some(result.score),
-        }
+        self.decide(state, None, seed)
     }
 }

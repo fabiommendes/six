@@ -4,6 +4,7 @@ use seks_engine::{legal_commands, Board, Command, Engine, GameState, Outcome, Si
 
 use crate::ab::AlphaBeta;
 use crate::rng::Rng;
+use crate::still::Still;
 use crate::tactics::{can_win_now, relative_row};
 
 /// What a bot chose and what the choice cost.
@@ -66,6 +67,11 @@ pub trait Bot {
 ///
 ///   `ab` with no `depth`, `nodes` or `ms` is the default level,
 ///   `ab:nodes=N0` with N0 = [`AlphaBeta::DEFAULT_NODES`] (60 000).
+/// - `still[:ARGS]`: an experiment ([`crate::still::Still`]). For its
+///   first `plays=N` plays (every play without `plays`), it keeps its dice
+///   in place: the best increment by the search of `ab:ARGS`, moving only
+///   to win, when it has no increment, or when every increment loses by
+///   force. Then it plays as `ab:ARGS`. The other `ARGS` are those of `ab`.
 pub fn by_name(spec: &str) -> Result<Box<dyn Bot + Send>, String> {
     let (name, args) = spec.split_once(':').unwrap_or((spec, ""));
     match (name, args) {
@@ -73,6 +79,9 @@ pub fn by_name(spec: &str) -> Result<Box<dyn Bot + Send>, String> {
         ("greedy", "") if spec == "greedy" => Ok(Box::new(Greedy)),
         ("ab", _) if spec == "ab" || !args.is_empty() => {
             Ok(Box::new(AlphaBeta::from_args(spec, args)?))
+        }
+        ("still", _) if spec == "still" || !args.is_empty() => {
+            Ok(Box::new(Still::from_args(spec, args)?))
         }
         _ => Err(format!("unknown bot {spec:?}")),
     }
@@ -176,6 +185,9 @@ mod tests {
             "ab:depth=4,nodes=100,tt=2,noise=0,ms=50",
             "ab:weights=@weights/hand.json",
             "ab:nmp=0,lmr=1",
+            "still",
+            "still:plays=20",
+            "still:plays=10,nodes=5000,contempt=0",
         ] {
             assert_eq!(by_name(spec).unwrap().name(), spec);
         }
@@ -197,6 +209,10 @@ mod tests {
             "ab:weights=@missing.json",
             "ab:nmp=2",
             "abc",
+            "still:",
+            "still:plays=x",
+            "still:plays=-1",
+            "still:speed=3",
         ] {
             assert!(by_name(spec).is_err(), "{spec}");
         }

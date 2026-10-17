@@ -30,6 +30,7 @@ pub mod openings;
 pub mod rng;
 pub mod search;
 pub mod stats;
+pub mod still;
 pub mod tactics;
 /// Self-play, tuning and the training loop: native only.
 #[cfg(not(target_arch = "wasm32"))]

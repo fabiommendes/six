@@ -119,3 +119,12 @@ pesos à mão: material de 138 (dado 1) a 276 (dado 6), em vez de 90 a 110;
 `threats_*` e `at_risk_them` não mudam: o tune só vê posições quietas, em
 que essas features são zero. Números por geração em
 `dev/notes/bots-do-seks.md`.
+
+## Bots de experimento
+
+`still[:plays=N,ARGS]` (`src/still.rs`) usa a busca e a avaliação do `ab`
+com a raiz restrita aos incrementos (`Searcher::search_among`): fica parado
+nas primeiras `N` jogadas (ou na partida inteira) e só move para vencer, sem
+incremento ou quando todo incremento perde à força. Serve para medir defesas
+de anti-jogo e testar mudanças de regra; resultados em
+`dev/notes/bots-do-seks.md`, "Abertura e a estratégia de ficar parado".

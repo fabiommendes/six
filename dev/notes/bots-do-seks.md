@@ -175,3 +175,131 @@ perto do resultado), e fica para depois.
 contra `hand.json`): +1577 =8 -415, Elo +231 [+213, +250]. Passa (pede
 +50 com o limite inferior acima de 0). É o mesmo lote do portão: mesma
 semente e bots determinísticos.
+
+## Abertura e a estratégia de ficar parado (2026-10-17, parcial)
+
+Pergunta do designer: ficar parado e só incrementar na abertura é uma
+estratégia dominante? Como os bots fortes jogam essa fase? Jogadas contadas
+a partir da posição inicial; "fora" é um dado fora das duas fileiras
+iniciais do seu lado. Valor médio inicial: 26 / 16 = 1,63.
+
+### O `ab` na abertura
+
+| Lote | Resultado | Incrementos por jogada (1-6, 7-10, 11-20, 21-30, 31-40) | Primeira captura | Valor médio / dados fora, jogadas 10, 20, 30 |
+|---|---|---|---|---|
+| `ab` x `ab`, posição inicial, sem ruído | empate por 100 jogadas sem captura, 0 capturas | 100, 75, 50, 50, 60% | nenhuma | 1,91 / 0,5; 2,06 / 2,0; 2,22 / 3,5 |
+| `ab:noise=20` x `ab:noise=20`, posição inicial, 100 partidas | Brancas 50, Pretas 48, empates 2 (2,0% [0,6; 7,0]); 63 jogadas | 72, 67, 63, 51, 41% | 67 de 100; mediana 45 (quartis 33 a 60); 14 até a jogada 30 | 1,82 / 0,8; 1,99 / 1,8; 2,11 / 2,9 |
+| `ab` x `ab`, `openings/base.txt`, 400 partidas | +178 =44 -178; Brancas 196, Pretas 160, empates 44 (11,0% [8,3; 14,4]) | 7-10: 90, 77, 63, 59% | 352 de 400; mediana 68 (49 a 86); 12 até a jogada 30 | 1,68 / 1,6; 1,92 / 2,2; 2,11 / 3,2 |
+| `ab:noise=20` x pesos à mão com ruído 20, posição inicial, 100 partidas | +80 =1 -19, Elo +246 [+171, +349] | à mão: 14, 12, 13, 12, 15% | 64 de 100; mediana 44 | à mão: 1,56 / 2,2; 1,53 / 3,8; 1,48 / 4,9 |
+
+- O `ab` padrão abre incrementando: 3 de cada 4 jogadas nas 10 primeiras e
+  metade entre as jogadas 21 e 30. Tira um dado das fileiras iniciais a cada
+  6 a 8 jogadas suas e quase nunca captura antes da jogada 30. Os pesos à
+  mão fazem o contrário (12 a 15% de incrementos, dados mais baixos e mais
+  avançados) e perdem por +246 Elo.
+- Sem ruído, `ab` contra `ab` a partir da posição inicial empata por 100
+  jogadas sem captura, sem nenhuma captura. Com ruído 20 (um quinto de
+  dado) as partidas viram decisivas (2% de empates): o empate do espelho
+  exato é um equilíbrio frágil, não uma propriedade da posição.
+
+### O bot `still` (ficar parado)
+
+`still[:plays=N,ARGS]` (`src/still.rs`, no `by_name`): nas primeiras `N`
+jogadas suas (todas, sem `plays`) escolhe o melhor incremento pela busca do
+`ab:ARGS` (a raiz só tem incrementos, as respostas não são restritas;
+`Searcher::search_among`). Move só para vencer na hora, sem incremento
+disponível, ou quando a busca acha que todo incremento perde à força; nesse
+caso, e depois das `N` jogadas, joga como `ab:ARGS`. A variante medida
+abaixo é `still` sem `plays`: parado a partida inteira, com o `ab` padrão
+(60 mil nós) escolhendo o incremento.
+
+Contra `ab`, `openings/base.txt`, 400 partidas: **+24 =283 -93**, Elo
+-61 [-79, -43]; empates 70,8% [66,1; 75,0], todos por 100 jogadas sem
+captura; 117 vitórias na fileira de fundo (24 do `still`, 93 do `ab`).
+
+| Casas da fileira da frente sem dado próprio depois da abertura | Partidas | `still`: V / E / D |
+|---|---|---|
+| 0 | 3 | 0 / 3 / 0 |
+| 1 (só a coluna 6) | 27 | 0 / 27 / 0 |
+| 2 | 106 | 6 / 78 / 22 |
+| 3 ou mais | 264 | 18 / 175 / 71 |
+
+- O `ab` não fura a defesa parada: em 283 partidas não consegue uma
+  captura em 100 jogadas. As derrotas do `still` são longas (mediana de 180
+  jogadas): começam com movimentos forçados para tapar buracos que as seis
+  jogadas aleatórias das aberturas abriram (primeiro movimento do `still`
+  na jogada 38, mediana), que dão capturas ao `ab` (primeira na jogada 81,
+  mediana) e zeram a contagem; em 75 das 93 derrotas o `still` já tinha
+  quase todos os dados em 6 e era obrigado a mover. Só 7 derrotas acabam
+  antes da jogada 100.
+- Da posição inicial, `still` contra `ab` (as duas cores) empata as duas
+  partidas por 100 jogadas sem captura, sem captura.
+
+### A muralha: um movimento garante o empate
+
+Com a fileira da frente completa (11 dados), nenhum dado adversário chega à
+fileira de fundo, porque todo caminho até ela passa por uma casa da fileira
+da frente e não se pula dado. Nenhum dado da muralha pode ser capturado: os
+vizinhos laterais são dados próprios ou a borda, que não conta, e o vizinho
+de trás de um dado da fileira da frente fica na fileira de fundo, aonde o
+adversário não chega; os dados da fileira de fundo só têm vizinhos
+próprios, a borda ou casas da fileira de fundo. O dono da muralha sempre
+tem jogada (incrementos, ou um dado da fileira de fundo andando de lado).
+Na posição inicial falta só a coluna 6: **`e1-f2`** (ou `g1-f2`; `e11-f10`
+para as Pretas) fecha a muralha, e quem não sai dela não perde. Também não
+vence: sem captura, a partida acaba empatada na jogada 100.
+
+Partida de exemplo (abertura `e1-f2`, Brancas `still`, Pretas `ab`; empate
+por 100 jogadas sem captura, as Brancas só incrementam):
+
+```text
+e1-f2 c10+ i2+ c10+ c2+ i10+ c2+ i10+ i2+ c10-g6 b2+ b10+ b2+ b10+ j2+ a10+
+j2+ a10+ k2+ a10-e6 k2+ e11-f10 a2+ b10-f6 a2+ j10+ g1+ j10+ d2+ k10+ d2+
+k10+ h2+ a11+ h2+ a11+ g1+ a11+ g1+ d10+ k1+ d10+ k1+ e10+ k1+ e10+ e2+
+a11-e7 e2+ e10+ a2+ e10-a6 a2+ d10-h6 b2+ c11-b11 b2+ k11+ g1+ g11+ g1+
+i11+ a1+ b11+ c1+ k10-k6 c1+ a6+ c1+ a6+ c1+ b11-b9 c1+ b9-b7 d2+ h6-d10
+d2+ d10-d6 i1+ g10-f9 i1+ b7+ c2+ g6-c10 c2+ f10-f11 i2+ g11-e9 f2+ b7+
+i1+ k6-g6 i2+ c10-c6 k1+ i11+ k1+ i11+ g2+ f11-f10
+```
+
+O teste `still::tests::a_full_front_row_holds_until_the_draw` fixa isso:
+depois de `e1-f2`, `still` contra `ab:nodes=2000` empata por 100 jogadas sem
+captura com os 16 dados.
+
+### Leitura
+
+- Ficar parado não é dominante para vencer: o `still` perde Elo (-61) e
+  quase não vence. É uma defesa de empate: 71% contra o `ab` padrão nas
+  aberturas aleatórias, e empate garantido quando a fileira da frente está
+  fechada. O `ab` não sabe punir; com a muralha fechada não há o que punir.
+- A muralha é uma propriedade das regras (captura por custódia sem a borda,
+  movimento sem pular, 100 jogadas sem captura), não um limite da busca.
+  Com buracos na fileira da frente, ainda falta medir se mais orçamento do
+  `ab` fura a defesa (ver "Pendente").
+
+### Pendente
+
+- `still:plays=N` (N = 10, 20, 40) contra `ab`, 400 partidas cada;
+  `ab` contra os pesos à mão em `openings/base.txt`.
+- `still` contra `ab` com 240 mil e 1 milhão de nós, para separar o limite
+  do bot da propriedade do jogo nas posições com buracos.
+- Torneio de bots de anti-jogo pedido pelo designer: handoff em
+  `dev/handoffs/abertura-do-seks.md` (fora do git).
+
+### Como reproduzir
+
+Em `digital/seks/bots`, com `S="systemd-run --user --scope -q -p
+CPUQuota=600% -p MemoryMax=4G -- nice -n 19 ionice -c3"` e o binário de
+`cargo build --release -p seks-bots`:
+
+```sh
+$S ../../target/release/seks-bots batch --bots still,ab --openings openings/base.txt --games-out runs/still-ab
+$S ../../target/release/seks-bots batch --bots ab,ab --openings openings/base.txt --games-out runs/ab-ab
+echo e1-f2 > wall.txt
+$S ../../target/release/seks-bots batch --bots still,ab --openings wall.txt --games-out runs/wall
+```
+
+As partidas da posição inicial e a análise por jogada (incrementos, valor
+médio, dados fora, primeira captura, buracos da fileira da frente) usaram
+uma ferramenta descartável, fora do git, guardada em
+`dev/handoffs/abertura-do-seks/`.
