@@ -73,7 +73,9 @@ button:disabled { color: var(--muted); border-color: var(--line); box-shadow: 0 
 button:focus-visible, input:focus-visible + .choice-body { outline: 3px solid var(--seks); outline-offset: 2px; }
 button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 
-.foot { margin-top: auto; padding-top: 10px; line-height: 0; }
+.panel > * { flex-shrink: 0; }
+/* The decorative strip gives way first when the panel is too tall for the window, so the panel does not scroll. */
+.panel > .foot { flex-shrink: 1; min-height: 0; overflow: hidden; margin-top: auto; padding-top: 10px; line-height: 0; }
 
 .flying-die { position: fixed; z-index: 50; pointer-events: none; line-height: 0; will-change: transform; }
 
@@ -162,7 +164,8 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 .mail-link { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); font: 500 14px "Alegreya Sans", sans-serif; text-overflow: ellipsis; }
 .mail-buttons, .left-buttons, .ask-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .mail-buttons button, .left-buttons button, .ask-buttons button { flex: 1 1 auto; }
-.mail-status { margin: 6px 0 0; min-height: 1.3em; font-size: 15px; color: var(--muted); }
+.mail-status { margin: 6px 0 0; font-size: 15px; color: var(--muted); }
+.mail-status:empty { display: none; }
 .left-level { display: flex; align-items: center; gap: 8px; font-weight: 700; }
 .left-level select { font: inherit; padding: 6px 8px; border: 2px solid var(--ink); background: var(--paper); }
 .ask-text { margin: 0; font-size: 15px; line-height: 1.3; }

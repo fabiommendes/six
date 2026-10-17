@@ -62,7 +62,7 @@ problema), `resign`. Quem convidou é a referência: num estado que diverge, o
 convidado adota o do anfitrião; se um estado é prefixo do outro, vale o mais
 longo.
 
-- [ ] P1. Refatorar `GameScreen` (`src/ui/game.ts`) em componentes (painel de
+- [x] P1. Refatorar `GameScreen` (`src/ui/game.ts`) em componentes (painel de
   correspondência, diálogo de confirmação, cartão de fim), sem mudar
   comportamento. (`Refs: interface-web-do-seks`)
 - [x] P2. "Terminar com bots": intervalo mínimo de 0,3 s contado do início da
@@ -70,7 +70,7 @@ longo.
   (`Refs: interface-web-do-seks`)
 - [ ] P3. Correção da correspondência: quem desiste e recarrega mantém a
   partida (marcada como desistida) até copiar ou compartilhar o link.
-- [ ] P4. Painel da correspondência sem rolar em 1440x900 com o link e a dica
+- [x] P4. Painel da correspondência sem rolar em 1440x900 com o link e a dica
   juntos.
 - [ ] P5. Transporte: interface, transporte em memória para os testes e
   transporte Trystero (Nostr). Dependência fixada.
