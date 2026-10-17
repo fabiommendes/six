@@ -16,6 +16,6 @@ export default defineConfig({
   },
   server: { fs: { allow: [".."] } },
   worker: { format: "es" },
-  build: { target: "es2022" },
+  build: { target: "es2022", chunkSizeWarningLimit: 700 },
   test: { include: ["tests/**/*.test.ts"], setupFiles: ["tests/setup.ts"] },
 });

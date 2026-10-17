@@ -1,0 +1,59 @@
+import { SeksGame } from "../engine/game";
+import type { Cell } from "../engine/cells";
+import type { Captured, LastPlay, Mode } from "./match";
+
+/** A position to open instead of a new game: the game, what the history would have said, and what is selected. */
+export interface Fixture {
+  readonly game: SeksGame;
+  readonly mode: Mode;
+  readonly last: LastPlay | null;
+  readonly captured: readonly Captured[];
+  readonly select: Cell | null;
+  /** Plies without capture from which the count shows (0 shows it always). */
+  readonly counterFrom: number | null;
+}
+
+/**
+ * The game of the art sketch (`arte/esbocos/c-motivos-por-lingua/jogo.html`):
+ * the Whites to move with the 6 of f6 selected, after the Blacks played g8 to
+ * g6, 23 plies without a capture. The engine does not keep a history of
+ * captures, so the captured dice come with the fixture.
+ */
+export const SKETCH_DIAGRAM = `
+  b1 .. b1 .. .. .. b1 .. b1 .. b1
+  b2 b2 .. b2 b3 .. b2 b2 .. b2 ..
+  .. .. b4 .. .. .. .. .. .. .. ..
+  .. .. .. .. .. b5 .. .. .. .. ..
+  .. .. .. w3 .. .. .. .. .. .. ..
+  .. .. .. .. .. w6 b2 .. .. .. ..
+  .. .. .. .. .. .. .. .. w4 .. ..
+  .. w2 .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  w2 .. w2 w2 .. .. w2 .. .. w2 ..
+  w1 .. w1 .. w1 .. w1 .. w1 .. w1`;
+
+/** The same position with `plies` plies without a capture (placeholder hashes before the current one). */
+export function withPliesWithoutCapture(game: SeksGame, plies: number): SeksGame {
+  const state = game.state();
+  state.plies_without_capture = plies;
+  const earlier = Array.from({ length: plies }, (_, i) => (i + 1).toString(16).padStart(16, "0"));
+  state.history = [...earlier, state.history.at(-1)!];
+  return SeksGame.fromState(state);
+}
+
+export function sketchFixture(): Fixture {
+  return {
+    game: withPliesWithoutCapture(SeksGame.fromDiagram(SKETCH_DIAGRAM, "white"), 23),
+    mode: { kind: "hotseat" },
+    last: { side: "black", from: "g8", to: "g6", value: 2, captures: 0 },
+    captured: [
+      { side: "black", value: 1 },
+      { side: "white", value: 2 },
+    ],
+    select: "f6",
+    counterFrom: 0,
+  };
+}
+
+/** The fixtures that the page opens with `?fixture=NAME`. */
+export const FIXTURES: Readonly<Record<string, () => Fixture>> = { esboco: sketchFixture };

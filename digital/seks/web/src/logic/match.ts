@@ -168,6 +168,14 @@ export class Match {
     this.notify();
   }
 
+  /** Clears the selection: a click outside the cells of the board. */
+  clearSelection(): void {
+    if (this.disposed || this.busy || this.thinking || this.selection === null) return;
+    this.selection = null;
+    this.stage.setMarks(this.marks());
+    this.notify();
+  }
+
   /**
    * Takes back the last play. Against the bot it goes back to the last
    * human play, bot answers included, so the turn is the human's again.

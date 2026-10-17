@@ -25,6 +25,19 @@ export interface WorkerLike {
   terminate(): void;
 }
 
+/** Wraps a real `Worker` as a `WorkerLike`. */
+export function adaptWorker(worker: Worker): WorkerLike {
+  const like: WorkerLike = {
+    postMessage: (message) => worker.postMessage(message),
+    onmessage: null,
+    onerror: null,
+    terminate: () => worker.terminate(),
+  };
+  worker.onmessage = (event: MessageEvent<BotResponse>) => like.onmessage?.({ data: event.data });
+  worker.onerror = (event) => like.onerror?.(event);
+  return like;
+}
+
 interface Pending {
   resolve(command: Command): void;
   reject(error: Error): void;

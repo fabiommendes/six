@@ -75,10 +75,15 @@ export function modeLine(mode: Mode): string {
   return `Contra o bot, nível ${mode.level.label} · você joga com as ${SIDE_NAME[mode.human]}`;
 }
 
+/** The turn belongs to the bot: it is thinking, or its play is about to be asked for. */
+function botsTurn(snapshot: MatchSnapshot): boolean {
+  return snapshot.view.outcome === null && snapshot.mode.kind === "bot" && snapshot.view.to_move !== snapshot.mode.human;
+}
+
 /** The line under the turn title. */
 export function turnSubtitle(snapshot: MatchSnapshot): string {
   if (snapshot.view.outcome !== null) return "";
-  if (snapshot.thinking) return "O bot está pensando…";
+  if (snapshot.thinking || botsTurn(snapshot)) return "O bot está pensando…";
   if (snapshot.mode.kind === "bot") return "Sua vez: mova ou incremente um dado.";
   return "Mova ou incremente um dado.";
 }
@@ -113,7 +118,7 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
     return { strong: "O bot não respondeu.", rest: `${snapshot.error}. Desfaça a última jogada ou comece outra partida.` };
   }
   if (snapshot.view.outcome !== null) return { strong: "", rest: "" };
-  if (snapshot.thinking) {
+  if (snapshot.thinking || botsTurn(snapshot)) {
     return { strong: "O bot está pensando.", rest: snapshot.canUndo ? "Você pode desfazer a sua última jogada enquanto espera." : "" };
   }
   const selection = snapshot.selection;
