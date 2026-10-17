@@ -43,6 +43,8 @@ export interface GameScreenOptions {
   readonly resume?: readonly Command[];
   /** Whether the camera starts tilted. */
   readonly tilted?: boolean;
+  /** The side the board is seen from at the start (a match that resumes); by default, the side the player should see. */
+  readonly viewpoint?: Side;
   /** Called with what it takes to open this match again, at every change of it. */
   readonly onSession?: (session: Session) => void;
   /** The player asked for a new game. */
@@ -85,6 +87,8 @@ export class GameScreen {
   private readonly gesture: Gesture;
   private readonly reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
   private tilted = false;
+  /** The side the board is seen from: the human's against the bot, the side to move in hotseat. */
+  private viewpoint: Side = "white";
   private readonly off: (() => void)[] = [];
   private bandWidth = 0;
 
@@ -124,8 +128,13 @@ export class GameScreen {
       board?.setTilted(true, true);
     }
 
+    const first = this.match.snapshot();
+    this.viewpoint = options.viewpoint ?? this.sideToSee(first);
+    if (this.viewpoint !== "white") board?.setViewpoint(this.viewpoint, true);
+
     this.off.push(
       this.match.subscribe((snapshot) => {
+        this.follow(snapshot);
         this.render(snapshot);
         this.persist();
       }),
@@ -157,7 +166,22 @@ export class GameScreen {
   }
 
   private persist(): void {
-    this.options.onSession?.({ mode: this.options.mode, ...this.match.record(), seed: this.options.seed ?? {}, tilted: this.tilted });
+    this.options.onSession?.({ mode: this.options.mode, ...this.match.record(), seed: this.options.seed ?? {}, tilted: this.tilted, viewpoint: this.viewpoint });
+  }
+
+  /** The side to see the board from: the human's against the bot; in hotseat the side to move, or the same one when the game is over. */
+  private sideToSee(snapshot: ReturnType<Match["snapshot"]>): Side {
+    if (snapshot.mode.kind === "bot") return snapshot.mode.human;
+    return snapshot.view.outcome === null ? snapshot.view.to_move : this.viewpoint;
+  }
+
+  /** Turns the board to the side to see once a play is over, not while its dice are still moving. */
+  private follow(snapshot: ReturnType<Match["snapshot"]>): void {
+    if (snapshot.busy) return;
+    const side = this.sideToSee(snapshot);
+    if (side === this.viewpoint) return;
+    this.viewpoint = side;
+    this.board?.setViewpoint(side);
   }
 
   private canActivate(cell: Cell): boolean {
@@ -244,7 +268,9 @@ export class GameScreen {
       ? `<span>${markIcon("origin", 20)} ${markIcon("last", 20)}</span>${esc(lastPlayText(snapshot.last))}`
       : "";
 
-    need(host, ".sides").innerHTML = (["black", "white"] as const).map((side) => this.sideRow(snapshot, side)).join("");
+    // The side the board is seen from is at the bottom, as on the board.
+    const order = this.viewpoint === "white" ? (["black", "white"] as const) : (["white", "black"] as const);
+    need(host, ".sides").innerHTML = order.map((side) => this.sideRow(snapshot, side)).join("");
 
     // The count of plies without a capture, from 80.
     const status = drawStatus(view, this.options.counterFrom);

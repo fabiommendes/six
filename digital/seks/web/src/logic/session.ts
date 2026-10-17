@@ -14,6 +14,8 @@ export interface Session {
   readonly seed: Seed;
   /** Whether the camera is tilted. */
   readonly tilted: boolean;
+  /** The side the board is seen from. */
+  readonly viewpoint: Side;
 }
 
 /** The part of `Storage` that the session uses. */
@@ -21,7 +23,7 @@ export type SessionStore = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 export const SESSION_KEY = "seks-web:session";
 /** Bumped when the saved format changes; an older save is dropped. */
-const VERSION = 1;
+const VERSION = 2;
 
 type SavedMode = { kind: "hotseat" } | { kind: "bot"; human: Side; level: string };
 
@@ -32,6 +34,7 @@ interface Saved {
   commands: string[];
   seed: { last: LastPlay | null; captured: Captured[] };
   tilted: boolean;
+  viewpoint: Side;
 }
 
 const isSide = (value: unknown): value is Side => value === "white" || value === "black";
@@ -46,6 +49,7 @@ export function saveSession(store: SessionStore, session: Session): void {
     commands: [...session.commands],
     seed: { last: session.seed.last ?? null, captured: [...(session.seed.captured ?? [])] },
     tilted: session.tilted,
+    viewpoint: session.viewpoint,
   };
   try {
     store.setItem(SESSION_KEY, JSON.stringify(saved));
@@ -84,7 +88,7 @@ export function loadSession(store: SessionStore): Session | null {
 function parse(text: string): Session | null {
   try {
     const saved = JSON.parse(text) as Partial<Saved> | null;
-    if (saved?.version !== VERSION || typeof saved.base !== "string" || typeof saved.tilted !== "boolean") return null;
+    if (saved?.version !== VERSION || typeof saved.base !== "string" || typeof saved.tilted !== "boolean" || !isSide(saved.viewpoint)) return null;
     if (!Array.isArray(saved.commands) || !saved.commands.every((command) => typeof command === "string")) return null;
     const mode = parseMode(saved.mode);
     if (mode === null || !saved.seed || !Array.isArray(saved.seed.captured)) return null;
@@ -94,6 +98,7 @@ function parse(text: string): Session | null {
       commands: saved.commands as Command[],
       seed: { last: saved.seed.last ?? null, captured: saved.seed.captured },
       tilted: saved.tilted,
+      viewpoint: saved.viewpoint,
     };
     return replays(session) ? session : null;
   } catch {

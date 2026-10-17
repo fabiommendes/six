@@ -73,7 +73,7 @@ export function drawFace6(ctx: CanvasRenderingContext2D, cx: number, cy: number,
  * 11 cells and the coordinates. The padding of the sketch is kept, so the
  * canvas covers `layout.worldSize` cells.
  */
-export function drawBoardTexture(canvas: HTMLCanvasElement, layout: FrameLayout, fontFamily: string): void {
+export function drawBoardTexture(canvas: HTMLCanvasElement, layout: FrameLayout, fontFamily: string, turned = false): void {
   const ctx = context(canvas);
   const S = layout.sketch;
   const t = layout.band;
@@ -130,14 +130,26 @@ export function drawBoardTexture(canvas: HTMLCanvasElement, layout: FrameLayout,
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
   const gut = layout.gutter;
+  // `turned`: the labels are upside down on the texture, so they read upright when the board is seen from the other side.
+  const label = (text: string, x: number, y: number) => {
+    if (!turned) {
+      ctx.fillText(text, x, y);
+      return;
+    }
+    ctx.save();
+    ctx.translate(x, y - fs * 0.35);
+    ctx.rotate(Math.PI);
+    ctx.fillText(text, 0, fs * 0.35);
+    ctx.restore();
+  };
   for (let i = 0; i < 11; i++) {
     const x = gridAt + (i + 0.5) * cell;
     const file = "abcdefghijk".charAt(i);
-    ctx.fillText(file, x, gridAt + 11 * cell + gut * 0.68);
-    ctx.fillText(file, x, gridAt - gut * 0.32);
+    label(file, x, gridAt + 11 * cell + gut * 0.68);
+    label(file, x, gridAt - gut * 0.32);
     const y = gridAt + (11 - (i + 1) + 0.5) * cell + fs * 0.35;
-    ctx.fillText(String(i + 1), plateAt + gut * 0.5, y);
-    ctx.fillText(String(i + 1), gridAt + 11 * cell + gut * 0.5, y);
+    label(String(i + 1), plateAt + gut * 0.5, y);
+    label(String(i + 1), gridAt + 11 * cell + gut * 0.5, y);
   }
 }
 

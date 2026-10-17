@@ -2,6 +2,7 @@ import {
   AmbientLight,
   CanvasTexture,
   DirectionalLight,
+  Group,
   LinearFilter,
   LinearMipmapLinearFilter,
   Mesh,
@@ -26,7 +27,7 @@ import { drawBoardTexture, drawMark, type MarkKind } from "./drawing";
 import { DieAssets, Die3D } from "./die3d";
 import { BOARD_THICKNESS, cellAtScreen, cellCenter, DIE_SIZE, orientation } from "./geometry";
 import { COMPACT_BELOW, frameLayout, type FrameLayout } from "./layout";
-import { BoardCameras } from "./view";
+import { BoardCameras, turnExtent } from "./view";
 
 /** A captured die that leaves the board: where it is on screen, to fly to the panel. */
 export interface CapturedFlight {
@@ -102,8 +103,11 @@ export class Board3D implements Stage {
   private readonly frame: Mesh;
   /** The block under the frame: its sides show when the view is tilted. */
   private readonly block: Mesh;
-  private frameTexture: CanvasTexture | null = null;
-  private frameCanvas: HTMLCanvasElement | null = null;
+  /** What turns with the point of view: the board, the dice and the marks. The camera and the light stay put. */
+  private readonly world = new Group();
+  /** The board texture twice: with the coordinates as drawn and turned upside down (for the view from the Blacks). */
+  private readonly frameTextures: (CanvasTexture | null)[] = [null, null];
+  private readonly frameCanvases: (HTMLCanvasElement | null)[] = [null, null];
   private layout: FrameLayout = frameLayout(false);
   private readonly markTextures: Record<MarkKind, CanvasTexture>;
   private readonly markMaterials: Record<MarkKind, Material>;
@@ -113,6 +117,10 @@ export class Board3D implements Stage {
   private readonly toMark: Mesh;
   private readonly rings: Mesh[] = [];
   private marks: Marks = NO_MARKS;
+  /** How far the world is turned, in radians: 0 for the Whites' point of view, a half turn more for each change. */
+  private yaw = 0;
+  private yawTarget = 0;
+  private yawRun = 0;
   private tilt = 0;
   private tiltTarget = 0;
   private tiltRun = 0;
@@ -135,18 +143,19 @@ export class Board3D implements Stage {
     const sun = new DirectionalLight(0xffffff, 1.7);
     sun.position.set(-3, 7, -3.5);
     this.scene.add(sun);
+    this.scene.add(this.world);
 
     const frameMaterial = new MeshBasicMaterial({ transparent: true, depthWrite: false });
     this.frame = new Mesh(new PlaneGeometry(1, 1).rotateX(-Math.PI / 2), frameMaterial);
     this.frame.renderOrder = 0;
-    this.scene.add(this.frame);
+    this.world.add(this.frame);
 
     // The top of the block is the frame itself, so it has no face of its own.
     const side = (color: string) => new MeshLambertMaterial({ color });
     const hidden = new MeshLambertMaterial({ visible: false });
     this.block = new Mesh(new BoxGeometry(1, 1, 1), [side(BLOCK_COLORS.east), side(BLOCK_COLORS.west), hidden, side(BLOCK_COLORS.east), side(BLOCK_COLORS.south), side(BLOCK_COLORS.north)]);
     this.block.visible = false;
-    this.scene.add(this.block);
+    this.world.add(this.block);
 
     this.markTextures = { ring: markTexture("ring"), selected: markTexture("selected"), from: markTexture("from"), to: markTexture("to") };
     const markMaterial = (kind: MarkKind) => new MeshBasicMaterial({ map: this.markTextures[kind], transparent: true, depthWrite: false });
@@ -215,6 +224,27 @@ export class Board3D implements Stage {
     });
   }
 
+  /**
+   * Looks at the board from the side of `side`: the Whites see row 1 at the
+   * bottom, the Blacks row 11. The board turns half a turn about the vertical,
+   * in the same direction every time, unless motion is off or `instant`.
+   */
+  setViewpoint(side: Side, instant = false): void {
+    const blacks = Math.round(this.yawTarget / Math.PI) % 2 !== 0;
+    if (blacks === (side === "black")) return;
+    this.yawTarget += Math.PI;
+    const run = ++this.yawRun;
+    const from = this.yaw;
+    const to = this.yawTarget;
+    const duration = instant || this.options.reducedMotion() ? 0 : 600;
+    void tween(duration, (t) => {
+      if (run !== this.yawRun) return;
+      this.yaw = from + (to - from) * easeInOut(t);
+      this.updateCamera();
+      this.renderNow();
+    });
+  }
+
   // --- Dice and marks --------------------------------------------------------
 
   private sync(view: View): void {
@@ -222,7 +252,7 @@ export class Board3D implements Stage {
     for (const [cell, die3d] of [...this.dice]) {
       const want = wanted.get(cell);
       if (!want || want.side !== die3d.side) {
-        this.scene.remove(die3d.root);
+        this.world.remove(die3d.root);
         this.dice.delete(cell);
       }
     }
@@ -235,7 +265,7 @@ export class Board3D implements Stage {
       }
       const die3d = new Die3D(want.side, want.value, cell, this.assets);
       this.dice.set(cell, die3d);
-      this.scene.add(die3d.root);
+      this.world.add(die3d.root);
     }
     for (const die of this.dice.values()) die.setLifted(die.cell === this.marks.selected);
     this.invalidate();
@@ -245,7 +275,7 @@ export class Board3D implements Stage {
     const mesh = new Mesh(this.markGeometry, this.markMaterials[kind]);
     mesh.renderOrder = 2;
     mesh.visible = false;
-    this.scene.add(mesh);
+    this.world.add(mesh);
     return mesh;
   }
 
@@ -305,7 +335,7 @@ export class Board3D implements Stage {
     if (!die) return;
     const flight = this.screenOf(die, event);
     this.dice.delete(event.at);
-    this.scene.remove(die.root);
+    this.world.remove(die.root);
     this.renderNow();
     if (!motion) return;
     await this.options.flyCaptured(flight);
@@ -316,12 +346,13 @@ export class Board3D implements Stage {
     const rect = this.canvas.getBoundingClientRect();
     const camera = this.cameras.active;
     const { x, z } = die.root.position;
+    // The die is in the turned world: from its own coordinates to the page.
     const toPage = (point: Vector3) => {
-      const ndc = point.project(camera);
+      const ndc = this.world.localToWorld(point).project(camera);
       return { x: rect.left + ((ndc.x + 1) / 2) * rect.width, y: rect.top + ((1 - ndc.y) / 2) * rect.height };
     };
     const centre = toPage(new Vector3(x, DIE_SIZE / 2, z));
-    // The width of the die at its own height: camera right is always the east of the board.
+    // The width of the die at its own height, whichever way the board is turned.
     const west = toPage(new Vector3(x - DIE_SIZE / 2, DIE_SIZE / 2, z));
     const east = toPage(new Vector3(x + DIE_SIZE / 2, DIE_SIZE / 2, z));
     return { side: event.side, value: event.value, x: centre.x, y: centre.y, size: Math.hypot(east.x - west.x, east.y - west.y) };
@@ -336,18 +367,21 @@ export class Board3D implements Stage {
       // Draw with the fallback font rather than not at all.
     }
     if (this.disposed) return;
-    this.frameCanvas ??= document.createElement("canvas");
-    this.frameCanvas.width = this.frameCanvas.height = BOARD_TEXTURE;
-    drawBoardTexture(this.frameCanvas, this.layout, FONT);
-    if (!this.frameTexture) {
-      this.frameTexture = new CanvasTexture(this.frameCanvas);
-      this.frameTexture.colorSpace = SRGBColorSpace;
-      this.frameTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-      this.frameTexture.minFilter = LinearMipmapLinearFilter;
-      this.frameTexture.magFilter = LinearFilter;
-      (this.frame.material as MeshBasicMaterial).map = this.frameTexture;
+    for (const turned of [0, 1]) {
+      const canvas = (this.frameCanvases[turned] ??= document.createElement("canvas"));
+      canvas.width = canvas.height = BOARD_TEXTURE;
+      drawBoardTexture(canvas, this.layout, FONT, turned === 1);
+      let texture = this.frameTextures[turned];
+      if (!texture) {
+        texture = new CanvasTexture(canvas);
+        texture.colorSpace = SRGBColorSpace;
+        texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+        texture.minFilter = LinearMipmapLinearFilter;
+        texture.magFilter = LinearFilter;
+        this.frameTextures[turned] = texture;
+      }
+      texture.needsUpdate = true;
     }
-    this.frameTexture.needsUpdate = true;
     (this.frame.material as MeshBasicMaterial).needsUpdate = true;
     this.frame.scale.setScalar(this.layout.worldSize);
     this.block.scale.set(this.layout.worldSize, BOARD_THICKNESS, this.layout.worldSize);
@@ -372,9 +406,17 @@ export class Board3D implements Stage {
 
   private updateCamera(): void {
     const aspect = this.canvas.clientWidth / Math.max(1, this.canvas.clientHeight) || 1;
-    this.cameras.update(this.tilt, aspect, this.layout.worldSize, BOARD_THICKNESS);
+    // While the board turns its corners reach out: the camera backs off to keep it all in the canvas.
+    this.cameras.update(this.tilt, aspect, this.layout.worldSize * turnExtent(this.yaw), BOARD_THICKNESS);
+    this.world.rotation.y = this.yaw;
+    this.world.updateMatrixWorld(true);
     // Seen from straight above, the sides are edge-on: do not draw them.
     this.block.visible = this.tilt > 0;
+    // The coordinates read upright: the turned texture once the board is more than a quarter turn round.
+    const quarter = Math.floor((this.yaw + Math.PI / 2) / Math.PI);
+    const upsideDown = quarter % 2 !== 0;
+    const map = this.frameTextures[upsideDown ? 1 : 0];
+    if (map) (this.frame.material as MeshBasicMaterial).map = map;
   }
 
   /** Draws on the next frame, once, however many changes come before it. */
@@ -400,7 +442,7 @@ export class Board3D implements Stage {
     const hits = this.raycaster.intersectObjects([...this.dice.values()].map((die) => die.body), false);
     const die = hits[0]?.object.userData.die as Die3D | undefined;
     if (die) return die.cell;
-    return cellAtScreen(this.cameras.active, ndc.x, ndc.y, this.raycaster);
+    return cellAtScreen(this.cameras.active, ndc.x, ndc.y, this.raycaster, this.yaw);
   }
 
   private readonly onPointerDown = (event: PointerEvent) => {
@@ -438,7 +480,7 @@ export class Board3D implements Stage {
     for (const t of Object.values(this.markTextures)) t.dispose();
     for (const m of Object.values(this.markMaterials)) m.dispose();
     this.markGeometry.dispose();
-    this.frameTexture?.dispose();
+    for (const t of this.frameTextures) t?.dispose();
     this.frame.geometry.dispose();
     this.block.geometry.dispose();
     for (const m of this.block.material as Material[]) m.dispose();

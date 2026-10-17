@@ -1,7 +1,7 @@
-import { PerspectiveCamera, Vector3 } from "three";
+import { Group, PerspectiveCamera, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import { BOARD_THICKNESS, cellAtScreen, cellCenter } from "../src/board/geometry";
-import { BoardCameras, FOV_DEGREES, TILT_DEGREES } from "../src/board/view";
+import { BoardCameras, FOV_DEGREES, TILT_DEGREES, turnExtent } from "../src/board/view";
 import { cellName } from "../src/engine/cells";
 
 /** Wide and compact frames (`worldSize` of `frameLayout`), and the canvases of the sketches: square, a tall phone, a wide window. */
@@ -95,5 +95,67 @@ describe("picking a cell through the camera", () => {
     expect(cellAtScreen(camera, 0, -1)).toBeNull();
     const front = new Vector3(0, -BOARD_THICKNESS / 2, 12.74 / 2).project(camera);
     expect(cellAtScreen(camera, front.x, front.y)).toBeNull();
+  });
+});
+
+describe("the board seen from the Blacks (turned half a turn)", () => {
+  /** A world turned `yaw` radians, as the board turns on the screen. */
+  function turned(yaw: number): Group {
+    const world = new Group();
+    world.rotation.y = yaw;
+    world.updateMatrixWorld(true);
+    return world;
+  }
+
+  it("shows row 11 at the bottom and file k at the left, and picks the cell under every point", () => {
+    const world = turned(Math.PI);
+    for (const tilt of [0, 1]) {
+      const camera = cameras(tilt, 1, 12.74).active;
+      const screen = (cell: string) => world.localToWorld(new Vector3(cellCenter(cell as never).x, 0, cellCenter(cell as never).z)).project(camera);
+      expect(screen("a11").y).toBeLessThan(screen("a1").y);
+      expect(screen("k1").x).toBeLessThan(screen("a1").x);
+      for (let col = 0; col < 11; col++) {
+        for (let row = 1; row <= 11; row++) {
+          const cell = cellName(col, row);
+          const ndc = screen(cell);
+          expect(cellAtScreen(camera, ndc.x, ndc.y, undefined, Math.PI), `${cell} tilt ${tilt}`).toBe(cell);
+        }
+      }
+    }
+  });
+
+  it("would pick the opposite cell if the turn were ignored", () => {
+    const camera = cameras(1, 1, 12.74).active;
+    const world = turned(Math.PI);
+    const ndc = world.localToWorld(new Vector3(cellCenter("c3").x, 0, cellCenter("c3").z)).project(camera);
+    expect(cellAtScreen(camera, ndc.x, ndc.y)).toBe("i9");
+  });
+
+  it("picks right in the middle of the turn too", () => {
+    const camera = cameras(1, 1, 12.74).active;
+    for (const yaw of [0.3, Math.PI / 2, 2.2, 4]) {
+      const world = turned(yaw);
+      const ndc = world.localToWorld(new Vector3(cellCenter("d4").x, 0, cellCenter("d4").z)).project(camera);
+      expect(cellAtScreen(camera, ndc.x, ndc.y, undefined, yaw)).toBe("d4");
+    }
+  });
+
+  it("keeps the whole board in the canvas at every angle of the turn", () => {
+    for (const aspect of ASPECTS) {
+      for (let step = 0; step <= 20; step++) {
+        const yaw = (Math.PI * step) / 20;
+        const camera = cameras(1, aspect, 12.74 * turnExtent(yaw)).active;
+        const world = turned(yaw);
+        for (const corner of corners(12.74)) {
+          const ndc = world.localToWorld(corner.clone()).project(camera);
+          expect(Math.max(Math.abs(ndc.x), Math.abs(ndc.y)), `yaw ${yaw} aspect ${aspect}`).toBeLessThanOrEqual(1 + 1e-9);
+        }
+      }
+    }
+  });
+
+  it("needs no extra room at a quarter turn and its multiples", () => {
+    for (const yaw of [0, Math.PI / 2, Math.PI]) expect(turnExtent(yaw)).toBeCloseTo(1);
+    expect(turnExtent(Math.PI / 4)).toBeCloseTo(Math.SQRT2);
   });
 });

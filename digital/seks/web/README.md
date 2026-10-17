@@ -30,6 +30,12 @@ de meio dado de espessura (`BOARD_THICKNESS`). Nas duas, `src/board/view.ts`
 ajusta a câmera para o tabuleiro inteiro, com coordenadas, caber no canvas em
 qualquer proporção.
 
+O tabuleiro é visto do lado do jogador: contra o bot, o humano fica embaixo (com
+as Pretas, a fileira 11 fica embaixo e a coluna k à esquerda); em hotseat, o
+tabuleiro gira meia volta para o lado da vez depois que a animação da jogada
+termina, e também ao desfazer. Em desenvolvimento (`vite`), a partida, a vista e
+a orientação sobrevivem a reload e HMR (`sessionStorage`; `logic/session.ts`).
+
 ## Posições de teste
 
 `?fixture=NOME` abre uma posição pronta, para olhar a tela sem jogar até lá:

@@ -71,6 +71,15 @@ export function fitBoard(tilt: number, fov: number, aspect: number, size: number
 }
 
 /**
+ * How much room a square board takes while it is turned `yaw` radians about
+ * the vertical, as a multiple of its side: 1 at a quarter turn and its
+ * multiples, up to the square root of two in between.
+ */
+export function turnExtent(yaw: number): number {
+  return Math.abs(Math.cos(yaw)) + Math.abs(Math.sin(yaw));
+}
+
+/**
  * The cameras of the board. From above it is orthographic, as the board is
  * drawn flat. Tilted, it is a perspective camera that starts with a narrow
  * field of view (so the change from above is seamless) and widens to

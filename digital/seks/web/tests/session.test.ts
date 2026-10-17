@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BOT_LEVELS } from "../src/bot/levels";
-import { SeksGame, type Command } from "../src/engine/game";
+import { SeksGame, type Command, type Side } from "../src/engine/game";
 import type { Mode } from "../src/logic/match";
 import { clearSession, loadSession, saveSession, SESSION_KEY, type Session, type SessionStore } from "../src/logic/session";
 import { newMatch, ScriptedBot } from "./fakes";
@@ -23,24 +23,25 @@ const hotseat: Mode = { kind: "hotseat" };
 const level = BOT_LEVELS[0]!;
 
 /** The session of a match that played `clicks` (pairs of cells: select, then destination). */
-async function played(mode: Mode, clicks: readonly string[], tilted = false): Promise<Session> {
+async function played(mode: Mode, clicks: readonly string[], tilted = false, viewpoint: Side = "white"): Promise<Session> {
   const { match } = newMatch(SeksGame.create(), mode);
   await match.start();
   for (const cell of clicks) await match.click(cell as never);
-  return { mode, ...match.record(), seed: {}, tilted };
+  return { mode, ...match.record(), seed: {}, tilted, viewpoint };
 }
 
 const OPENING = ["b2", "b4", "b10", "b8"];
 
 describe("the saved session", () => {
   it("brings back the match: position, last play, undo history, mode and camera", async () => {
-    const session = await played(hotseat, OPENING, true);
+    const session = await played(hotseat, OPENING, true, "black");
     expect(session.commands).toHaveLength(2);
     const store = new MemoryStore();
     saveSession(store, session);
 
     const loaded = loadSession(store)!;
     expect(loaded).toEqual({ ...session, seed: { last: null, captured: [] } });
+    expect(loaded.viewpoint).toBe("black");
 
     const { match } = newMatch(SeksGame.fromStateJson(loaded.base), loaded.mode);
     match.resume(loaded.commands);
@@ -76,7 +77,7 @@ describe("the saved session", () => {
     void first.match.click("b2").then(() => first.match.click("b4"));
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(first.match.snapshot().thinking).toBe(true);
-    saveSession(store, { mode, ...first.match.record(), seed: {}, tilted: false });
+    saveSession(store, { mode, ...first.match.record(), seed: {}, tilted: false, viewpoint: "white" });
 
     const loaded = loadSession(store)!;
     const again = new ScriptedBot();
@@ -156,6 +157,9 @@ describe("an invalid saved session", () => {
     const { store, saved } = await valid();
     discards(store, JSON.stringify({ ...saved, commands: [1, 2] }));
     discards(store, JSON.stringify({ ...saved, tilted: "yes" }));
+    discards(store, JSON.stringify({ ...saved, viewpoint: "north" }));
+    const { viewpoint: _gone, ...without } = saved;
+    discards(store, JSON.stringify(without));
     discards(store, JSON.stringify({ ...saved, seed: null }));
   });
 });

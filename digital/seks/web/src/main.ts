@@ -66,6 +66,7 @@ async function resume(session: Session): Promise<void> {
     seed: session.seed,
     resume: session.commands,
     tilted: session.tilted,
+    viewpoint: session.viewpoint,
     bot: session.mode.kind === "bot" ? spawnBot() : null,
     onSession: keep,
     onNewGame: toStart,

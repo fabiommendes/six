@@ -23,11 +23,19 @@ export function cellAtPoint(x: number, z: number): Cell | null {
 
 const GROUND = new Plane(new Vector3(0, 1, 0), 0);
 
-/** The cell on the board under a point of the canvas (`x`, `y` in -1..1, y up) seen by `camera`, ignoring the dice. */
-export function cellAtScreen(camera: Camera, x: number, y: number, raycaster = new Raycaster()): Cell | null {
+const UP = new Vector3(0, 1, 0);
+
+/**
+ * The cell on the board under a point of the canvas (`x`, `y` in -1..1, y up)
+ * seen by `camera`, ignoring the dice. `yaw` is how far the board is turned
+ * about the vertical, in radians (half a turn for the view from the Blacks).
+ */
+export function cellAtScreen(camera: Camera, x: number, y: number, raycaster = new Raycaster(), yaw = 0): Cell | null {
   raycaster.setFromCamera(new Vector2(x, y), camera);
   const point = raycaster.ray.intersectPlane(GROUND, new Vector3());
-  return point ? cellAtPoint(point.x, point.z) : null;
+  if (!point) return null;
+  point.applyAxisAngle(UP, -yaw);
+  return cellAtPoint(point.x, point.z);
 }
 
 /** One face of a die in the die's own axes: the normal, and where "right" and "up" of its pips point. */
