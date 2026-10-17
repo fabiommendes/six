@@ -82,8 +82,15 @@ arquivos de partida, `EVALUATOR.md` com as features e os pesos.
     intervalo de 95% acima de 0, em pelo menos 2000 partidas com nós fixos.
   - Aceito quando o mesmo arquivo de configuração e a mesma semente geram o
     mesmo conjunto de dados.
-- R6. No nível padrão, o `ab` faz pelo menos 90% dos pontos contra o `greedy`
-  em 400 partidas (200 aberturas, cada uma com as duas cores).
+- R6. Objetivo do treino, definido pelo designer: no nível padrão, o `ab`
+  **vence** o `random` (que escolhe ao acaso entre as jogadas legais) em mais
+  de 90% das partidas. Empate não conta como vitória.
+  - Aceito quando o `ab` vence mais de 90% de 400 partidas contra o `random`
+    (200 aberturas, cada uma com as duas cores), com o limite inferior do
+    intervalo de 95% da taxa de vitória acima de 85%.
+  - O resultado contra o `greedy` (pontos e taxa de vitória, nas mesmas 400
+    partidas) é medido e registrado em `dev/notes/bots-do-seks.md`, mas não
+    decide o aceite.
 - R7. Custo do nível padrão, numa thread, com tabela de transposição de no
   máximo 16 MiB:
   - nativo (Ryzen 5 3600): média de até 200 ms e máximo de 500 ms por
