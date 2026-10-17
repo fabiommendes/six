@@ -35,6 +35,11 @@ A posição é a casa, a cor e o valor de cada dado no tabuleiro.
 > **Playtest:** os limites de 3 repetições e 50 turnos vêm do xadrez. Se não
 > bastarem para acabar com partidas travadas, o designer escolhe outra regra.
 
+> **Detalhe:** a vitória vale antes do empate. Uma jogada que leva um dado à
+> fileira de fundo do adversário, ou deixa o adversário sem jogada, vence
+> mesmo que seja a 100ª jogada sem captura ou repita uma posição pela
+> terceira vez.
+
 > **Detalhe:** no jogo físico, o empate só vale quando um jogador o declara,
 > e precisa de anotação da partida para provar a repetição ou a contagem. Na
 > versão digital, o empate é automático.

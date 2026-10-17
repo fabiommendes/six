@@ -182,5 +182,8 @@ A partida termina [[Empate|empatada]], como no xadrez, quando:
   ou
 - cada jogador fez 50 jogadas seguidas sem que nenhum dado fosse capturado.
 
+Uma jogada que vence não empata, mesmo que repita a posição pela terceira vez
+ou seja a 100ª sem captura.
+
 No jogo físico, o empate vale quando um jogador o declara. Anote a partida se
 quiser poder provar a repetição ou a contagem.
