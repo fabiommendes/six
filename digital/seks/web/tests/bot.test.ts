@@ -106,7 +106,10 @@ describe("handleBotRequest", () => {
   });
 
   it("plays whole games: the Hard level beats the Easy one with either colour", () => {
-    const [easy, , hard] = BOT_LEVELS as [BotLevel, BotLevel, BotLevel];
+    const [easy, , defaultHard] = BOT_LEVELS as [BotLevel, BotLevel, BotLevel];
+    // Hard without noise, on a smaller budget than the default level so the
+    // test stays fast.
+    const hard: BotLevel = { ...defaultHard, nodes: 5000 };
     for (const hardSide of ["white", "black"] as const) {
       const runners = { easy: new BotRunner(), hard: new BotRunner() };
       const game = SeksGame.create();
