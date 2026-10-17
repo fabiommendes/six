@@ -7,11 +7,17 @@
 
 #![warn(unreachable_pub)]
 
+/// Threads and wall-clock timing: native only.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod batch;
 mod bot;
-/// Wall-clock timing: native only.
 #[cfg(not(target_arch = "wasm32"))]
 pub mod game;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod game_file;
+pub mod openings;
 pub mod rng;
+pub mod stats;
 pub mod tactics;
 
 pub use bot::{by_name, Bot, Decision, Greedy, Random};

@@ -135,7 +135,7 @@ que os outros da mesma fase.
 
 - [x] Pedidos ao motor (lista abaixo), combinados com quem cuida da issue do
   motor. Os itens 1 e 3 bloqueiam a fase 2; os outros podem chegar depois.
-- [ ] **(paralelo)** `stats.rs`: pontos, Elo e intervalo de 95% pela
+- [x] **(paralelo)** `stats.rs`: pontos, Elo e intervalo de 95% pela
   variância trinomial (vitória, empate, derrota). Testes com valores
   calculados à mão.
 - [ ] **(paralelo)** Aberturas: `seks-bots openings` gera N posições depois
@@ -144,11 +144,11 @@ que os outros da mesma fase.
   sequência de jogadas desde a posição inicial. `openings/base.txt` (200
   aberturas, K = 6) vai para o git. Sem aberturas variadas, dois bots
   determinísticos jogariam sempre a mesma partida.
-- [ ] `batch.rs` e `main.rs`: `seks-bots batch --bots A,B --openings FILE
+- [x] `batch.rs` e `main.rs`: `seks-bots batch --bots A,B --openings FILE
   [--games N] [--seed S] [--threads N] [--max-plies N] [--out games.jsonl]
   [--games-out DIR]`, como o `rio-bots batch`. Uma linha JSONL por partida;
   resumo de R2 no stderr. Threads com `std::thread::scope`, sem rayon.
-- [ ] `game_file.rs` e `seks-bots replay`: arquivo JSON por partida, com
+- [x] `game_file.rs` e `seks-bots replay`: arquivo JSON por partida, com
   bots, semente, abertura, jogadas na notação do motor, resultado e, por
   jogada, nós, tempo, profundidade e nota.
 - [ ] `seks-bots perft --depth N` e `seks-bots bench`: nós por segundo do
