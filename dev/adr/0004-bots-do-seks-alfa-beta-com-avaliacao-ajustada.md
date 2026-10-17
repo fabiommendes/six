@@ -1,9 +1,10 @@
 ---
 type: adr
-status: proposed
+status: accepted
 tags: [seks, bots, busca, treinamento, rust]
 relatedTo: [dev/issues/bots-do-seks.md, dev/issues/motor-do-seks-em-rust.md]
 created: 2026-10-17
+decided: 2026-10-17
 deciders: [fabio, claude]
 ---
 
