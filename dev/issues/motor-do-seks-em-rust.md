@@ -64,7 +64,7 @@ Propostas que o designer revisa antes da implementação estão marcadas com
   `Command::Increment { at }`, sem passar a vez. `legal_commands(state)` lista
   todas; `Engine::command(state, command)` devolve `Transition { state,
   events }` ou `GameError` para qualquer comando fora da lista.
-- [ ] Captura (`capture.rs`) por custódia, só a partir do dado que se moveu.
+- [x] Captura (`capture.rs`) por custódia, só a partir do dado que se moveu.
 - [ ] Fim de jogo (`outcome.rs`): vitória pela fileira de fundo e por
   adversário sem jogada; empate por tripla repetição e por 100 jogadas sem
   captura. Ordem **(revisar com o designer)**: vitória antes de empate, como o

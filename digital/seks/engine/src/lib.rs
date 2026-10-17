@@ -13,7 +13,7 @@
 //!   positions since the last capture, for the repetition draw), `outcome`
 //!   (how a game ends).
 //! - Plays: `command` (`Command` and the list of legal ones), `apply` (what
-//!   a play changes), `event` (`GameEvent`, `Transition`, `GameError`),
+//!   a play changes) and `capture` (custody), `event` (`GameEvent`, `Transition`, `GameError`),
 //!   `engine` (`Engine`, the entry points).
 
 #![warn(unreachable_pub)]
@@ -22,6 +22,7 @@
 
 mod apply;
 mod board;
+mod capture;
 mod cell;
 mod command;
 mod diagram;

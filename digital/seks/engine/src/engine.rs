@@ -38,6 +38,13 @@ impl Engine {
                 value: applied.value,
             },
         });
+        events.extend(
+            applied
+                .captured
+                .into_iter()
+                .flatten()
+                .map(|(at, die)| GameEvent::Captured { at, die }),
+        );
         Ok(Transition {
             state: next,
             events,

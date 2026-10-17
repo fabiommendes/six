@@ -1,6 +1,7 @@
 //! Applying a legal command to a state: the one place where the board, the
 //! turn, the counters and the hash history change together.
 
+use crate::capture::{captures, Captures};
 use crate::command::{distance, Command};
 use crate::die::Die;
 use crate::state::GameState;
@@ -11,6 +12,8 @@ use crate::zobrist;
 pub(crate) struct Applied {
     /// The value the die shows after the play.
     pub(crate) value: u8,
+    /// The dice the play captured; all `None` for an increment.
+    pub(crate) captured: Captures,
 }
 
 /// Applies `command`, which must be legal (see `command::validate`), and
@@ -18,6 +21,7 @@ pub(crate) struct Applied {
 pub(crate) fn apply(state: &mut GameState, command: Command) -> Applied {
     let mover = state.to_move;
     let mut hash = state.history.current();
+    let mut captured = [None; 4];
     let value = match command {
         Command::Move { from, to } => {
             let die = state.board.get(from).expect("a legal move starts on a die");
@@ -26,6 +30,11 @@ pub(crate) fn apply(state: &mut GameState, command: Command) -> Applied {
             hash ^= zobrist::die_key(from, die) ^ zobrist::die_key(to, moved);
             state.board.set(from, None);
             state.board.set(to, Some(moved));
+            captured = captures(&state.board, to, mover);
+            for (cell, die) in captured.into_iter().flatten() {
+                hash ^= zobrist::die_key(cell, die);
+                state.board.set(cell, None);
+            }
             value
         }
         Command::Increment { at } => {
@@ -39,7 +48,13 @@ pub(crate) fn apply(state: &mut GameState, command: Command) -> Applied {
     };
     hash ^= zobrist::turn_key();
     state.to_move = mover.opponent();
-    state.plies_without_capture += 1;
-    state.history.push(hash);
-    Applied { value }
+    if captured.iter().any(Option::is_some) {
+        // The only irreversible play: no earlier position can come back.
+        state.plies_without_capture = 0;
+        state.history.restart(hash);
+    } else {
+        state.plies_without_capture += 1;
+        state.history.push(hash);
+    }
+    Applied { value, captured }
 }
