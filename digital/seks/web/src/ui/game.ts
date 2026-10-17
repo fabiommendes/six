@@ -75,6 +75,8 @@ export interface GameScreenOptions {
   readonly notice?: string;
   /** The match by correspondence; `mode` must be `correspondence`. */
   readonly mail?: MailOptions;
+  /** Makes a bot for "Terminar com bots", when the match has none of its own. */
+  readonly spawnBot?: () => BotPlayer;
   /** The player asked for a new game. */
   readonly onNewGame: () => void;
 }
@@ -134,6 +136,8 @@ const SKELETON = `
         <button type="button" data-action="undo">${BUTTONS.undo}</button>
         <button type="button" data-action="tilt" aria-pressed="false">${BUTTONS.tiltOn}</button>
         <button type="button" data-action="resign" hidden>${BUTTONS.resign}</button>
+        <button type="button" data-action="leave" hidden>${BUTTONS.leave}</button>
+        <button type="button" data-action="stop-bots" hidden>${BUTTONS.stopBots}</button>
         <button type="button" data-action="new">${BUTTONS.newGame}</button>
       </div>
     </div>
@@ -156,7 +160,9 @@ export class GameScreen {
   /** The URL to send when the player resigned (a match by correspondence); `null` while in. */
   private resignedLink: string | null = null;
   /** What the confirmation under the panel asks, if it is open. */
-  private asking: "resign" | null = null;
+  private asking: "resign" | "leave" | null = null;
+  /** The bot made to play both sides when the player chose to finish with bots (a hotseat match has none of its own). */
+  private extraBot: BotPlayer | null = null;
   private mailLinkShown = "";
   /** The player closed the card of the end of the game to look at the board. */
   private endDismissed = false;
@@ -228,6 +234,7 @@ export class GameScreen {
     this.match.dispose();
     this.board?.dispose();
     this.options.bot?.dispose();
+    this.extraBot?.dispose();
     for (const off of this.off) off();
     this.host.removeEventListener("click", this.onButton);
     document.removeEventListener("pointerdown", this.onOutside);
@@ -237,12 +244,14 @@ export class GameScreen {
 
   private persist(): void {
     const mode = this.options.mode;
+    if (this.match.mode.kind === "bots") return;
     if (mode.kind === "correspondence") {
       if (this.resignedLink !== null) return;
       const view = this.match.snapshot().view;
       this.options.mail?.onChange({ commands: this.match.record().commands, shared: this.shared, toMove: view.to_move, over: view.outcome !== null });
       return;
     }
+    if (mode.kind === "bots") return;
     this.options.onSession?.({ mode, ...this.match.record(), seed: this.options.seed ?? {}, tilted: this.tilted, viewpoint: this.viewpoint });
   }
 
@@ -253,6 +262,7 @@ export class GameScreen {
 
   /** The side to see the board from: the human's against the bot; in hotseat the side to move, or the same one when the game is over. */
   private sideToSee(snapshot: ReturnType<Match["snapshot"]>): Side {
+    if (snapshot.mode.kind === "bots") return this.viewpoint;
     if (snapshot.mode.kind !== "hotseat") return snapshot.mode.human;
     return snapshot.view.outcome === null ? snapshot.view.to_move : this.viewpoint;
   }
@@ -289,6 +299,9 @@ export class GameScreen {
       this.endDismissed = true;
       this.render(this.match.snapshot());
     } else if (action === "resign") this.ask("resign");
+    else if (action === "leave") this.ask("leave");
+    else if (action === "stop-bots") this.match.stopBots();
+    else if (action === "finish-with-bots") this.finishWithBots();
     else if (action === "cancel") this.ask(null);
     else if (action === "confirm-resign") this.resign();
     else if (action === "copy") void this.copyLink();
@@ -309,7 +322,18 @@ export class GameScreen {
     return (BOT_LEVELS.find((level) => level.id === value) ?? DEFAULT_BOT_LEVEL).id;
   }
 
-  private ask(question: "resign" | null): void {
+  /** The bots play the rest of the game, both sides, while the player watches. */
+  private finishWithBots(): void {
+    const bot = this.options.bot ?? (this.extraBot ??= this.options.spawnBot?.() ?? null);
+    this.asking = null;
+    if (bot === null) {
+      this.render(this.match.snapshot());
+      return;
+    }
+    void this.match.finishWithBots(bot, DEFAULT_BOT_LEVEL);
+  }
+
+  private ask(question: "resign" | "leave" | null): void {
     this.asking = question;
     this.render(this.match.snapshot());
   }
@@ -405,6 +429,13 @@ export class GameScreen {
 
     const ask = need(host, ".ask");
     ask.hidden = this.asking === null;
+    if (this.asking === "leave") {
+      need(host, ".ask-text").textContent = MAIL.leaveAsk;
+      need(host, ".ask-buttons").innerHTML =
+        `<button type="button" data-action="new">${BUTTONS.backToStart}</button>` +
+        (this.options.bot !== null || this.options.spawnBot ? `<button type="button" data-action="finish-with-bots">${BUTTONS.finishWithBots}</button>` : "") +
+        `<button type="button" data-action="cancel">${BUTTONS.cancel}</button>`;
+    }
     if (this.asking === "resign") {
       need(host, ".ask-text").textContent = MAIL.resignAsk;
       need(host, ".ask-buttons").innerHTML = `<button type="button" data-action="confirm-resign">${MAIL.resignConfirm}</button><button type="button" data-action="cancel">${BUTTONS.cancel}</button>`;
@@ -416,6 +447,13 @@ export class GameScreen {
     else if (showLeft && left !== null) note.innerHTML = `<b>${esc(MAIL.leftTitle(left))}</b> ${esc(snapshot.view.outcome === null ? MAIL.leftRest : MAIL.leftOverRest)}`;
     if (this.frozen) need<HTMLButtonElement>(host, '[data-action="undo"]').disabled = true;
     const home = mail ? BUTTONS.home : BUTTONS.newGame;
+    const over = snapshot.view.outcome !== null;
+    const local = snapshot.mode.kind === "hotseat" || snapshot.mode.kind === "bot";
+    const leaving = local && !over;
+    const watching = snapshot.mode.kind === "bots" && !snapshot.mode.stopped && !over;
+    need(host, '[data-action="leave"]').hidden = !leaving;
+    need(host, '[data-action="stop-bots"]').hidden = !watching;
+    need(host, '.actions [data-action="new"]').hidden = leaving || watching;
     need(host, '.actions [data-action="new"]').textContent = home;
     this.renderEnd(snapshot, home);
   }

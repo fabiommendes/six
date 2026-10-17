@@ -33,6 +33,10 @@ export const BUTTONS = {
   tiltOff: "Vista de cima",
   play: "Jogar",
   home: "Voltar ao início",
+  leave: "Sair da partida",
+  stopBots: "Interromper",
+  backToStart: "Voltar para o início",
+  finishWithBots: "Terminar com bots",
   resign: "Desistir",
   viewBoard: "Ver tabuleiro",
   cancel: "Cancelar",
@@ -83,6 +87,7 @@ export const MAIL = {
   sendResult: "Mande o link para o outro jogador ver o resultado.",
   continueWithBot: "Continuar contra o bot",
   end: "Encerrar",
+  leaveAsk: "Sair da partida? Você pode voltar ao início, ou deixar os bots jogarem os dois lados até o fim, enquanto você assiste.",
   resignAsk: "Desistir da partida? O outro jogador recebe um link avisando e escolhe entre continuar contra o bot e encerrar. A partida sai da sua lista.",
   resignConfirm: "Desistir",
   resignedTitle: "Você saiu da partida.",
@@ -135,6 +140,7 @@ export function turnTitle(side: Side): string {
 
 export function modeLine(mode: Mode): string {
   if (mode.kind === "hotseat") return "Partida local · Brancas contra Pretas";
+  if (mode.kind === "bots") return `${mode.stopped ? "Partida interrompida" : "Os bots jogam o resto da partida"} · Brancas contra Pretas`;
   if (mode.kind === "correspondence") return `Por correspondência · você joga com as ${SIDE_NAME[mode.human]}`;
   return `Contra o bot, nível ${mode.level.label} · você joga com as ${SIDE_NAME[mode.human]}`;
 }
@@ -147,6 +153,7 @@ function botsTurn(snapshot: MatchSnapshot): boolean {
 /** The line under the turn title. */
 export function turnSubtitle(snapshot: MatchSnapshot): string {
   if (snapshot.view.outcome !== null) return "";
+  if (snapshot.mode.kind === "bots") return snapshot.mode.stopped ? "Os bots pararam." : "Os bots estão jogando.";
   if (snapshot.thinking || botsTurn(snapshot)) return "O bot está pensando…";
   if (snapshot.mode.kind === "correspondence" && !snapshot.humanToMove) return `Aguardando as ${SIDE_NAME[snapshot.view.to_move]}.`;
   if (snapshot.mode.kind !== "hotseat") return "Sua vez: mova ou incremente um dado.";
@@ -156,6 +163,7 @@ export function turnSubtitle(snapshot: MatchSnapshot): string {
 /** The mark of each side in the list of sides: who plays it against the bot. */
 export function sideTag(mode: Mode, side: Side): string {
   if (mode.kind === "hotseat") return "";
+  if (mode.kind === "bots") return "bot";
   if (mode.human === side) return "você";
   return mode.kind === "bot" ? "bot" : "adversário";
 }
@@ -180,6 +188,11 @@ function moveCount(n: number): string {
 export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
   const verb = gesture;
   const Verb = capitalize(gesture);
+  if (snapshot.mode.kind === "bots" && snapshot.view.outcome === null) {
+    if (snapshot.error !== null) return { strong: "Um bot não respondeu.", rest: `${snapshot.error}. Comece outra partida.` };
+    if (snapshot.mode.stopped) return { strong: "Partida interrompida.", rest: "Os bots pararam na posição de agora. Comece outra partida quando quiser." };
+    return { strong: "Assista.", rest: "Os bots jogam os dois lados até o fim. Você pode interrompê-los a qualquer momento." };
+  }
   if (snapshot.error !== null) {
     return { strong: "O bot não respondeu.", rest: `${snapshot.error}. Desfaça a última jogada ou comece outra partida.` };
   }

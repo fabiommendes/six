@@ -136,6 +136,7 @@ async function play(picked: StartChoice): Promise<void> {
     tilted: preferredTilt(),
     onTilt: keepTilt,
     onSession: keep,
+    spawnBot,
     onNewGame: newGame,
   });
   await screen.start();
@@ -192,6 +193,7 @@ async function continueAgainstBot(game: MailGame, levelId: BotLevelId): Promise<
     onTilt: keepTilt,
     bot: spawnBot(),
     onSession: keep,
+    spawnBot,
     onNewGame: newGame,
   });
   await screen.start();
@@ -245,6 +247,7 @@ async function resume(session: Session): Promise<void> {
     viewpoint: session.viewpoint,
     bot: session.mode.kind === "bot" ? spawnBot() : null,
     onSession: keep,
+    spawnBot,
     onNewGame: newGame,
   });
   await screen.start();
@@ -264,6 +267,7 @@ async function openFixture(name: string): Promise<boolean> {
     tilted: preferredTilt(),
     onTilt: keepTilt,
     bot: fixture.mode.kind === "bot" ? spawnBot() : null,
+    spawnBot,
     onNewGame: newGame,
   });
   await screen.start();

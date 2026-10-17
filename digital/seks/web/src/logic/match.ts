@@ -30,10 +30,20 @@ export interface CorrespondenceMode {
   readonly id: string;
 }
 
+/**
+ * The player left a local match and the bots play the rest, both sides, while
+ * the player watches. `stopped` once the player interrupts them.
+ */
+export interface BotsMode {
+  readonly kind: "bots";
+  readonly level: BotLevel;
+  readonly stopped: boolean;
+}
+
 /** A mode the development server can save in the session (see `session.ts`). */
 export type LocalMode = HotseatMode | BotMode;
 
-export type Mode = LocalMode | CorrespondenceMode;
+export type Mode = LocalMode | CorrespondenceMode | BotsMode;
 
 /** A die that left the board. */
 export interface Captured {
@@ -97,6 +107,9 @@ interface HistoryEntry {
   readonly captured: readonly Captured[];
 }
 
+/** How long the bots wait between plays when they play both sides. */
+export const BOTS_PAUSE_MS = 700;
+
 /** The last play and the dice taken, from the events of a transition. */
 function summarize(events: readonly Event[]): { last: LastPlay; captured: Captured[] } {
   let last: LastPlay | null = null;
@@ -131,14 +144,55 @@ export class Match {
   /** The position the match started from, to save it. */
   private readonly base: string;
 
+  private current: Mode;
+  private bot: BotPlayer | null;
+
   constructor(
     private readonly game: SeksGame,
-    readonly mode: Mode,
+    mode: Mode,
     private readonly stage: Stage,
-    private readonly bot: BotPlayer | null = null,
+    bot: BotPlayer | null = null,
     private readonly seed: Seed = {},
+    /** Waits `ms` between the plays of the bots, so the player can follow (the tests give a short one). */
+    private readonly pause: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   ) {
+    this.current = mode;
+    this.bot = bot;
     this.base = game.stateJson();
+  }
+
+  get mode(): Mode {
+    return this.current;
+  }
+
+  /**
+   * Hands the rest of the game to `bot`, which plays both sides at `level`
+   * with a pause between plays, until the game ends or `stopBots()`. A play
+   * being animated finishes first.
+   */
+  finishWithBots(bot: BotPlayer, level: BotLevel): Promise<void> {
+    if (this.disposed || this.current.kind === "bots" || this.current.kind === "correspondence") return Promise.resolve();
+    this.epoch++;
+    this.bot?.cancel();
+    this.bot = bot;
+    this.thinking = false;
+    this.selection = null;
+    this.error = null;
+    this.current = { kind: "bots", level, stopped: false };
+    this.stage.setMarks(this.marks());
+    this.notify();
+    // A play still on screen asks the bot itself when it lands.
+    return this.busy ? Promise.resolve() : this.askBot();
+  }
+
+  /** The player interrupts the bots: the position stays as it is. */
+  stopBots(): void {
+    if (this.disposed || this.current.kind !== "bots" || this.current.stopped) return;
+    this.epoch++;
+    this.bot?.cancel();
+    this.thinking = false;
+    this.current = { ...this.current, stopped: true };
+    this.notify();
   }
 
   /**
@@ -255,6 +309,7 @@ export class Match {
 
   private canUndo(): boolean {
     if (this.busy) return false;
+    if (this.mode.kind === "bots") return false;
     if (this.mode.kind === "correspondence") return this.history.length > this.floor;
     if (this.mode.kind === "hotseat") return this.history.length > 0;
     const human = this.mode.human;
@@ -262,6 +317,7 @@ export class Match {
   }
 
   private isHumanTurn(view: View): boolean {
+    if (this.mode.kind === "bots") return false;
     return this.mode.kind === "hotseat" || view.to_move === this.mode.human;
   }
 
@@ -317,16 +373,24 @@ export class Match {
   }
 
   private async askBot(): Promise<void> {
-    if (this.mode.kind !== "bot" || this.bot === null || this.disposed) return;
+    const mode = this.mode;
+    if ((mode.kind !== "bot" && mode.kind !== "bots") || this.bot === null || this.disposed) return;
+    if (mode.kind === "bots" && mode.stopped) return;
     const view = this.game.view();
-    if (view.outcome !== null || view.to_move === this.mode.human) return;
+    if (view.outcome !== null || (mode.kind === "bot" && view.to_move === mode.human)) return;
     const token = ++this.epoch;
+    if (mode.kind === "bots") {
+      this.thinking = true;
+      this.notify();
+      await this.pause(BOTS_PAUSE_MS);
+      if (token !== this.epoch || this.disposed) return;
+    }
     this.thinking = true;
     this.error = null;
     this.notify();
     let command: Command;
     try {
-      command = await this.bot.choose(this.game.stateJson(), this.mode.level);
+      command = await this.bot.choose(this.game.stateJson(), mode.level);
     } catch (error) {
       if (token !== this.epoch || error instanceof BotCancelled) return;
       this.thinking = false;
