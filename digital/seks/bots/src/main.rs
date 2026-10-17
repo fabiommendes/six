@@ -7,6 +7,7 @@
 //!     seks-bots openings --out FILE [--count 200] [--plies 6] [--seed S]
 //!                        [--judge SPEC] [--margin M]
 //!     seks-bots perft --depth N
+//!     seks-bots bench [--bot SPEC]
 //!
 //! `batch` plays every opening once with each color (`--games` defaults to
 //! twice the openings), writes one JSONL line per game to `--out` and the
@@ -26,13 +27,14 @@ use seks_bots::batch::{Batch, Summary};
 use seks_bots::by_name;
 use seks_bots::game_file::GameFile;
 use seks_bots::openings;
-use seks_engine::{legal_commands_into, Command, Engine, GameState};
+use seks_engine::GameState;
 
 const USAGE: &str = "usage: seks-bots batch --bots A,B --openings FILE [--games N] [--seed S] \
 [--threads N] [--max-plies N] [--out FILE] [--games-out DIR] [--summary FILE]
        seks-bots replay DIR_OR_FILE...
        seks-bots openings --out FILE [--count N] [--plies K] [--seed S] [--judge SPEC] [--margin M]
-       seks-bots perft --depth N";
+       seks-bots perft --depth N
+       seks-bots bench [--bot SPEC]";
 
 fn main() -> ExitCode {
     match run(std::env::args().skip(1).collect()) {
@@ -53,6 +55,7 @@ fn run(args: Vec<String>) -> Result<(), String> {
         "replay" => replay(rest),
         "openings" => make_openings(&pairs(rest)?),
         "perft" => perft(&pairs(rest)?),
+        "bench" => bench(&pairs(rest)?),
         _ => Err(USAGE.into()),
     }
 }
@@ -191,7 +194,7 @@ fn replay(paths: &[String]) -> Result<(), String> {
 
 fn make_openings(flags: &[(&str, &str)]) -> Result<(), String> {
     let (mut count, mut plies, mut seed) = (200usize, 6usize, 0u64);
-    let mut judge = "greedy".to_string();
+    let mut judge = "ab:depth=4".to_string();
     let mut margin = 150i32;
     let mut out = None;
     for &(flag, value) in flags {
@@ -229,18 +232,16 @@ fn make_openings(flags: &[(&str, &str)]) -> Result<(), String> {
     Ok(())
 }
 
-fn perft_count(state: &GameState, depth: u32, buffers: &mut [Vec<Command>]) -> u64 {
-    let (commands, rest) = buffers.split_first_mut().unwrap();
-    legal_commands_into(state, commands);
-    if depth == 1 {
-        return commands.len() as u64;
+fn bench(flags: &[(&str, &str)]) -> Result<(), String> {
+    let mut bot = "ab".to_string();
+    for &(flag, value) in flags {
+        match flag {
+            "--bot" => bot = value.to_string(),
+            _ => return Err(format!("unknown flag {flag}\n{USAGE}")),
+        }
     }
-    let mut total = 0;
-    for &command in commands.iter() {
-        let next = Engine::step(state, command).expect("a legal command");
-        total += perft_count(&next, depth - 1, rest);
-    }
-    total
+    println!("{}", seks_bots::bench::run(&bot)?);
+    Ok(())
 }
 
 fn perft(flags: &[(&str, &str)]) -> Result<(), String> {
@@ -254,9 +255,9 @@ fn perft(flags: &[(&str, &str)]) -> Result<(), String> {
     let depth = depth
         .filter(|&d| d > 0)
         .ok_or("--depth must be at least 1")?;
-    let mut buffers = vec![Vec::with_capacity(256); depth as usize];
+    let mut buffers: Vec<_> = (0..depth).map(|_| Vec::with_capacity(256)).collect();
     let clock = Instant::now();
-    let leaves = perft_count(&GameState::initial(), depth, &mut buffers);
+    let leaves = seks_bots::bench::perft(&GameState::initial(), depth, &mut buffers);
     let seconds = clock.elapsed().as_secs_f64();
     println!(
         "perft {depth}: {leaves} leaves in {seconds:.2} s, {:.0} leaves/s",

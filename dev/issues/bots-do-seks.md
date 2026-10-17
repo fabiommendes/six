@@ -138,7 +138,7 @@ que os outros da mesma fase.
 - [x] **(paralelo)** `stats.rs`: pontos, Elo e intervalo de 95% pela
   variância trinomial (vitória, empate, derrota). Testes com valores
   calculados à mão.
-- [ ] **(paralelo)** Aberturas: `seks-bots openings` gera N posições depois
+- [x] **(paralelo)** Aberturas: `seks-bots openings` gera N posições depois
   de K jogadas aleatórias, descarta as que uma busca curta já vê decididas
   (nota além de uma margem), e grava uma abertura por linha como a
   sequência de jogadas desde a posição inicial. `openings/base.txt` (200
@@ -151,12 +151,12 @@ que os outros da mesma fase.
 - [x] `game_file.rs` e `seks-bots replay`: arquivo JSON por partida, com
   bots, semente, abertura, jogadas na notação do motor, resultado e, por
   jogada, nós, tempo, profundidade e nota.
-- [ ] `seks-bots perft --depth N` e `seks-bots bench`: nós por segundo do
+- [x] `seks-bots perft --depth N` e `seks-bots bench`: nós por segundo do
   gerador de jogadas e da busca, num conjunto fixo de posições.
 
 ### Fase 2: o bot alfa-beta
 
-- [ ] `eval/features.rs`: as features, numa função usada pela avaliação e
+- [x] `eval/features.rs`: as features, numa função usada pela avaliação e
   pelo treino, para os dois nunca divergirem. Conjunto inicial **(revisar)**:
   - material por valor (quantos dados de cada valor, 1 a 6);
   - avanço: tabela por fileira relativa ao lado e por valor, com as colunas
@@ -167,12 +167,12 @@ que os outros da mesma fase.
   - dados próprios que bloqueiam as linhas de ataque à própria fileira de
     fundo;
   - bônus de quem joga.
-- [ ] `eval/weights.rs`: `Weights` lidos de JSON (`serde_json`), com o padrão
+- [x] `eval/weights.rs`: `Weights` lidos de JSON (`serde_json`), com o padrão
   embutido por `include_str!("../../weights/default.json")`.
   `weights/hand.json`: pesos à mão, a linha de base do treino.
-- [ ] `EVALUATOR.md`: cada feature, a fórmula, o peso padrão e como ajustar,
+- [x] `EVALUATOR.md`: cada feature, a fórmula, o peso padrão e como ajustar,
   como o do Rio.
-- [ ] `search/`: negamax com PVS e aprofundamento iterativo; tabela de
+- [x] `search/`: negamax com PVS e aprofundamento iterativo; tabela de
   transposição de tamanho fixo em potência de 2 (chave, jogada, nota,
   profundidade, tipo de limite); ordenação pela jogada da tabela, vitórias
   imediatas, capturas, killers e histórico; quiescência sobre capturas e
@@ -180,13 +180,13 @@ que os outros da mesma fase.
   adversário ameaça vencer na jogada seguinte; redução de jogadas tardias
   (LMR), que o fator de ramificação de 100 exige. Vitória vale
   `WIN - ply`; repetição de uma posição já no caminho da busca vale empate.
-- [ ] `ab.rs`: bot `ab[:depth=D,nodes=N,ms=T,tt=MIB,noise=E,weights=@F]`.
+- [x] `ab.rs`: bot `ab[:depth=D,nodes=N,ms=T,tt=MIB,noise=E,weights=@F]`.
   Nível padrão **(revisar)**: `ab:nodes=N0`, com N0 escolhido na fase 4 para
   caber em R7. `ms=T` usa `std::time::Instant` só no lado nativo; o núcleo
   recebe o callback de parada. `noise=E` escolhe com a semente entre as
   jogadas da raiz a até E da melhor nota (variedade contra humanos; 0 nos
   testes).
-- [ ] Testes: minimax sem poda contra alfa-beta (R3), suíte tática em
+- [x] Testes: minimax sem poda contra alfa-beta (R3), suíte tática em
   `tests/positions/` no formato de diagrama do motor (R3), simetria da
   avaliação (R4), determinismo com limite de nós.
 

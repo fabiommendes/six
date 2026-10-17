@@ -35,6 +35,14 @@ fn the_same_seed_gives_the_same_records_with_1_and_4_threads() {
 }
 
 #[test]
+fn a_node_limited_ab_gives_the_same_records_with_1_and_3_threads() {
+    let bots = ["ab:nodes=1500,tt=1", "ab:nodes=1000,tt=1,noise=20"];
+    let one = untimed_records(&batch(bots, 6, 1));
+    let three = untimed_records(&batch(bots, 6, 3));
+    assert_eq!(one, three);
+}
+
+#[test]
 fn a_thousand_games_of_random_against_greedy_end_without_error() {
     let records = batch(["random", "greedy"], 1000, 4).run(&|_| {}).unwrap();
     let summary = Summary::new(&["random".into(), "greedy".into()], &records);

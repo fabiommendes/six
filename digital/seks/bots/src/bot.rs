@@ -2,6 +2,7 @@
 
 use seks_engine::{legal_commands, Board, Command, Engine, GameState, Outcome, Side};
 
+use crate::ab::AlphaBeta;
 use crate::rng::Rng;
 use crate::tactics::{can_win_now, relative_row};
 
@@ -49,10 +50,28 @@ pub trait Bot {
 /// - `greedy`: one ply of lookahead; wins when it can, otherwise maximizes
 ///   material and advance, and avoids moves that let the opponent win on
 ///   the next move.
+/// - `ab[:ARGS]`: alpha-beta search ([`crate::search`]) with the linear
+///   evaluation ([`crate::eval`]). `ARGS` are comma separated, in any order:
+///   - `depth=D`: deepest iteration;
+///   - `nodes=N`: nodes per move (the first iteration always finishes);
+///   - `ms=T`: milliseconds per move (native only);
+///   - `tt=MIB`: transposition table size, 16 MiB by default;
+///   - `noise=E`: chooses at random among the root moves at most `E` below
+///     the best score, 0 by default;
+///   - `weights=@FILE`: the weights file, `weights/default.json` by default;
+///   - `nmp=0`, `lmr=0`, `prune=0`: turn off null-move pruning, late move
+///     reductions, or futility and late move pruning, for experiments.
+///
+///   `ab` with no `depth`, `nodes` or `ms` is the default level,
+///   `ab:nodes=N0` with N0 = [`AlphaBeta::DEFAULT_NODES`].
 pub fn by_name(spec: &str) -> Result<Box<dyn Bot + Send>, String> {
-    match spec {
-        "random" => Ok(Box::new(Random)),
-        "greedy" => Ok(Box::new(Greedy)),
+    let (name, args) = spec.split_once(':').unwrap_or((spec, ""));
+    match (name, args) {
+        ("random", "") if spec == "random" => Ok(Box::new(Random)),
+        ("greedy", "") if spec == "greedy" => Ok(Box::new(Greedy)),
+        ("ab", _) if spec == "ab" || !args.is_empty() => {
+            Ok(Box::new(AlphaBeta::from_args(spec, args)?))
+        }
         _ => Err(format!("unknown bot {spec:?}")),
     }
 }
@@ -142,10 +161,39 @@ mod tests {
 
     #[test]
     fn by_name_accepts_the_documented_specs_and_rejects_others() {
-        for spec in ["random", "greedy"] {
+        for spec in [
+            "random",
+            "greedy",
+            "ab",
+            "ab:depth=3",
+            "ab:nodes=5000",
+            "ab:ms=100",
+            "ab:tt=1",
+            "ab:noise=20",
+            "ab:depth=4,nodes=100,tt=2,noise=0,ms=50",
+            "ab:weights=@weights/hand.json",
+            "ab:nmp=0,lmr=1",
+        ] {
             assert_eq!(by_name(spec).unwrap().name(), spec);
         }
-        for spec in ["", "rand", "greedy:3", "Random"] {
+        for spec in [
+            "",
+            "rand",
+            "greedy:3",
+            "Random",
+            "ab:",
+            "ab:depth=0",
+            "ab:depth=x",
+            "ab:nodes=-1",
+            "ab:noise=-5",
+            "ab:tt=0",
+            "ab:speed=3",
+            "ab:depth",
+            "ab:weights=weights/hand.json",
+            "ab:weights=@missing.json",
+            "ab:nmp=2",
+            "abc",
+        ] {
             assert!(by_name(spec).is_err(), "{spec}");
         }
     }
