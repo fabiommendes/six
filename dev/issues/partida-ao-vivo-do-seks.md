@@ -68,7 +68,7 @@ longo.
 - [x] P2. "Terminar com bots": intervalo mínimo de 0,3 s contado do início da
   jogada anterior, em vez de 0,7 s de espera. Teste e README.
   (`Refs: interface-web-do-seks`)
-- [ ] P3. Correção da correspondência: quem desiste e recarrega mantém a
+- [x] P3. Correção da correspondência: quem desiste e recarrega mantém a
   partida (marcada como desistida) até copiar ou compartilhar o link.
 - [x] P4. Painel da correspondência sem rolar em 1440x900 com o link e a dica
   juntos.

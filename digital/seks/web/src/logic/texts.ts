@@ -3,7 +3,7 @@ import type { Cell } from "../engine/cells";
 import type { Side, View } from "../engine/game";
 import { LinkError } from "./link";
 import type { LastPlay, MatchSnapshot, Mode } from "./match";
-import { mailStatus, type MailGame } from "./mail-games";
+import { isResigned, mailStatus, type MailGame } from "./mail-games";
 import { drawStatus } from "./status";
 
 /**
@@ -104,6 +104,7 @@ export const MAIL = {
 
 /** The line that says where a saved game by correspondence stands. */
 export function mailGameStatus(game: MailGame): string {
+  if (isResigned(game)) return MAIL.resignedTitle;
   if (game.leftBy !== null) return MAIL.leftTitle(game.leftBy);
   const status = mailStatus(game);
   if (status === "yours") return MAIL.yours;

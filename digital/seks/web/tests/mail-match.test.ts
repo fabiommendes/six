@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SeksGame } from "../src/engine/game";
 import type { Mode } from "../src/logic/match";
 import { hint, MAIL, mailGameStatus, modeLine, sideTag, turnSubtitle } from "../src/logic/texts";
-import { newMailGame } from "../src/logic/mail-games";
+import { markResigned, newMailGame } from "../src/logic/mail-games";
 import { newMatch } from "./fakes";
 
 const as = (human: "white" | "black"): Mode => ({ kind: "correspondence", human, id: "abc" });
@@ -95,5 +95,6 @@ describe("texts of play by correspondence", () => {
     expect(mailGameStatus({ ...game, toMove: "black" })).toBe("Aguardando as Pretas");
     expect(mailGameStatus({ ...game, over: true })).toBe(MAIL.over);
     expect(mailGameStatus({ ...game, leftBy: "black" })).toBe("As Pretas saíram da partida.");
+    expect(mailGameStatus(markResigned(game))).toBe(MAIL.resignedTitle);
   });
 });

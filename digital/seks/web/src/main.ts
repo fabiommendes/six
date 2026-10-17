@@ -8,7 +8,9 @@ import { decodeLink, encodeLink, LinkError } from "./logic/link";
 import {
   findMailGame,
   gameRoute,
+  isResigned,
   loadMailGames,
+  markResigned,
   memoryStore,
   newMailGame,
   openLink,
@@ -159,7 +161,9 @@ async function openMail(game: MailGame, notice: string | null): Promise<void> {
     mail: {
       linkFor,
       shared: game.shared,
-      leftBy: game.leftBy,
+      // A game the player resigned stays in the list, marked, until the link that tells it is sent.
+      resigned: isResigned(game),
+      leftBy: isResigned(game) ? null : game.leftBy,
       onChange: (change) => {
         const same =
           change.shared === latest.shared && change.toMove === latest.toMove && change.over === latest.over && change.commands.length === latest.commands.length;
@@ -167,7 +171,11 @@ async function openMail(game: MailGame, notice: string | null): Promise<void> {
         latest = { ...latest, ...change, updated: Date.now() };
         saveMailGame(mails, latest);
       },
-      onResign: () => removeMailGame(mails, game.id),
+      onResign: () => {
+        latest = markResigned(latest);
+        saveMailGame(mails, latest);
+      },
+      onResignSent: () => removeMailGame(mails, game.id),
       onContinue: (level) => void continueAgainstBot(latest, level),
       onEnd: () => {
         removeMailGame(mails, game.id);

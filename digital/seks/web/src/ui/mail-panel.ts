@@ -11,6 +11,8 @@ export interface MailPanelHooks {
   resigned(): boolean;
   /** The link was copied or shared (and the player had not resigned): the opponent has the plies. */
   onSent(): void;
+  /** The link copied or shared tells that the player resigned: it reached the one who sends it. */
+  onResignSent(): void;
   /** The opponent left and the player goes on against the bot. */
   onContinue(level: BotLevelId): void;
   /** The opponent left and the player ends the game. */
@@ -111,7 +113,7 @@ export class MailPanel {
       return;
     }
     this.setStatus(MAIL.copied);
-    if (!this.hooks.resigned()) this.hooks.onSent();
+    this.sent();
   }
 
   private async shareLink(): Promise<void> {
@@ -123,6 +125,11 @@ export class MailPanel {
       return;
     }
     this.setStatus(MAIL.sharedDone);
-    if (!resigned) this.hooks.onSent();
+    this.sent();
+  }
+
+  private sent(): void {
+    if (this.hooks.resigned()) this.hooks.onResignSent();
+    else this.hooks.onSent();
   }
 }

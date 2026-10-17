@@ -43,6 +43,18 @@ export function newMailGame(player: Side, now: number = Date.now(), id: string =
   return { id, start: "", player, commands: [], shared: 0, toMove: "white", over: false, leftBy: null, updated: now };
 }
 
+/**
+ * The entry after the player resigned: marked with the side that left, and kept
+ * (not removed) until the link that tells the opponent is sent, so a reload
+ * does not lose it.
+ */
+export function markResigned(game: MailGame, now: number = Date.now()): MailGame {
+  return { ...game, leftBy: game.player, updated: now };
+}
+
+/** Whether the player of this entry resigned and the link that tells it is still to be sent. */
+export const isResigned = (game: MailGame): boolean => game.leftBy === game.player;
+
 /** What the player of this entry may do with the game now. */
 export function mailStatus(game: MailGame): "yours" | "waiting" | "over" {
   if (game.over) return "over";

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   findMailGame,
   gameRoute,
+  isResigned,
+  markResigned,
   loadMailGames,
   MAIL_KEY,
   mailStatus,
@@ -18,6 +20,20 @@ import { outlook } from "../src/logic/seks-link";
 
 const link = (commands: string[], id = "abc", start = "") => ({ id, start, commands });
 const after = (commands: string[]): LinkOutlook => outlook("", commands);
+
+describe("resigning keeps the game until the link is sent", () => {
+  it("marks the entry with the side that left, so a reload still finds it", () => {
+    const store = memoryStore();
+    const game = { ...newMailGame("white", 1, "abc"), commands: ["b2-b4"], toMove: "black" as const };
+    saveMailGame(store, markResigned(game, 9));
+    const saved = findMailGame(store, "abc");
+    expect(saved).toMatchObject({ leftBy: "white", updated: 9, commands: ["b2-b4"] });
+    expect(isResigned(saved!)).toBe(true);
+    expect(isResigned(game)).toBe(false);
+    // The opponent's departure is not the player's.
+    expect(isResigned({ ...game, leftBy: "black" })).toBe(false);
+  });
+});
 
 describe("saved games", () => {
   it("a new game is the standard position, nothing played, the Whites to move", () => {

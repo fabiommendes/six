@@ -45,8 +45,12 @@ export interface MailOptions {
   readonly leftBy: Side | null;
   /** Called at every change, to keep the game in the saved list. */
   readonly onChange: (change: { commands: readonly Command[]; shared: number; toMove: Side; over: boolean }) => void;
-  /** The player resigned: the game leaves the saved list (the link to send stays on the screen). */
+  /** The game was resigned and the link that tells it has not been sent yet: the game stays in the saved list. */
+  readonly resigned?: boolean;
+  /** The player resigned: the saved game is marked, so a reload still has the link to send. */
   readonly onResign: () => void;
+  /** The link of the resignation was copied or shared: the game leaves the saved list. */
+  readonly onResignSent: () => void;
   /** The opponent left and the player goes on against the bot, from this position. */
   readonly onContinue: (level: BotLevelId) => void;
   /** The opponent left and the player ends the game. */
@@ -154,6 +158,7 @@ export class GameScreen {
       link: () => this.currentLink(),
       resigned: () => this.resignedLink !== null,
       onSent: () => this.markShared(),
+      onResignSent: () => options.mail?.onResignSent(),
       onContinue: (level) => options.mail?.onContinue(level),
       onEnd: () => options.mail?.onEnd(),
     });
@@ -181,6 +186,7 @@ export class GameScreen {
     this.match = new Match(options.game, options.mode, stage, options.bot, options.seed);
     if (board) board.canActivate = (cell) => this.canActivate(cell);
     this.shared = options.mail?.shared ?? 0;
+    if (options.mail?.resigned) this.resignedLink = options.mail.linkFor(options.resume ?? [], true);
     if (options.resume) this.match.resume(options.resume, options.mail ? this.shared : undefined);
     if (options.tilted) {
       this.tilted = true;
