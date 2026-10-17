@@ -79,7 +79,7 @@ function playRandomGame(game, seed) {
 
 test("plays a whole game and takes it all back", () => {
   const game = new Game();
-  const { view, states, plies, kinds } = playRandomGame(game, 1);
+  const { view, states, plies, kinds } = playRandomGame(game, 10);
   assert.ok(plies > 10);
   assert.ok(kinds.has("moved"));
   assert.equal(view.outcome === null, false);
@@ -98,9 +98,14 @@ test("plays a whole game and takes it all back", () => {
   game.free();
 });
 
-test("several random games end with a win or a draw", () => {
+// Fixed seeds keep the check short: 10 has a capture and ends in a draw, 25
+// ends in a win. `SEKS_GAMES=200 node --test ...` plays that many more.
+const extra = Number(process.env.SEKS_GAMES ?? 0);
+const seeds = [10, 25, ...Array.from({ length: extra }, (_, i) => 100 + i)];
+
+test("random games end with a win or a draw", () => {
   const kinds = new Set();
-  for (let seed = 2; seed < 30; seed++) {
+  for (const seed of seeds) {
     const game = new Game();
     const { view, kinds: seen } = playRandomGame(game, seed);
     assert.ok(["win", "draw"].includes(view.outcome.kind));

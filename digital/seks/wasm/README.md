@@ -14,8 +14,9 @@ guarda uma partida e a pilha de desfazer; as regras ficam no motor. Contexto:
 
 - `just seks-wasm`: gera o pacote em `digital/seks/wasm/pkg` (alvo `web`, com
   `.d.ts`). Não vai para o git.
-- `just seks-wasm-test`: gera o pacote e roda `tests/game.test.mjs`, que joga
-  partidas inteiras pelo `Game`.
+- `just seks-wasm-test`: gera o pacote e roda `tests/game.test.mjs`, que joga duas
+  partidas inteiras pelo `Game` (sementes fixas; `SEKS_GAMES=N` joga N a mais).
+  As receitas rodam com `nice -n 19` e `CARGO_BUILD_JOBS=4`.
 - `just seks-types`: regenera os tipos TypeScript em `types/`. O `just check`
   falha se eles divergirem do `wire` do motor.
 

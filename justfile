@@ -49,7 +49,7 @@ seks-engine-test:
 [group('seks')]
 seks-types:
     rm -rf digital/seks/wasm/types
-    cd digital && TS_RS_EXPORT_DIR="$PWD/seks/wasm/types" cargo test -q -p seks-engine --features wire --lib export_bindings
+    cd digital && TS_RS_EXPORT_DIR="$PWD/seks/wasm/types" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p seks-engine --features wire --lib export_bindings
 
 # Falha se digital/seks/wasm/types está desatualizado em relação ao wire do motor
 [group('seks')]
@@ -59,18 +59,18 @@ seks-types-check:
     tmp=$(mktemp -d)
     trap 'rm -rf "$tmp"' EXIT
     cd digital
-    TS_RS_EXPORT_DIR="$tmp" cargo test -q -p seks-engine --features wire --lib export_bindings
+    TS_RS_EXPORT_DIR="$tmp" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p seks-engine --features wire --lib export_bindings
     diff -r "$tmp" seks/wasm/types || { echo "tipos desatualizados: rode just seks-types" >&2; exit 1; }
 
 # Gera o pacote WebAssembly do motor do Seks em digital/seks/wasm/pkg (pede wasm-pack e o alvo wasm32-unknown-unknown)
 [group('seks')]
 seks-wasm:
-    cd digital && wasm-pack build seks/wasm --target web --release
+    cd digital && CARGO_BUILD_JOBS=4 nice -n 19 wasm-pack build seks/wasm --target web --release
 
-# Gera o pacote WebAssembly e joga partidas inteiras pelo Game no Node
+# Gera o pacote WebAssembly e joga duas partidas inteiras pelo Game no Node (SEKS_GAMES=N joga N a mais)
 [group('seks')]
 seks-wasm-test: seks-wasm
-    node --test digital/seks/wasm/tests/game.test.mjs
+    nice -n 19 node --test digital/seks/wasm/tests/game.test.mjs
 
 # --- Bots do Seks -----------------------------------------------------------
 
