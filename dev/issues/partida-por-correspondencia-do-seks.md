@@ -1,6 +1,6 @@
 ---
 type: issue
-status: in_progress
+status: in_review
 tags: [seks, digital, web, rede]
 relatedTo: [dev/rfc/rede-sem-servidor.md, dev/issues/interface-web-do-seks.md]
 kind: enhancement
