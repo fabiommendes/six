@@ -65,7 +65,7 @@ longo.
 - [ ] P1. Refatorar `GameScreen` (`src/ui/game.ts`) em componentes (painel de
   correspondência, diálogo de confirmação, cartão de fim), sem mudar
   comportamento. (`Refs: interface-web-do-seks`)
-- [ ] P2. "Terminar com bots": intervalo mínimo de 0,3 s contado do início da
+- [x] P2. "Terminar com bots": intervalo mínimo de 0,3 s contado do início da
   jogada anterior, em vez de 0,7 s de espera. Teste e README.
   (`Refs: interface-web-do-seks`)
 - [ ] P3. Correção da correspondência: quem desiste e recarrega mantém a
