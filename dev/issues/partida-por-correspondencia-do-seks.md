@@ -59,7 +59,7 @@ navegador guarda a cor, o id e as jogadas de cada partida.
   `SeksGame`, posição inicial padrão vazia e posição de diagrama/fixture
   compacta. Testes com partidas inteiras (jogadas aleatórias com semente),
   vetor fixo partida a link, tamanho de 300 jogadas.
-- [ ] P3. Partidas guardadas (`src/logic/mail-games.ts`): lista no
+- [x] P3. Partidas guardadas (`src/logic/mail-games.ts`): lista no
   `localStorage` (id, cor, posição, jogadas, quantas o outro já tem), e a
   regra de abrir um link (partida nova, link velho, link que avança, link
   que diverge). Rotas do fragmento (`#v1...` e `#g.<id>`). Testes.

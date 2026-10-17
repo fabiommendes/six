@@ -85,3 +85,27 @@ export const seksRuleset: Ruleset = {
     };
   },
 };
+
+/** What the end of a link's game looks like: who is to move, whether it is over and who played last. */
+export interface Outlook {
+  readonly toMove: Side;
+  readonly over: boolean;
+  /** Who made the last play; `null` for a game with no plays. */
+  readonly lastMover: Side | null;
+}
+
+/** Replays `commands` from `start` on the engine. Throws if the position or a command is refused. */
+export function outlook(start: string, commands: readonly string[]): Outlook {
+  const game = gameFromStart(start);
+  try {
+    let lastMover: Side | null = null;
+    for (const command of commands) {
+      lastMover = game.view().to_move;
+      game.command(command);
+    }
+    const view = game.view();
+    return { toMove: view.to_move, over: view.outcome !== null, lastMover };
+  } finally {
+    game.free();
+  }
+}
