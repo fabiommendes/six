@@ -44,7 +44,7 @@ do RFC.
 
 ## Out of scope
 
-- Desistência e prazo por jogada: perguntas abertas do RFC.
+- Prazo por jogada: pergunta aberta do RFC. (A desistência virou o R8.)
 - Partida ao vivo: `dev/issues/partida-ao-vivo-do-seks.md`.
 
 ## Plano
@@ -71,10 +71,10 @@ navegador guarda a cor, o id e as jogadas de cada partida.
   que diverge). Rotas do fragmento (`#v1...` e `#g.<id>`). Testes.
 - [x] P4. `Match` com o modo por correspondência (só a cor do jogador joga,
   desfazer até o "piso" travado por copiar ou compartilhar). Testes.
-- [ ] P5. Interface: tela inicial (escolha de cor e lista das partidas
+- [x] P5. Interface: tela inicial (escolha de cor e lista das partidas
   guardadas), painel de jogo com o link, copiar e compartilhar, aviso de
   link inválido, rota por `hashchange`; textos do glossário e teste de
   textos.
-- [ ] P6. Verificação no navegador com dois contextos (criar, jogar,
+- [x] P6. Verificação no navegador com dois contextos (criar, jogar,
   copiar, abrir no outro, responder, voltar), tamanho do link de 300
   jogadas, README da web, `just check`, issue em `in_review`.

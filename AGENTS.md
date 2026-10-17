@@ -51,7 +51,7 @@ Nível 1 do ADR 0002 do tooling-root:
 | `digital/<jogo>/` | Uma pasta por implementação digital |
 | `digital/seks/engine/` | Motor do Seks em Rust (`seks-engine`), no workspace Cargo de `digital/` |
 | `digital/seks/wasm/` | `seks-wasm`: o motor (`Game`) e o bot (`Bot`) em WebAssembly e os tipos TypeScript do `wire` |
-| `digital/seks/web/` | Interface web do Seks (Vite, TypeScript e Three.js): hotseat e jogo contra bot, com o motor em WASM |
+| `digital/seks/web/` | Interface web do Seks (Vite, TypeScript e Three.js): hotseat, jogo contra bot e partida por correspondência (link), com o motor em WASM |
 | `digital/seks/bots/` | Bots do Seks (`seks-bots`): aleatório, guloso e alfa-beta, lotes e treino |
 | `digital/seks/prototipo/` | Protótipo do Seks em Python e Pyxel, referência de comportamento |
 | `arte/` | Identidade visual (ADR 0005); `esbocos/` guarda as quatro direções esboçadas, como referência |
