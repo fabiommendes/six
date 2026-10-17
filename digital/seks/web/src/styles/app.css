@@ -6,7 +6,7 @@
   --muted: #6b6257;
   --seks: #a3302a;
   --panel: 320px;
-  /* The board takes the height of the window; the panel is a narrow bar beside it. */
+  /* Side of the square board where the layout needs one (the phone); on the desktop the canvas takes the whole area beside the panel. */
   --board: min(calc(100dvh - 24px), calc(100vw - var(--panel) - 48px));
 }
 
@@ -18,8 +18,9 @@ i { font-style: italic; }
 
 /* ---- The game screen: the board and the panel -------------------------- */
 
-.screen { display: grid; grid-template-columns: var(--board) var(--panel); justify-content: center; gap: 24px; padding: 12px; height: 100dvh; align-items: start; }
-.board-wrap { width: var(--board); height: var(--board); }
+.screen { display: grid; grid-template-columns: minmax(0, 1fr) var(--panel); grid-template-rows: minmax(0, 1fr); gap: 24px; padding: 12px; height: 100dvh; }
+.board-wrap { min-width: 0; min-height: 0; }
+.panel { align-self: start; }
 .board { position: relative; width: 100%; height: 100%; }
 .board-canvas { display: block; width: 100%; height: 100%; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .board-error { margin: 0; padding: 24px; color: var(--muted); }
@@ -86,7 +87,7 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 
 /* A short window (a phone on its side): the panel keeps what is needed to play. */
 @media (max-height: 560px) {
-  .screen { padding: 8px; gap: 16px; --panel: 300px; --board: min(calc(100dvh - 16px), calc(100vw - var(--panel) - 32px)); }
+  .screen { padding: 8px; gap: 16px; --panel: 300px; }
   h1 { font-size: 40px; margin: 6px 0 2px; }
   .sub, .band, .legend, .foot { display: none; }
   .turn .who { font-size: 22px; }
@@ -102,7 +103,8 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 /* Portrait, and narrow windows: the board over the panel (the phone sketch). */
 @media (max-aspect-ratio: 1/1), (max-width: 700px) {
   .screen { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 10px 8px 16px; height: auto; min-height: 100dvh; --board: min(calc(100vw - 16px), 640px); }
-  .board-wrap { margin: 0 auto; }
+  .screen { grid-template-rows: none; }
+  .board-wrap { width: var(--board); height: var(--board); margin: 0 auto; }
   .panel { display: contents; }
   .top { display: grid; grid-template-columns: 1fr auto; align-items: center; }
   .head { order: -1; padding: 0 6px 8px; }

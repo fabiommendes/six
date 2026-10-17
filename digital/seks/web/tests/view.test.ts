@@ -51,6 +51,17 @@ describe("the cameras of the board", () => {
     }
   });
 
+  it("uses the whole width of the desktop area beside the panel when tilted (the tilted board is wider than tall)", () => {
+    for (const aspect of [1072 / 876, 912 / 696]) {
+      const camera = cameras(1, aspect, 12.74).active;
+      const ndc = corners(12.74).map((corner) => corner.clone().project(camera));
+      const reachX = Math.max(...ndc.map((p) => Math.abs(p.x)));
+      const reachY = Math.max(...ndc.map((p) => Math.abs(p.y)));
+      expect(reachX, `aspect ${aspect}`).toBeGreaterThan(0.95);
+      expect(reachY).toBeLessThan(1);
+    }
+  });
+
   it("keeps the back row on the canvas when tilted", () => {
     for (const aspect of ASPECTS) {
       const camera = cameras(1, aspect, 12.74).active;

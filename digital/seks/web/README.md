@@ -30,6 +30,11 @@ de meio dado de espessura (`BOARD_THICKNESS`). Nas duas, `src/board/view.ts`
 ajusta a câmera para o tabuleiro inteiro, com coordenadas, caber no canvas em
 qualquer proporção.
 
+No desktop o canvas ocupa o retângulo à esquerda do painel (não um quadrado), e
+a câmera enquadra pela largura e pela altura reais. A vista inclinada é mais larga
+que alta, então ela usa a largura toda e sobra espaço acima e abaixo; só em
+retrato (celular) o canvas é quadrado.
+
 O tabuleiro é visto do lado do jogador: contra o bot, o humano fica embaixo (com
 as Pretas, a fileira 11 fica embaixo e a coluna k à esquerda); em hotseat, o
 tabuleiro gira meia volta para o lado da vez depois que a animação da jogada

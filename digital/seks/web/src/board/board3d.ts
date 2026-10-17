@@ -395,7 +395,8 @@ export class Board3D implements Stage {
     const height = Math.max(1, this.container.clientHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.setSize(width, height, false);
-    const compact = width < COMPACT_BELOW;
+    // The frame is drawn for the square the board fits in, which is the shorter side of the canvas.
+    const compact = Math.min(width, height) < COMPACT_BELOW;
     if (compact !== this.layout.compact) {
       this.layout = frameLayout(compact);
       void this.drawFrame();
