@@ -22,8 +22,14 @@ Nível 1 do ADR 0002 do tooling-root:
 
 - Checagem: `just check` (build e lint do manual, sincronia com `regras/`,
   lint e testes do protótipo, `cargo fmt --check`, `cargo clippy` e
-  `cargo test` do motor em Rust). Define "pronto".
+  `cargo test` do motor e dos bots em Rust, build WASM dos bots). Define
+  "pronto".
 - Motor do Seks: `just seks-engine-test`.
+- Bots do Seks: `just seks-batch A B` (lote entre dois bots), `just
+  seks-train [CONFIG]` (treino, retoma se parou), `just seks-experiments
+  GRID` (grade de experimentos com resumo curto), `just seks-bench`
+  (velocidade nativa e em WASM). Detalhes em `digital/seks/bots/EVALUATOR.md`
+  e `dev/notes/bots-do-seks.md`.
 - Manual: `just manual` (site e PDF), `just manual-serve`, `just manual-check`
   (trechos do manual cujas fontes em `regras/` mudaram). Detalhes em
   `manual/README.md`.
@@ -37,6 +43,7 @@ Nível 1 do ADR 0002 do tooling-root:
 | `manual/` | Livro de regras único (PDF e site) e o código que o gera |
 | `digital/<jogo>/` | Uma pasta por implementação digital |
 | `digital/seks/engine/` | Motor do Seks em Rust (`seks-engine`), no workspace Cargo de `digital/` |
+| `digital/seks/bots/` | Bots do Seks (`seks-bots`): aleatório, guloso e alfa-beta, lotes e treino |
 | `digital/seks/prototipo/` | Protótipo do Seks em Python e Pyxel, referência de comportamento |
 | `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` fica fora do git |
 

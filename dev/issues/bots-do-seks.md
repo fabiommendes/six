@@ -234,14 +234,14 @@ que os outros da mesma fase.
 
 ### Fase 4: custo e WASM
 
-- [ ] `cargo build -p seks-bots --lib --target wasm32-unknown-unknown` entra
+- [x] `cargo build -p seks-bots --lib --target wasm32-unknown-unknown` entra
   no `just check`. Lote, autojogo, treino e linha de comando ficam sob
   `#[cfg(not(target_arch = "wasm32"))]`, como o `run_parallel` do Rio.
-- [ ] Benchmark em `wasm32-wasip1` rodado com `node:wasi` (R7). Precisa de
+- [x] Benchmark em `wasm32-wasip1` rodado com `node:wasi` (R7). Precisa de
   `rustup target add wasm32-wasip1`.
 - [ ] Escolher N0 do nível padrão, medir R6, R7 e R8 e registrar em
   `dev/notes/bots-do-seks.md`.
-- [ ] `just`: receitas `seks-batch`, `seks-train` e `seks-bench`;
+- [x] `just`: receitas `seks-batch`, `seks-train` e `seks-bench`;
   `digital/Cargo.toml` ganha `seks/bots` nos membros; `AGENTS.md` cita as
   receitas.
 
