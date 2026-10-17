@@ -200,3 +200,58 @@ describe("resigning", () => {
     expect(host.adopted).toBe(0);
   });
 });
+
+describe("a message lost with the connection up", () => {
+  /** The host and the guest joined, repeating their state every 20 ms. */
+  async function resyncing() {
+    const network = new FakeNetwork();
+    const host = peer(network, "white", true, "game1", 20);
+    const guest = peer(network, "black", false, "game1", 20);
+    host.session.start();
+    await settle();
+    guest.session.start();
+    await settle();
+    return { network, host, guest };
+  }
+  const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+  it("is made up for by the next state, which a side that missed a play adopts", async () => {
+    const { network, host, guest } = await resyncing();
+    network.filter = () => false;
+    play(host, "b2-b4");
+    network.filter = null;
+    expect(guest.game.commands()).toEqual([]);
+    await wait(80);
+    expect(guest.game.commands()).toEqual(["b2-b4"]);
+    expect(guest.adopted).toBe(1);
+    host.session.dispose();
+    guest.session.dispose();
+  });
+
+  it("sends nothing while nobody is there, and nothing after the session ends", async () => {
+    const network = new FakeNetwork();
+    const host = peer(network, "white", true, "game1", 20);
+    host.session.start();
+    await wait(60);
+    expect(network.log).toEqual([]);
+    const guest = peer(network, "black", false, "game1", 20);
+    guest.session.start();
+    await settle();
+    host.session.dispose();
+    guest.session.dispose();
+    network.log.length = 0;
+    await wait(60);
+    expect(network.log).toEqual([]);
+  });
+
+  it("with the connection in order repeats the state without anyone adopting anything", async () => {
+    const { network, host, guest } = await resyncing();
+    play(host, "b2-b4");
+    network.log.length = 0;
+    await wait(70);
+    expect(network.log.filter((entry) => decodeMessage(entry.text)?.t === "state").length).toBeGreaterThanOrEqual(2);
+    expect(host.adopted + guest.adopted).toBe(0);
+    host.session.dispose();
+    guest.session.dispose();
+  });
+});

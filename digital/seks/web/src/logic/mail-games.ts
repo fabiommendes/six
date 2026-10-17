@@ -1,9 +1,11 @@
 import type { Side } from "../engine/game";
+import { decodeInvite } from "./invite";
 import { isGameId, randomGameId, type Link } from "./link";
 
 /**
- * The games by correspondence that this browser keeps, to come back to them
- * without the link. One entry per game, found by the id the link carries.
+ * The games that this browser keeps, by correspondence or live, to come back to
+ * them without the link. One entry per game, found by the id the link carries
+ * (the live match uses the same id, so leaving the live mode is dropping `live`).
  */
 export interface MailGame {
   readonly id: string;
@@ -23,8 +25,15 @@ export interface MailGame {
   readonly over: boolean;
   /** The side that left the game (resigned) and told it in a link; `null` while both are in. */
   readonly leftBy: Side | null;
+  /** Set while the game is played live (see `net/live-session.ts`); `null` by correspondence. */
+  readonly live: LiveInfo | null;
   /** When the entry last changed (ms since the epoch), to list the latest first. */
   readonly updated: number;
+}
+
+/** What a live game needs besides the entry: who invited, the reference when the two sides disagree. */
+export interface LiveInfo {
+  readonly host: boolean;
 }
 
 /** The part of `Storage` that the games use. */
@@ -40,8 +49,16 @@ const isSide = (value: unknown): value is Side => value === "white" || value ===
 
 /** A new game by correspondence, from the standard position, for `player`. */
 export function newMailGame(player: Side, now: number = Date.now(), id: string = randomGameId()): MailGame {
-  return { id, start: "", player, commands: [], shared: 0, toMove: "white", over: false, leftBy: null, updated: now };
+  return { id, start: "", player, commands: [], shared: 0, toMove: "white", over: false, leftBy: null, live: null, updated: now };
 }
+
+/** A new live game from the standard position: `host` is whether this browser invited. */
+export function newLiveGame(player: Side, host: boolean, now: number = Date.now(), id: string = randomGameId()): MailGame {
+  return { ...newMailGame(player, now, id), live: { host } };
+}
+
+/** Whether the game is to be played live now: it is live, not over and nobody left. */
+export const isLive = (game: MailGame): boolean => game.live !== null && !game.over && game.leftBy === null;
 
 /**
  * The entry after the player resigned: marked with the side that left, and kept
@@ -73,7 +90,10 @@ export function loadMailGames(store: MailStore): MailGame[] {
   try {
     const saved = JSON.parse(text) as { version?: unknown; games?: unknown } | null;
     if (saved?.version !== VERSION || !Array.isArray(saved.games)) return [];
-    return saved.games.filter(isMailGame).sort((a, b) => b.updated - a.updated);
+    return saved.games
+      .filter(isMailGame)
+      .map((game) => ({ ...game, live: game.live ?? null }))
+      .sort((a, b) => b.updated - a.updated);
   } catch {
     return [];
   }
@@ -96,6 +116,8 @@ function isMailGame(value: unknown): value is MailGame {
     isSide(game.toMove) &&
     typeof game.over === "boolean" &&
     (game.leftBy === null || isSide(game.leftBy)) &&
+    // A save from before the live mode has no `live`: it is by correspondence.
+    (game.live === undefined || game.live === null || (typeof game.live === "object" && typeof game.live.host === "boolean")) &&
     typeof game.updated === "number"
   );
 }
@@ -168,6 +190,9 @@ const sideOfToken = (token: string): Side | null => (token === "w" ? "white" : t
  * - The link is the entry or an older state of it: the entry stays (except
  *   for who left, which a link may tell).
  * - Anything else is refused: it is not the same game.
+ *
+ * A link of correspondence always ends the live mode of the entry (`live`
+ * becomes `null`): whoever sent it gave up the live connection.
  */
 export function openLink(link: Link, existing: MailGame | null, ending: LinkOutlook, now: number = Date.now()): Opening {
   const left = link.left === undefined || link.left === null ? null : sideOfToken(link.left);
@@ -177,31 +202,44 @@ export function openLink(link: Link, existing: MailGame | null, ending: LinkOutl
     return {
       kind: "open",
       stale: false,
-      game: { id: link.id, start: link.start, player, commands: link.commands, shared: link.commands.length, toMove: ending.toMove, over: ending.over, leftBy: left, updated: now },
+      game: { id: link.id, start: link.start, player, commands: link.commands, shared: link.commands.length, toMove: ending.toMove, over: ending.over, leftBy: left, live: null, updated: now },
     };
   }
   if (existing.start !== link.start || left === existing.player) return { kind: "refused", reason: "other-game" };
   if (isPrefix(link.commands, existing.commands)) {
     const game = left === null || left === existing.leftBy ? existing : { ...existing, leftBy: left, updated: now };
-    return { kind: "open", stale: link.commands.length < existing.commands.length, game };
+    return { kind: "open", stale: link.commands.length < existing.commands.length, game: ended(game, now) };
   }
   if (!isPrefix(existing.commands, link.commands)) return { kind: "refused", reason: "diverged" };
   return {
     kind: "open",
     stale: false,
-    game: { ...existing, commands: link.commands, shared: link.commands.length, toMove: ending.toMove, over: ending.over, leftBy: left ?? existing.leftBy, updated: now },
+    game: ended(
+      { ...existing, commands: link.commands, shared: link.commands.length, toMove: ending.toMove, over: ending.over, leftBy: left ?? existing.leftBy, updated: now },
+      now,
+    ),
   };
 }
 
-/** What the fragment of the page asks for. */
-export type Route = { readonly kind: "none" } | { readonly kind: "link"; readonly fragment: string } | { readonly kind: "game"; readonly id: string };
+/** The game without `live`: a link of correspondence means the other side gave up the live match. */
+const ended = (game: MailGame, now: number): MailGame => (game.live === null ? game : { ...game, live: null, updated: now });
 
-/** `#g.<id>`: this browser's own game; anything else after the `#` is taken for a link. */
+/** What the fragment of the page asks for. */
+export type Route =
+  | { readonly kind: "none" }
+  | { readonly kind: "link"; readonly fragment: string }
+  | { readonly kind: "game"; readonly id: string }
+  /** The invite to a live match; `host` is the side of whoever invites. */
+  | { readonly kind: "invite"; readonly id: string; readonly host: Side };
+
+/** `#g.<id>`: this browser's own game; `#i1.<id>.<w|b>`: an invite; anything else after the `#` is taken for a link. */
 export function parseRoute(hash: string): Route {
   const text = hash.trim().replace(/^#/, "");
   if (text === "") return { kind: "none" };
   const own = /^g\.(.+)$/.exec(text);
   if (own !== null && isGameId(own[1]!)) return { kind: "game", id: own[1]! };
+  const invite = decodeInvite(text);
+  if (invite !== null) return { kind: "invite", ...invite };
   return { kind: "link", fragment: text };
 }
 

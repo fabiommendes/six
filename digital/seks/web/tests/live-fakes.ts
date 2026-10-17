@@ -145,7 +145,8 @@ export interface Peer {
   readonly room: () => FakeRoom;
 }
 
-export function peer(network: FakeNetwork, side: Side, host: boolean, id = "game1"): Peer {
+/** `resyncMs` is off (0) unless a test wants the periodic `state`. */
+export function peer(network: FakeNetwork, side: Side, host: boolean, id = "game1", resyncMs = 0): Peer {
   const transport = network.transport();
   const game = new TestGame(side);
   const result = { game, transport, statuses: [] as LiveStatus[], adopted: 0, resigned: 0 } as Peer;
@@ -156,6 +157,7 @@ export function peer(network: FakeNetwork, side: Side, host: boolean, id = "game
     host,
     ruleset: seksRuleset,
     game,
+    resyncMs,
     onStatus: (status) => result.statuses.push(status),
     onAdopt: () => void result.adopted++,
     onResign: () => void result.resigned++,

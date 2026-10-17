@@ -9,7 +9,7 @@ import { brandMark, dieIcon, motifStrip } from "./svg";
 
 /** What the player chose on the start screen. */
 export interface StartChoice {
-  readonly mode: "hotseat" | "bot" | "mail";
+  readonly mode: "hotseat" | "bot" | "mail" | "live";
   readonly side: Side;
   readonly level: BotLevelId;
 }
@@ -32,6 +32,10 @@ export interface StartExtras {
   readonly onRemoveGame: (id: string) => void;
 }
 
+function modeOf(value: FormDataEntryValue | null): StartChoice["mode"] {
+  return value === "bot" || value === "mail" || value === "live" ? value : "hotseat";
+}
+
 function gameItem(game: MailGame): string {
   const over = game.over || game.leftBy !== null;
   return `<li class="mail-game" data-id="${esc(game.id)}">
@@ -47,8 +51,8 @@ function radio(name: string, value: string, label: string, note: string, checked
 }
 
 /**
- * The start screen: hotseat or against the bot, with the colour of the human
- * and the level of the bot (R1). Calls `onPlay` with the choices.
+ * The start screen: hotseat, against the bot, live or by correspondence, with
+ * the colour of the human and the level of the bot (R1). Calls `onPlay` with the choices.
  */
 export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choice: StartChoice) => void, extras: StartExtras): () => void {
   host.className = "";
@@ -64,6 +68,7 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
             <legend>${START.modeLegend}</legend>
             ${radio("mode", "hotseat", START.hotseat, START.hotseatNote, initial.mode === "hotseat")}
             ${radio("mode", "bot", START.bot, START.botNote, initial.mode === "bot")}
+            ${radio("mode", "live", START.live, START.liveNote, initial.mode === "live")}
             ${radio("mode", "mail", START.mail, START.mailNote, initial.mode === "mail")}
           </fieldset>
           <div class="side-options"${initial.mode === "hotseat" ? " hidden" : ""}>
@@ -97,7 +102,7 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
   const read = (): StartChoice => {
     const data = new FormData(form);
     return {
-      mode: data.get("mode") === "bot" ? "bot" : data.get("mode") === "mail" ? "mail" : "hotseat",
+      mode: modeOf(data.get("mode")),
       side: data.get("side") === "black" ? "black" : "white",
       level: (BOT_LEVELS.find((level) => level.id === data.get("level")) ?? DEFAULT_BOT_LEVEL).id,
     };

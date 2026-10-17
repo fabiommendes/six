@@ -8,12 +8,14 @@ import type { Cell } from "../engine/cells";
 import type { Command, SeksGame, Side } from "../engine/game";
 import { Match, type Mode, type Seed } from "../logic/match";
 import type { Session } from "../logic/session";
+import type { LiveStatus } from "../net/live-session";
 import { drawStatus } from "../logic/status";
 import {
   APP,
   BUTTONS,
   COUNTER,
   LEGEND,
+  LIVE,
   MAIL,
   SIDE_NAME,
   boardLabel,
@@ -32,6 +34,7 @@ import { ConfirmDialog, type Question } from "./confirm-dialog";
 import { esc, need } from "./dom";
 import { EndCardView } from "./end-card";
 import { flyToPanel } from "./flight";
+import { LivePanel } from "./live-panel";
 import { MailPanel } from "./mail-panel";
 import { brandMark, dieIcon, markIcon, motifStrip, tally } from "./svg";
 
@@ -55,6 +58,29 @@ export interface MailOptions {
   readonly onContinue: (level: BotLevelId) => void;
   /** The opponent left and the player ends the game. */
   readonly onEnd: () => void;
+}
+
+/** What a live match needs from the page around it (the session, the saved list and the way out). */
+export interface LiveOptions {
+  /** The link that invites the other player, to show until they come; `null` for the one who was invited. */
+  readonly invite: string | null;
+  /** The human made a play (it is the last of the match): tell the other player. */
+  readonly onPlay: () => void;
+  /** Called at every change, to keep the game in the saved list. */
+  readonly onChange: (change: { commands: readonly Command[]; toMove: Side; over: boolean }) => void;
+  /** The player confirmed "Desistir". */
+  readonly onResign: () => void;
+  /** The player chose to go on by correspondence. */
+  readonly onFallback: () => void;
+}
+
+/** How the connection of a live match looks on the panel. */
+export interface LiveView {
+  readonly status: LiveStatus;
+  /** Correspondence is offered. */
+  readonly offered: boolean;
+  /** Why the room could not be joined, if it could not. */
+  readonly error: string | null;
 }
 
 export interface GameScreenOptions {
@@ -81,6 +107,8 @@ export interface GameScreenOptions {
   readonly notice?: string;
   /** The match by correspondence; `mode` must be `correspondence`. */
   readonly mail?: MailOptions;
+  /** The live match; `mode` must be `live`. */
+  readonly live?: LiveOptions;
   /** Makes a bot for "Terminar com bots", when the match has none of its own. */
   readonly spawnBot?: () => BotPlayer;
   /** The player asked for a new game. */
@@ -106,6 +134,7 @@ const SKELETON = `
       <div class="turn desk-turn"></div>
       <p class="note" aria-live="polite"></p>
       <p class="note warn" hidden></p>
+      ${LivePanel.html}
       ${MailPanel.html}
       ${ConfirmDialog.html}
       <div class="last"></div>
@@ -141,6 +170,8 @@ export class GameScreen {
   private resignedLink: string | null = null;
   private readonly confirm: ConfirmDialog;
   private readonly mailPanel: MailPanel;
+  private readonly livePanel: LivePanel;
+  private liveView: LiveView = { status: "connecting", offered: false, error: null };
   private readonly endView: EndCardView;
   /** The bot made to play both sides when the player chose to finish with bots (a hotseat match has none of its own). */
   private extraBot: BotPlayer | null = null;
@@ -154,6 +185,7 @@ export class GameScreen {
     host.innerHTML = SKELETON;
     this.confirm = new ConfirmDialog(host);
     this.endView = new EndCardView(host);
+    this.livePanel = new LivePanel(host);
     this.mailPanel = new MailPanel(host, {
       link: () => this.currentLink(),
       resigned: () => this.resignedLink !== null,
@@ -185,6 +217,7 @@ export class GameScreen {
     };
     this.match = new Match(options.game, options.mode, stage, options.bot, options.seed);
     if (board) board.canActivate = (cell) => this.canActivate(cell);
+    if (options.live) this.off.push(this.match.onHumanPlay(() => options.live?.onPlay()));
     this.shared = options.mail?.shared ?? 0;
     if (options.mail?.resigned) this.resignedLink = options.mail.linkFor(options.resume ?? [], true);
     if (options.resume) this.match.resume(options.resume, options.mail ? this.shared : undefined);
@@ -219,6 +252,27 @@ export class GameScreen {
     await started;
   }
 
+  /** The commands played so far, from the standard position (a live match is never from another). */
+  commands(): readonly Command[] {
+    return this.match.record().commands;
+  }
+
+  /** The hash of the position now. */
+  hash(): string {
+    return this.options.game.hash();
+  }
+
+  /** Plays what the other player of a live match played. Throws, touching nothing, if it is not legal now. */
+  playRemote(command: Command): void {
+    void this.match.playRemote(command).catch(() => undefined);
+  }
+
+  /** Shows where the connection of a live match stands. */
+  setLive(view: LiveView): void {
+    this.liveView = view;
+    this.render(this.match.snapshot());
+  }
+
   dispose(): void {
     this.match.dispose();
     this.board?.dispose();
@@ -234,6 +288,11 @@ export class GameScreen {
   private persist(): void {
     const mode = this.options.mode;
     if (this.match.mode.kind === "bots") return;
+    if (mode.kind === "live") {
+      const view = this.match.snapshot().view;
+      this.options.live?.onChange({ commands: this.match.record().commands, toMove: view.to_move, over: view.outcome !== null });
+      return;
+    }
     if (mode.kind === "correspondence") {
       if (this.resignedLink !== null) return;
       const view = this.match.snapshot().view;
@@ -293,6 +352,7 @@ export class GameScreen {
     else if (action === "finish-with-bots") this.finishWithBots();
     else if (action === "cancel") this.ask(null);
     else if (action === "confirm-resign") this.resign();
+    else if (action === "fallback") this.options.live?.onFallback();
     else if (this.mailPanel.handle(action)) return;
     else if (action === "tilt") {
       this.tilted = !this.tilted;
@@ -321,6 +381,11 @@ export class GameScreen {
 
   /** The player leaves the game: it goes out of the list and the link that tells the opponent stays here. */
   private resign(): void {
+    if (this.options.live) {
+      this.confirm.set(null);
+      this.options.live.onResign();
+      return;
+    }
     const mail = this.options.mail;
     if (!mail || this.resignedLink !== null) return;
     this.resignedLink = mail.linkFor(this.match.record().commands, true);
@@ -331,11 +396,13 @@ export class GameScreen {
 
   /** The URL to send now: the plies played, or the notice of the resignation. */
   private currentLink(): string {
+    if (this.options.live) return this.options.live.invite ?? "";
     return this.resignedLink ?? this.options.mail?.linkFor(this.match.record().commands, false) ?? "";
   }
 
   /** The opponent has the plies once the link was copied or shared: from then on they cannot be undone. */
   private markShared(): void {
+    if (this.options.live) return;
     this.shared = this.match.record().commands.length;
     this.match.lock();
   }
@@ -352,18 +419,25 @@ export class GameScreen {
     const host = this.host;
     const mail = this.options.mail;
     const over = snapshot.view.outcome !== null;
+    const live = this.options.live;
     const left = mail?.leftBy ?? null;
     const showLeft = left !== null && this.resignedLink === null;
-    this.mailPanel.render({ showLink: this.resignedLink !== null || this.mailWaiting(snapshot), showLeft, over, notice: this.options.notice });
-    need<HTMLButtonElement>(host, '[data-action="resign"]').hidden = !mail || this.frozen || over;
-    this.confirm.render(this.options.bot !== null || this.options.spawnBot !== undefined);
+    const inviting = live?.invite != null && this.liveView.status !== "connected" && !over && this.match.record().commands.length === 0;
+    this.mailPanel.render({ showLink: inviting || this.resignedLink !== null || this.mailWaiting(snapshot), showLeft, over, notice: this.options.notice });
+    if (live) this.livePanel.render({ ...this.liveView, inviting, over });
+    // While the invite is shown the panel says what to do; the hint on the board waits for the other player.
+    need(host, ".note:not(.warn)").hidden = inviting;
+    // Live there is no undo: the other player has the play as soon as it is made.
+    need<HTMLButtonElement>(host, '[data-action="undo"]').hidden = live !== undefined;
+    need<HTMLButtonElement>(host, '[data-action="resign"]').hidden = (!mail && !live) || this.frozen || over;
+    this.confirm.render(this.options.bot !== null || this.options.spawnBot !== undefined, live ? LIVE.resignAsk : MAIL.resignAsk);
 
     // Against the other player's absence the note says what happened.
     const note = need(host, ".note:not(.warn)");
     if (this.resignedLink !== null) note.innerHTML = `<b>${esc(MAIL.resignedTitle)}</b> ${esc(MAIL.resignedRest)}`;
     else if (showLeft && left !== null) note.innerHTML = `<b>${esc(MAIL.leftTitle(left))}</b> ${esc(over ? MAIL.leftOverRest : MAIL.leftRest)}`;
     if (this.frozen) need<HTMLButtonElement>(host, '[data-action="undo"]').disabled = true;
-    const home = mail ? BUTTONS.home : BUTTONS.newGame;
+    const home = mail || live ? BUTTONS.home : BUTTONS.newGame;
     const local = snapshot.mode.kind === "hotseat" || snapshot.mode.kind === "bot";
     const leaving = local && !over;
     const watching = snapshot.mode.kind === "bots" && !snapshot.mode.stopped && !over;

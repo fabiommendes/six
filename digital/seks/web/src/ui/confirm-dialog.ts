@@ -25,8 +25,8 @@ export class ConfirmDialog {
     this.asking = question;
   }
 
-  /** `canFinishWithBots`: whether "Sair da partida" offers "Terminar com bots". */
-  render(canFinishWithBots: boolean): void {
+  /** `canFinishWithBots`: whether "Sair da partida" offers "Terminar com bots"; `resignAsk`: what "Desistir" asks. */
+  render(canFinishWithBots: boolean, resignAsk: string = MAIL.resignAsk): void {
     const ask = need(this.host, ".ask");
     ask.hidden = this.asking === null;
     if (this.asking === "leave") {
@@ -37,7 +37,7 @@ export class ConfirmDialog {
         `<button type="button" data-action="cancel">${BUTTONS.cancel}</button>`;
     }
     if (this.asking === "resign") {
-      need(this.host, ".ask-text").textContent = MAIL.resignAsk;
+      need(this.host, ".ask-text").textContent = resignAsk;
       need(this.host, ".ask-buttons").innerHTML = `<button type="button" data-action="confirm-resign">${MAIL.resignConfirm}</button><button type="button" data-action="cancel">${BUTTONS.cancel}</button>`;
     }
   }

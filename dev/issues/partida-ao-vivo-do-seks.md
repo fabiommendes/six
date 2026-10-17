@@ -74,14 +74,14 @@ longo.
   juntos.
 - [x] P5. Transporte: interface, transporte em memória para os testes e
   transporte Trystero (Nostr). Dependência fixada.
-- [ ] P6. Convite (`src/logic/invite.ts`), rota do fragmento e `live` na
+- [x] P6. Convite (`src/logic/invite.ts`), rota do fragmento e `live` na
   entrada guardada. Testes.
 - [x] P7. Protocolo e `LiveSession` com testes no transporte falso: conexão,
   jogadas, jogada ilegal, dessincronia e ressincronização, queda e reconexão,
   desistência.
-- [ ] P8. `Match` em modo ao vivo (jogada do outro, sem desfazer), hash da
+- [x] P8. `Match` em modo ao vivo (jogada do outro, sem desfazer), hash da
   posição no `SeksGame`, textos do glossário e cartão "Você venceu/perdeu".
-- [ ] P9. Interface: criar partida ao vivo, painel (convite, conexão, vez,
+- [x] P9. Interface: criar partida ao vivo, painel (convite, conexão, vez,
   fallback para correspondência), entrar pelo convite, desistir e continuar
   contra o bot.
 - [ ] P10. Verificação no navegador com duas abas (sinalização pública),

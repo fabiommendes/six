@@ -170,6 +170,15 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 .left-level select { font: inherit; padding: 6px 8px; border: 2px solid var(--ink); background: var(--paper); }
 .ask-text { margin: 0; font-size: 15px; line-height: 1.3; }
 .notice { margin: 14px 0 0; padding: 10px 12px; border-left: 4px solid var(--seks); background: #fff; font-size: 15px; line-height: 1.3; }
+/* Live play: the state of the connection. */
+.live { margin-top: 10px; padding: 10px 12px; border: 2px solid var(--ink); background: #fff; }
+.live-status { margin: 0; display: flex; gap: 8px; align-items: baseline; font-size: 15px; line-height: 1.3; }
+.live-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+.live[data-status="connected"] .live-dot { background: #2e7d32; }
+.live[data-status="away"] .live-dot { background: var(--seks); }
+.live-fallback { margin-top: 8px; padding-top: 8px; border-top: 2px solid var(--line); }
+.live-fallback-text { margin: 0 0 8px; font-size: 15px; line-height: 1.3; }
+.live-fallback button { width: 100%; }
 .mail-list { margin-top: 22px; }
 .mail-list h2 { margin: 0 0 8px; font: 800 20px "Alegreya", serif; }
 .mail-list ul { list-style: none; margin: 0; padding: 0; }

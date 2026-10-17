@@ -2,7 +2,8 @@
 
 Vite, TypeScript e Three.js. O motor roda no navegador em WebAssembly
 (`digital/seks/wasm`). Contexto: `dev/issues/interface-web-do-seks.md`.
-Hotseat ou jogo contra o bot, com toque ou mouse, em retrato e paisagem.
+Hotseat, jogo contra o bot, partida por correspondência (link) e partida ao vivo
+(P2P), com toque ou mouse, em retrato e paisagem.
 
 ## Comandos
 
@@ -18,7 +19,12 @@ Hotseat ou jogo contra o bot, com toque ou mouse, em retrato e paisagem.
 - `src/logic`: seleção, partida (`Match`, desfazer, capturados), contador,
   textos ao jogador e posições de teste. Não depende de DOM nem de WebGL.
   Partida por correspondência: `link.ts` (formato do link, genérico),
-  `seks-link.ts` (o Seks no formato) e `mail-games.ts` (partidas guardadas).
+  `seks-link.ts` (o Seks no formato) e `mail-games.ts` (partidas guardadas, de
+  correspondência e ao vivo). Partida ao vivo: `invite.ts` (o link de convite).
+- `src/net`: a rede da partida ao vivo, sem DOM e sem regras do Seks: `transport.ts`
+  (a interface), `trystero-transport.ts` (a implementação com Trystero),
+  `live-protocol.ts` (as mensagens), `live-session.ts` (a sessão) e
+  `fallback-timer.ts` (quando oferecer a correspondência).
 - `src/bot`: Web Worker do bot, protocolo e níveis; `chooser.ts` roda o bot do `seks-bots` (WASM).
 - `src/board`: tabuleiro e dados em Three.js, motivo da moldura.
 - `src/ui`: telas (inicial e de jogo) e o painel, em DOM.
@@ -128,9 +134,67 @@ Na interface:
   desfeita; depois, não (as jogadas que vieram em links nunca podem);
 - link inválido (texto corrompido, versão desconhecida, jogada ilegal) mostra um
   aviso na tela inicial; um link mais velho que a partida guardada abre a guardada;
-- "Desistir" (com confirmação) tira a partida da lista e mostra o link que avisa o
-  outro jogador. Quem o abre escolhe "Continuar contra o bot" (da posição atual, com
-  a mesma cor e o nível escolhido) ou "Encerrar". Não há regra de resultado.
+- "Desistir" (com confirmação) mostra o link que avisa o outro jogador. A partida
+  fica na lista, marcada como desistida, até o link ser copiado ou compartilhado
+  (um reload antes disso não a perde); só então sai da lista. Quem abre o link
+  escolhe "Continuar contra o bot" (da posição atual, com a mesma cor e o nível
+  escolhido) ou "Encerrar". Não há regra de resultado.
 
 O fragmento da página é `#g.<id>` enquanto uma partida guardada está aberta, e a
 página reage a `hashchange` (um link colado numa aba já aberta).
+
+## Partida ao vivo
+
+Os dois navegadores se ligam por WebRTC e trocam as jogadas na hora, sem servidor
+do jogo (`dev/rfc/rede-sem-servidor.md`). Só a sinalização (o aperto de mão
+inicial) passa por infraestrutura pública; depois o tráfego é direto.
+
+**Biblioteca e estratégia.** `@trystero-p2p/nostr` 0.26.0, fixada no
+`package.json` (o pacote `trystero` só a reexporta; a API mudou entre versões, por
+isso a versão exata). A sinalização usa relays Nostr, a lista padrão da
+biblioteca (dezenas de relays públicos; a lista é dela e muda entre versões, e
+alguns relays falham ou limitam o uso, o que ela tolera). O `appId` é `six-seks`
+e a sala de cada partida é `seks.<id>`. Se a biblioteca ou a estratégia mudar,
+só `src/net/trystero-transport.ts` muda: o resto fala com a interface `Transport`
+(`join(sala)` devolve uma `Room` com `send`, `peers` e `leave`), e os testes usam um
+transporte em memória (`tests/live-fakes.ts`). Sem servidor TURN, 10% a 20% dos
+pares de redes não conectam (NAT simétrico, comum em 4G): daí o fallback.
+
+**Convite.** "Ao vivo" na tela inicial cria a partida (cor escolhida) e mostra o
+link `#i1.<id>.<w|b>`: o `id` é o da partida (e da sala) e a letra é a cor de
+quem convida. Quem abre joga a outra cor. A partida é uma entrada da lista
+guardada (`MailGame` com `live: { host }`), com o mesmo `id` da correspondência. Abrir
+o convite de novo, ou a partida pela lista, volta à mesma sala.
+
+**Mensagens** (`live-protocol.ts`, JSON num canal de texto, todas com `v: 1`):
+
+- `state`: a partida inteira no formato do link (`g`). Vai quando o outro entra,
+  na reconexão, como resposta a qualquer problema e de 10 em 10 segundos
+  enquanto conectado (cobre uma mensagem perdida com a conexão de pé, que
+  travaria a vez dos dois);
+- `move`: `n` (índice da jogada), `c` (a jogada) e `h` (o hash da posição depois
+  dela);
+- `resign`: quem manda saiu da partida.
+
+Cada lado confere o que chega com o próprio motor. Jogada ilegal, número fora de
+ordem ou hash diferente: o lado manda o seu `state`. Um `state` que é prefixo do
+meu é respondido com o meu; se o meu é prefixo do dele, adoto; se divergem, vale o
+do anfitrião (quem convidou), e a tela é refeita a partir dele.
+
+**Interface.** O painel mostra a conexão (conectando, conectado, o outro jogador
+saiu), o link do convite enquanto ninguém entrou e a vez, como nas outras partidas.
+Não há "Desfazer". Se ninguém conecta, ou a conexão cai e não volta, em 20 s
+aparece "Continuar por correspondência": a entrada perde o `live` (o `id` é o mesmo)
+e a partida segue pelo link, da posição de agora. Abrir um link de correspondência
+de uma partida ao vivo também a tira do modo ao vivo.
+
+"Desistir" com o outro conectado manda `resign` e volta ao início (a partida sai
+da lista); o outro vê "saíram da partida" e escolhe "Continuar contra o bot" ou
+"Encerrar", como na correspondência. Sem conexão, vira a desistência da
+correspondência (link, partida marcada até enviar).
+
+**Verificação no navegador.** O `just check` não usa a rede real. Para ver com
+duas abas ligadas pela sinalização pública, rode `just seks-web-dev` (ou o
+`vite preview` do `dist/`), abra a partida ao vivo numa aba e o convite noutro
+contexto do navegador (outro perfil, ou janela anônima, porque o `localStorage` é
+por perfil e a partida de cada lado fica nele). A conexão leva de 1 a 10 s.

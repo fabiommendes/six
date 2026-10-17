@@ -31,6 +31,17 @@ export interface CorrespondenceMode {
 }
 
 /**
+ * One human against another over the network, live: the other side plays on
+ * another browser and its plays arrive with `playRemote`. Only `human` plays here.
+ */
+export interface LiveMode {
+  readonly kind: "live";
+  readonly human: Side;
+  /** The id of the match, which also names the room and the saved game. */
+  readonly id: string;
+}
+
+/**
  * The player left a local match and the bots play the rest, both sides, while
  * the player watches. `stopped` once the player interrupts them.
  */
@@ -43,7 +54,7 @@ export interface BotsMode {
 /** A mode the development server can save in the session (see `session.ts`). */
 export type LocalMode = HotseatMode | BotMode;
 
-export type Mode = LocalMode | CorrespondenceMode | BotsMode;
+export type Mode = LocalMode | CorrespondenceMode | LiveMode | BotsMode;
 
 /** A die that left the board. */
 export interface Captured {
@@ -134,7 +145,10 @@ function summarize(events: readonly Event[]): { last: LastPlay; captured: Captur
 export class Match {
   private readonly history: HistoryEntry[] = [];
   private selection: Selection | null = null;
-  private inFlight: HistoryEntry | null = null;
+  /** The plays still being animated: more than one when the other player answers before the last animation ends. */
+  private readonly inFlight = new Set<HistoryEntry>();
+  /** The animation queued last, for the next one to wait for. */
+  private lastAnimation: Promise<void> | null = null;
   private thinking = false;
   private busy = false;
   private error: string | null = null;
@@ -146,6 +160,7 @@ export class Match {
   /** The plies up to here cannot be undone (the opponent has them). */
   private floor = 0;
   private readonly listeners = new Set<(snapshot: MatchSnapshot) => void>();
+  private readonly humanPlays = new Set<(command: Command) => void>();
   /** The position the match started from, to save it. */
   private readonly base: string;
 
@@ -178,7 +193,7 @@ export class Match {
    * being animated finishes first.
    */
   finishWithBots(bot: BotPlayer, level: BotLevel): Promise<void> {
-    if (this.disposed || this.current.kind === "bots" || this.current.kind === "correspondence") return Promise.resolve();
+    if (this.disposed || this.current.kind === "bots" || this.current.kind === "correspondence" || this.current.kind === "live") return Promise.resolve();
     this.epoch++;
     this.bot?.cancel();
     this.bot = bot;
@@ -240,9 +255,19 @@ export class Match {
     return () => this.listeners.delete(listener);
   }
 
+  /**
+   * Calls `listener` with the command of every play the human makes by a click,
+   * as soon as the engine accepts it (before its animation), so a live match
+   * can tell the other player.
+   */
+  onHumanPlay(listener: (command: Command) => void): () => void {
+    this.humanPlays.add(listener);
+    return () => this.humanPlays.delete(listener);
+  }
+
   snapshot(): MatchSnapshot {
     const view = this.game.view();
-    const shown = this.history.filter((entry) => entry !== this.inFlight);
+    const shown = this.history.filter((entry) => !this.inFlight.has(entry));
     return {
       mode: this.mode,
       view,
@@ -269,11 +294,27 @@ export class Match {
     const result = click(this.selection, cell, this.selectionBoard(view));
     this.selection = result.selection;
     if (result.command !== null) {
-      await this.play(result.command);
+      await this.play(result.command, true);
       return;
     }
     this.stage.setMarks(this.marks());
     this.notify();
+  }
+
+  /**
+   * Plays what the other player of a live match played. Throws, with the game
+   * untouched, if the match is over, it is the turn of the human or the engine
+   * refuses the command. Resolves when the play has been animated, after the
+   * one still on screen, if any.
+   */
+  playRemote(command: Command): Promise<void> {
+    if (this.disposed) throw new Error("the match is over");
+    if (this.current.kind !== "live") throw new Error("only a live match takes the plays of another player");
+    const view = this.game.view();
+    if (view.outcome !== null) throw new Error("the game is over");
+    if (view.to_move === this.current.human) throw new Error("it is not the turn of the other player");
+    this.selection = null;
+    return this.play(command, false);
   }
 
   /** Clears the selection: a click outside the cells of the board. */
@@ -317,6 +358,7 @@ export class Match {
   private canUndo(): boolean {
     if (this.busy) return false;
     if (this.mode.kind === "bots") return false;
+    if (this.mode.kind === "live") return false;
     if (this.mode.kind === "correspondence") return this.history.length > this.floor;
     if (this.mode.kind === "hotseat") return this.history.length > 0;
     const human = this.mode.human;
@@ -357,20 +399,39 @@ export class Match {
     return { isOwnDie: (cell) => own.has(cell), options: (cell) => this.game.options(cell) };
   }
 
-  private async play(command: Command): Promise<void> {
+  /**
+   * Plays `command` and animates it; `byHuman` for a click of the human, whose
+   * play is told to `onHumanPlay`. Throws at once, before the returned promise,
+   * if the engine refuses the command.
+   */
+  private play(command: Command, byHuman = false): Promise<void> {
     this.lastPlayStart = this.now();
     const transition = this.game.command(command);
     const entry = this.entry(command, transition);
     this.history.push(entry);
-    this.inFlight = entry;
+    const behind = this.inFlight.size > 0 ? this.lastAnimation : null;
+    this.inFlight.add(entry);
     this.selection = null;
     this.busy = true;
     this.error = null;
+    if (byHuman) for (const listener of this.humanPlays) listener(command);
     this.notify();
-    await this.stage.animate(transition.events, transition.view, this.marks());
+    const animation = (async () => {
+      // A play that comes while another is still moving waits for it.
+      if (behind !== null) await behind;
+      if (this.disposed) return;
+      await this.stage.animate(transition.events, transition.view, this.marks());
+      this.inFlight.delete(entry);
+    })();
+    this.lastAnimation = animation.catch(() => undefined);
+    return this.landed(animation);
+  }
+
+  /** After the animation of a play: the board is free again if no other is moving, and the bot may answer. */
+  private async landed(animation: Promise<void>): Promise<void> {
+    await animation;
     if (this.disposed) return;
-    this.inFlight = null;
-    this.busy = false;
+    this.busy = this.inFlight.size > 0;
     this.notify();
     await this.askBot();
   }

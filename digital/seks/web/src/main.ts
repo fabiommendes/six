@@ -4,15 +4,19 @@ import { SeksGame, type Command } from "./engine/game";
 import { loadWasm } from "./engine/wasm";
 import { FIXTURES } from "./logic/fixtures";
 import { clearSession, loadSession, saveSession, type Session, type SessionStore } from "./logic/session";
+import { encodeInvite } from "./logic/invite";
 import { decodeLink, encodeLink, LinkError } from "./logic/link";
 import {
   findMailGame,
   gameRoute,
+  isLive,
   isResigned,
   loadMailGames,
   markResigned,
   memoryStore,
+  newLiveGame,
   newMailGame,
+  opposite,
   openLink,
   parseRoute,
   removeMailGame,
@@ -26,7 +30,9 @@ import { BOT_LEVELS, DEFAULT_BOT_LEVEL } from "./bot/levels";
 import type { BotLevelId } from "./bot/protocol";
 import { linkErrorText, MAIL } from "./logic/texts";
 import { loadTiltedPreference, saveTiltedPreference } from "./logic/view-preference";
+import { trysteroTransport } from "./net/trystero-transport";
 import { GameScreen, spawnBot } from "./ui/game";
+import { LiveScreen } from "./ui/live-screen";
 import { need } from "./ui/dom";
 import { DEFAULT_CHOICE, modeFromChoice, showStart, type StartChoice } from "./ui/start";
 import { diceDefs } from "./ui/svg";
@@ -80,7 +86,7 @@ const mails = mailStore();
 
 let choice: StartChoice = DEFAULT_CHOICE;
 let leaveStart: (() => void) | null = null;
-let screen: GameScreen | null = null;
+let screen: GameScreen | LiveScreen | null = null;
 
 /** Takes down whatever is on the page. */
 function clear(): void {
@@ -128,6 +134,12 @@ async function play(picked: StartChoice): Promise<void> {
     const game = newMailGame(picked.side);
     saveMailGame(mails, game);
     await openMail(game, null);
+    return;
+  }
+  if (picked.mode === "live") {
+    const game = newLiveGame(picked.side, true);
+    saveMailGame(mails, game);
+    await openLive(game);
     return;
   }
   const mode = modeFromChoice(picked);
@@ -187,6 +199,40 @@ async function openMail(game: MailGame, notice: string | null): Promise<void> {
   await screen.start();
 }
 
+/**
+ * Opens a live game: the page joins the room of the game (the same on both
+ * browsers) and the match is played over the connection. Whoever invited shows
+ * the link of the invite until the other player comes.
+ */
+async function openLive(game: MailGame): Promise<void> {
+  setFragment(gameRoute(game.id));
+  const invite = game.live?.host ? `${pageUrl()}#${encodeInvite({ id: game.id, host: game.player })}` : null;
+  const live = new LiveScreen({
+    host,
+    entry: game,
+    transport: trysteroTransport,
+    invite,
+    tilted: preferredTilt,
+    onTilt: keepTilt,
+    save: (changed) => saveMailGame(mails, changed),
+    remove: (id) => removeMailGame(mails, id),
+    toMail: (changed, notice) => {
+      clear();
+      void openMail(changed, notice);
+    },
+    toStart: () => toStart(),
+    onNewGame: newGame,
+  });
+  screen = live;
+  await live.start();
+}
+
+/** Opens a saved game in the way it is played now: live, or by correspondence. */
+function openGame(game: MailGame, notice: string | null = null): void {
+  if (isLive(game)) void openLive(game);
+  else void openMail(game, notice);
+}
+
 /** The opponent left: the game goes on against the bot, from this position and with the same side. */
 async function continueAgainstBot(game: MailGame, levelId: BotLevelId): Promise<void> {
   const level = BOT_LEVELS.find((candidate) => candidate.id === levelId) ?? DEFAULT_BOT_LEVEL;
@@ -212,7 +258,7 @@ function openSaved(id: string): void {
   const game = findMailGame(mails, id);
   clear();
   if (game === null) toStart(MAIL.missing);
-  else void openMail(game, null);
+  else openGame(game);
 }
 
 /** Opens what the fragment of the page asks for; `false` if it asks for nothing. */
@@ -221,6 +267,14 @@ function openRoute(route: Route): boolean {
   clear();
   if (route.kind === "game") {
     openSaved(route.id);
+    return true;
+  }
+  if (route.kind === "invite") {
+    // An invite opened again finds its own game: it joins the room of that game instead of making another.
+    const known = findMailGame(mails, route.id);
+    const game = known ?? newLiveGame(opposite(route.host), false, Date.now(), route.id);
+    if (known === null) saveMailGame(mails, game);
+    openGame(game);
     return true;
   }
   let link;

@@ -39,7 +39,16 @@ export interface LiveSessionOptions {
   readonly onResign?: () => void;
   /** The room could not be joined. */
   readonly onError?: (reason: string) => void;
+  /**
+   * While connected, the session repeats its `state` every so many ms, so a
+   * message lost on a connection that stays up (the turn would hang forever)
+   * is made up for. `0` turns it off. Default: `RESYNC_MS`.
+   */
+  readonly resyncMs?: number;
 }
+
+/** How often a connected session repeats its `state`. */
+export const RESYNC_MS = 10_000;
 
 const isPrefix = (short: readonly string[], long: readonly string[]) => short.length <= long.length && short.every((command, i) => command === long[i]);
 
@@ -53,6 +62,7 @@ export class LiveSession {
   private room: Room | null = null;
   private current: LiveStatus = "connecting";
   private ended = false;
+  private resync: ReturnType<typeof setInterval> | null = null;
 
   constructor(private readonly options: LiveSessionOptions) {}
 
@@ -99,6 +109,7 @@ export class LiveSession {
   /** Leaves the room. The session does nothing more. */
   dispose(): void {
     this.ended = true;
+    this.stopResync();
     this.room?.leave();
     this.room = null;
   }
@@ -106,7 +117,21 @@ export class LiveSession {
   private setStatus(status: LiveStatus): void {
     if (status === this.current) return;
     this.current = status;
+    if (status === "connected") this.startResync();
+    else this.stopResync();
     this.options.onStatus?.(status);
+  }
+
+  private startResync(): void {
+    const every = this.options.resyncMs ?? RESYNC_MS;
+    if (every <= 0 || this.resync !== null) return;
+    this.resync = setInterval(() => this.sendState(), every);
+  }
+
+  private stopResync(): void {
+    if (this.resync === null) return;
+    clearInterval(this.resync);
+    this.resync = null;
   }
 
   private send(message: Message): void {
@@ -123,6 +148,7 @@ export class LiveSession {
     if (message === null) return;
     if (message.t === "resign") {
       this.ended = true;
+      this.stopResync();
       this.options.onResign?.();
     } else if (message.t === "move") this.receiveMove(message);
     else this.receiveState(message.g);

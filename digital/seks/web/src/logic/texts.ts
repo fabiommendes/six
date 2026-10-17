@@ -64,11 +64,13 @@ export const START = {
   levelLegend: "Nível do bot",
   mail: "Por correspondência",
   mailNote: "Cada jogada vai num link, pelo meio que você quiser. Sem conta e sem servidor.",
+  live: "Ao vivo",
+  liveNote: "Cada um no seu navegador, ao mesmo tempo. Você manda um link de convite. Sem conta.",
 } as const;
 
 /** Play by correspondence: the saved list on the start screen and the panel with the link. */
 export const MAIL = {
-  listHeading: "Suas partidas por correspondência",
+  listHeading: "Suas partidas guardadas",
   you: (side: Side) => `Você joga com as ${SIDE_NAME[side]}`,
   yours: "Sua vez",
   waiting: (side: Side) => `Aguardando as ${SIDE_NAME[side]}`,
@@ -88,7 +90,7 @@ export const MAIL = {
   continueWithBot: "Continuar contra o bot",
   end: "Encerrar",
   leaveAsk: "Sair da partida? Você pode voltar ao início, ou deixar os bots jogarem os dois lados até o fim, enquanto você assiste.",
-  resignAsk: "Desistir da partida? O outro jogador recebe um link avisando e escolhe entre continuar contra o bot e encerrar. A partida sai da sua lista.",
+  resignAsk: "Desistir da partida? O outro jogador recebe um link avisando e escolhe entre continuar contra o bot e encerrar. A partida sai da sua lista depois que você enviar o link.",
   resignConfirm: "Desistir",
   resignedTitle: "Você saiu da partida.",
   resignedRest: "Mande o link para avisar o outro jogador.",
@@ -102,14 +104,34 @@ export const MAIL = {
   diverged: "Este link segue outro caminho que a partida guardada neste navegador. Ele não foi aberto.",
 } as const;
 
-/** The line that says where a saved game by correspondence stands. */
+/** Live play: the status of the connection, the invite and the way back to correspondence. */
+export const LIVE = {
+  tag: "ao vivo",
+  inviteLabel: "Link de convite",
+  inviteNote: "Mande este link para o outro jogador. Quando ele abrir, a partida começa.",
+  connecting: "Conectando…",
+  connected: "Conectado",
+  away: "O outro jogador saiu da conexão.",
+  connectingRest: "Esperando o outro jogador entrar.",
+  awayRest: "Se ele voltar, a partida continua de onde parou.",
+  fallbackAsk: "A conexão está demorando ou não sai. Você pode continuar esta partida por correspondência, com um link a cada jogada.",
+  fallback: "Continuar por correspondência",
+  fellBack: "A partida agora segue por correspondência. Mande o link para o outro jogador.",
+  resignAsk: "Desistir da partida? O outro jogador é avisado e escolhe entre continuar contra o bot e encerrar a partida.",
+  error: (reason: string) => `Não foi possível entrar na sala: ${reason}`,
+  waiting: (side: Side) => `Aguardando as ${SIDE_NAME[side]}.`,
+  waitingRest: "Elas jogam pela conexão; a jogada aparece aqui.",
+} as const;
+
+/** The line that says where a saved game stands. */
 export function mailGameStatus(game: MailGame): string {
   if (isResigned(game)) return MAIL.resignedTitle;
   if (game.leftBy !== null) return MAIL.leftTitle(game.leftBy);
   const status = mailStatus(game);
-  if (status === "yours") return MAIL.yours;
+  const live = game.live !== null && status !== "over" ? ` · ${LIVE.tag}` : "";
+  if (status === "yours") return MAIL.yours + live;
   if (status === "over") return MAIL.over;
-  return MAIL.waiting(game.toMove);
+  return MAIL.waiting(game.toMove) + live;
 }
 
 /** The notice for a link that does not open. */
@@ -143,6 +165,7 @@ export function modeLine(mode: Mode): string {
   if (mode.kind === "hotseat") return "Partida local · Brancas contra Pretas";
   if (mode.kind === "bots") return `${mode.stopped ? "Partida interrompida" : "Os bots jogam o resto da partida"} · Brancas contra Pretas`;
   if (mode.kind === "correspondence") return `Por correspondência · você joga com as ${SIDE_NAME[mode.human]}`;
+  if (mode.kind === "live") return `Ao vivo · você joga com as ${SIDE_NAME[mode.human]}`;
   return `Contra o bot, nível ${mode.level.label} · você joga com as ${SIDE_NAME[mode.human]}`;
 }
 
@@ -156,7 +179,7 @@ export function turnSubtitle(snapshot: MatchSnapshot): string {
   if (snapshot.view.outcome !== null) return "";
   if (snapshot.mode.kind === "bots") return snapshot.mode.stopped ? "Os bots pararam." : "Os bots estão jogando.";
   if (snapshot.thinking || botsTurn(snapshot)) return "O bot está pensando…";
-  if (snapshot.mode.kind === "correspondence" && !snapshot.humanToMove) return `Aguardando as ${SIDE_NAME[snapshot.view.to_move]}.`;
+  if ((snapshot.mode.kind === "correspondence" || snapshot.mode.kind === "live") && !snapshot.humanToMove) return `Aguardando as ${SIDE_NAME[snapshot.view.to_move]}.`;
   if (snapshot.mode.kind !== "hotseat") return "Sua vez: mova ou incremente um dado.";
   return "Mova ou incremente um dado.";
 }
@@ -199,6 +222,7 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
   }
   if (snapshot.view.outcome !== null) return { strong: "", rest: "" };
   if (snapshot.mode.kind === "correspondence" && !snapshot.humanToMove) return waitingHint(snapshot, snapshot.mode.human);
+  if (snapshot.mode.kind === "live" && !snapshot.humanToMove) return { strong: LIVE.waiting(snapshot.view.to_move), rest: LIVE.waitingRest };
   if (snapshot.thinking || botsTurn(snapshot)) {
     return { strong: "O bot está pensando.", rest: snapshot.canUndo ? "Você pode desfazer a sua última jogada enquanto espera." : "" };
   }
@@ -259,7 +283,7 @@ export interface EndCard {
 
 /**
  * The card for the end of the game, from the point of view of who plays:
- * "Você venceu" or "Você perdeu" against the bot or by correspondence, the
+ * "Você venceu" or "Você perdeu" against the bot, by correspondence or live, the
  * side that won in hotseat, a draw with its reason. `null` while it goes on.
  */
 export function endCard(snapshot: MatchSnapshot): EndCard | null {
@@ -267,7 +291,7 @@ export function endCard(snapshot: MatchSnapshot): EndCard | null {
   if (outcome === null) return null;
   const result = resultText(outcome, snapshot.view);
   const mode = snapshot.mode;
-  if (result.winner !== null && (mode.kind === "bot" || mode.kind === "correspondence")) {
+  if (result.winner !== null && (mode.kind === "bot" || mode.kind === "correspondence" || mode.kind === "live")) {
     const won = result.winner === mode.human;
     return { title: won ? "Você venceu" : "Você perdeu", reason: result.reason, tone: won ? "win" : "loss" };
   }
