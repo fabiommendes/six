@@ -97,7 +97,7 @@ Passos:
   e motivo, com testes.
 - [ ] R9. Textos ao jogador com os termos do glossário e teste contra as
   palavras de `Não usar:`.
-- [ ] R5. Web Worker do bot e bot provisório, níveis, com testes.
+- [x] R5. Web Worker do bot e bot provisório, níveis, com testes.
 - [ ] R3. Tabuleiro em Three.js: moldura com a malha nórdica, casas, dados com
   pontos, marcas por forma, câmera de cima e inclinada, clique e toque.
 - [ ] R4. Animações: mover (desliza e gira), incrementar (gira no lugar),
