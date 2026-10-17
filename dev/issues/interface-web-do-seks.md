@@ -1,6 +1,6 @@
 ---
 type: issue
-status: todo
+status: in_progress
 tags: [seks, digital, web, interface]
 relatedTo: [dev/rfc/interface-do-seks.md, dev/issues/seks-wasm.md]
 kind: enhancement
