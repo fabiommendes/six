@@ -1,9 +1,10 @@
 ---
 type: rfc
-status: draft
+status: accepted
 tags: [seks, digital, web, interface, wasm]
 relatedTo: [dev/issues/motor-do-seks-em-rust.md, dev/issues/bots-do-seks.md, dev/rfc/identidade-visual.md]
 created: 2026-10-17
+decided: 2026-10-17
 creator: claude
 ---
 
@@ -86,15 +87,22 @@ estrutura para `digital/kit/`.
   o visual de pixel art foi limite técnico, não escolha (RFC de identidade
   visual).
 
-## Open questions
+## Decisions
 
-- Câmera inclinada como opção, ou só vista de cima?
-- Desfazer em hotseat e contra bot? O estado é um valor, então desfazer custa
-  pouco no motor. No jogo em rede, não.
-- Visual: até o RFC de identidade visual decidir, a interface usa um visual
-  neutro (madeira clara, dados brancos e pretos com pontos). Serve?
-- Toque em celular entra na primeira entrega ou depois?
-- Mostrar o contador de jogadas sem captura e o aviso de repetição perto do
-  empate?
+Respostas do designer às perguntas abertas:
+
+- **Câmera**: vista de cima por padrão; a inclinada fica como opção.
+- **Desfazer**: sim em hotseat e contra bot; em rede, não.
+- **Visual**: neutro (madeira clara, dados brancos e pretos com pontos) até o
+  RFC de identidade visual decidir.
+- **Toque**: entra na primeira entrega; tocar e clicar são o mesmo gesto.
+- **Empate próximo**: a interface mostra o contador de jogadas sem captura a
+  partir de 80 e avisa quando a próxima repetição da posição empata.
 
 ## Outcome
+
+Aceito em 2026-10-17. Gerou:
+
+- `dev/issues/seks-wasm.md` (`todo`);
+- `dev/issues/interface-web-do-seks.md` (`todo`);
+- `dev/issues/servidor-do-seks.md` (`backlog`).
