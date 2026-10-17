@@ -43,7 +43,7 @@ segundo jogo chegar.
 Propostas que o designer revisa antes da implementação estão marcadas com
 **(revisar)**.
 
-- [ ] ADR 0003 do Six **(revisar)**: o estado guarda, como estado de regra, o
+- [x] ADR 0003 do Six: o estado guarda, como estado de regra, o
   número de jogadas desde a última captura e o hash Zobrist (`u64`, com o
   jogador da vez) de cada posição desde a última captura, no máximo 101. A
   captura é a única jogada irreversível, então nenhuma posição anterior a ela
