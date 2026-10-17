@@ -1,0 +1,8 @@
+[package]
+name = "seks-bots"
+version = "0.1.0"
+edition.workspace = true
+description = "Bots of the Seks board game, bot-versus-bot batches and training"
+
+[dependencies]
+seks-engine = { path = "../engine" }

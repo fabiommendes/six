@@ -127,7 +127,7 @@ que os outros da mesma fase.
 
 ### Fase 0: o bot simples (issue do motor, R5)
 
-- [ ] Depende do item `seks-bots` da issue do motor: crate, bots `random` e
+- [x] Depende do item `seks-bots` da issue do motor: crate, bots `random` e
   `greedy`, RNG splitmix64 próprio, teste de autojogo. Esta issue começa
   depois dele e não o refaz.
 
