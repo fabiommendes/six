@@ -3,7 +3,7 @@
 //! keeps the rules of the session testable without a JavaScript host.
 
 use seks_engine::wire::{self, DieOptions, Transition, View};
-use seks_engine::{legal_commands, Cell, Command, Engine, GameState};
+use seks_engine::{legal_commands, Cell, Command, Engine, GameState, Side};
 
 /// The state of a game and the states before each play, oldest first.
 #[derive(Clone, Debug)]
@@ -30,6 +30,24 @@ impl Session {
     /// A session from the JSON of a `State`, which the engine checks.
     pub(crate) fn from_json(json: &str) -> Result<Session, String> {
         wire::state_from_json(json)
+            .map(Session::from_game_state)
+            .map_err(|error| error.to_string())
+    }
+
+    /// A session from a text diagram of the board (see
+    /// `seks_engine::diagram`) with `to_move` (`"white"` or `"black"`) to
+    /// play, with nothing to undo.
+    pub(crate) fn from_diagram(diagram: &str, to_move: &str) -> Result<Session, String> {
+        let to_move = match to_move {
+            "white" => Side::White,
+            "black" => Side::Black,
+            other => {
+                return Err(format!(
+                    "unknown side {other:?}, use \"white\" or \"black\""
+                ))
+            }
+        };
+        GameState::from_diagram(diagram, to_move)
             .map(Session::from_game_state)
             .map_err(|error| error.to_string())
     }
@@ -173,6 +191,31 @@ mod tests {
         let view = session.undo().unwrap();
         assert_eq!(view.outcome, None);
         assert!(!session.legal_commands().is_empty());
+    }
+
+    #[test]
+    fn a_session_starts_from_a_diagram() {
+        let diagram = "
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. w6 .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. b2 .. ..
+            w1 .. .. .. .. .. .. .. .. .. ..
+            ";
+        let session = Session::from_diagram(diagram, "black").unwrap();
+        let view = session.view();
+        assert_eq!(view.to_move, Side::Black);
+        assert_eq!(view.dice.len(), 3);
+        assert_eq!(view.plies_without_capture, 0);
+        assert!(!session.can_undo());
+        assert!(Session::from_diagram(diagram, "green").is_err());
+        assert!(Session::from_diagram("..", "white").is_err());
     }
 
     #[test]

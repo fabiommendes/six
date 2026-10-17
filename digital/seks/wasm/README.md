@@ -33,6 +33,7 @@ Erros viram exceção em JavaScript e não mudam a partida.
 |---|---|
 | `new Game()` | partida nova, Brancas a jogar |
 | `Game.fromState(json: string)` | partida a partir de um `State`; recusa estados que o motor não alcança |
+| `Game.fromDiagram(diagram: string, toMove: string)` | partida a partir do diagrama de texto do motor (11 linhas, da fileira 11 à 1, `..`, `w3`, `b5`) e da vez (`"white"` ou `"black"`); para fixtures e testes |
 | `state(): string` | `State`: salvar a partida ou passar a um Worker |
 | `view(): string` | `View`: dados, vez, jogadas sem captura, repetições, jogadas que empatam por repetição, resultado |
 | `options(cell: string): string` | `DieOptions`: destinos do dado e se ele pode ser incrementado |

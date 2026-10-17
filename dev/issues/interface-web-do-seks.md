@@ -87,7 +87,7 @@ Passos:
 - [ ] R10. Esqueleto de `digital/seks/web/`: Vite, TypeScript, vitest, fontes
   da Alegreya empacotadas, receitas do `just` e `just check`, mapa e comandos
   do `AGENTS.md`.
-- [ ] `seks-wasm`: `Game.fromDiagram`, com teste em Rust e em Node.
+- [x] `seks-wasm`: `Game.fromDiagram`, com teste em Rust e em Node.
 - [ ] Invólucro tipado do `Game`, carregador do WASM e testes.
 - [ ] R2. Máquina de seleção pura, ligada às opções do motor, com testes de
   cada caso (selecionar, mover, incrementar, 6, trocar, clicar fora).

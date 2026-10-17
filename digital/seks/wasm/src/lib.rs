@@ -60,6 +60,19 @@ impl Game {
             .map_err(error)
     }
 
+    /// A game from a text diagram of the board: 11 lines from row 11 to row
+    /// 1, each with 11 cells separated by spaces (`..` empty, `w3` a white
+    /// die of value 3, `b5` a black one), and `to_move` (`"white"` or
+    /// `"black"`) to play. Nothing to undo. Throws on a bad diagram. For
+    /// tests and fixtures: it is how a position that is not the start gets
+    /// into the interface.
+    #[wasm_bindgen(js_name = fromDiagram)]
+    pub fn from_diagram(diagram: &str, to_move: &str) -> Result<Game, JsError> {
+        Session::from_diagram(diagram, to_move)
+            .map(|session| Game { session })
+            .map_err(error)
+    }
+
     /// The whole state as a `State` JSON, to save the game or to hand it to
     /// a Web Worker.
     pub fn state(&self) -> String {

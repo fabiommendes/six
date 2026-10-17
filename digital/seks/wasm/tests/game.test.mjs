@@ -172,3 +172,29 @@ test("the view counts the plies without capture and warns before a repetition dr
   copy.free();
   game.free();
 });
+
+test("a game starts from a text diagram", () => {
+  const diagram = `
+    .. .. .. .. .. .. .. .. .. .. b1
+    .. .. .. .. .. .. .. .. .. .. ..
+    .. .. .. .. .. .. .. .. .. .. ..
+    .. .. .. .. .. .. .. .. .. .. ..
+    .. .. .. .. .. .. .. .. .. .. ..
+    .. .. .. .. .. w6 .. .. .. .. ..
+    .. .. .. .. .. .. .. .. .. .. ..
+    .. .. .. .. .. .. .. .. .. .. ..
+    .. .. .. .. .. .. .. .. .. .. ..
+    .. .. .. .. .. .. .. .. .. .. ..
+    w1 .. .. .. .. .. .. .. .. .. ..`;
+  const game = Game.fromDiagram(diagram, "white");
+  const view = json(game.view());
+  assert.equal(view.to_move, "white");
+  assert.deepEqual(view.dice.map((die) => die.cell).sort(), ["a1", "f6", "k11"]);
+  assert.equal(json(game.options("f6")).moves.includes("f11"), true);
+  assert.equal(game.canUndo(), false);
+  // The state of a diagram game is a state like any other.
+  assert.deepEqual(json(Game.fromState(game.state()).view()), view);
+  assert.throws(() => Game.fromDiagram(diagram, "green"), /unknown side/);
+  assert.throws(() => Game.fromDiagram(".. ..", "white"));
+  game.free();
+});
