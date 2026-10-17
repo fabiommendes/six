@@ -26,6 +26,21 @@ impl PositionHistory {
         PositionHistory { hashes, len: 1 }
     }
 
+    /// A list with exactly `hashes`, oldest first, or `None` if there are no
+    /// hashes or more than [`CAPACITY`].
+    #[cfg(feature = "wire")]
+    pub(crate) fn from_hashes(hashes: &[u64]) -> Option<PositionHistory> {
+        let (&first, rest) = hashes.split_first()?;
+        if hashes.len() > CAPACITY {
+            return None;
+        }
+        let mut history = PositionHistory::new(first);
+        for &hash in rest {
+            history.push(hash);
+        }
+        Some(history)
+    }
+
     /// Forgets everything but `hash`.
     pub(crate) fn restart(&mut self, hash: u64) {
         self.hashes[0] = hash;

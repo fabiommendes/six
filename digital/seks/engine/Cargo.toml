@@ -4,4 +4,12 @@ version = "0.1.0"
 edition.workspace = true
 description = "Rules engine of the Seks board game"
 
+[features]
+# JSON adapter and TypeScript types (`src/wire.rs`): the only way JSON
+# crosses the boundary of the engine.
+wire = ["dep:serde", "dep:serde_json", "dep:ts-rs"]
+
 [dependencies]
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
+ts-rs = { version = "10", optional = true }

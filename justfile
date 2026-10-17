@@ -43,7 +43,7 @@ seks-prototipo:
 # Testes do motor do Seks em Rust
 [group('seks')]
 seks-engine-test:
-    cd digital && cargo test -p seks-engine
+    cd digital && cargo test -p seks-engine --all-features
 
 # --- Bots do Seks -----------------------------------------------------------
 
@@ -81,6 +81,6 @@ check:
     make -C manual check
     cd digital/seks/prototipo && uv run task lint && uv run task test
     cd digital && cargo fmt --check
-    cd digital && cargo clippy --all-targets -- -D warnings
-    cd digital && cargo test
+    cd digital && cargo clippy --all-targets --all-features -- -D warnings
+    cd digital && cargo test --all-features
     cd digital && cargo build -q -p seks-bots --lib --target wasm32-unknown-unknown

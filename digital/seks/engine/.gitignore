@@ -1,0 +1,2 @@
+# Written by the ts-rs export tests when TS_RS_EXPORT_DIR is not set
+bindings/

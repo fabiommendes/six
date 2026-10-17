@@ -16,6 +16,8 @@
 //!   a play changes) and `capture` (custody), `event` (`GameEvent`, `Transition`, `GameError`),
 //!   `engine` (`Engine`, the entry points), `notation` (text of cells and
 //!   commands).
+//! - `wire` (feature `wire`): the JSON adapter and the TypeScript types for
+//!   the web client and the server. The domain types have no serde.
 
 //! # Playing
 //!
@@ -72,6 +74,9 @@ mod notation;
 mod outcome;
 mod state;
 mod zobrist;
+
+#[cfg(feature = "wire")]
+pub mod wire;
 
 #[cfg(test)]
 mod testing;

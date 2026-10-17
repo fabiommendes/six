@@ -62,11 +62,11 @@ Decisões de desenho:
 
 Passos:
 
-- [ ] R1. Feature `wire` no `seks-engine`: estado completo (tabuleiro, vez,
+- [x] R1. Feature `wire` no `seks-engine`: estado completo (tabuleiro, vez,
   contador, hashes), comando, evento e resultado, com validação ao ler.
-- [ ] R1. Testes de ida e volta estado, JSON e estado em posições do meio da
+- [x] R1. Testes de ida e volta estado, JSON e estado em posições do meio da
   partida, com hashes e contador.
-- [ ] R2. Visão para a interface (`View`) no `wire`: dados, vez, contador de
+- [x] R2. Visão para a interface (`View`) no `wire`: dados, vez, contador de
   jogadas sem captura, repetições da posição, aviso de que a próxima
   repetição empata, resultado.
 - [ ] R2. Tipos TypeScript com `ts-rs` e receita `just seks-types`; teste
