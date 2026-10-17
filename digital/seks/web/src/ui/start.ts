@@ -59,7 +59,6 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
           <button type="submit" class="primary">${BUTTONS.play}</button>
         </form>
         <div class="foot"></div>
-        <p class="foot-cap">${APP.caption.replace("seks", "<i>seks</i>")}</p>
       </div>
     </main>`;
   need(host, ".mark").innerHTML = brandMark(26);

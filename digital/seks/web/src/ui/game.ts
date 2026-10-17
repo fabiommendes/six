@@ -76,7 +76,6 @@ const SKELETON = `
       </div>
     </div>
     <div class="foot"></div>
-    <p class="foot-cap">${esc(APP.caption).replace("seks", "<i>seks</i>")}</p>
   </div>`;
 
 /** The screen of a match: the board in Three.js and the panel of the sketch around it. */

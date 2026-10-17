@@ -21,8 +21,7 @@ const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1
 export const APP = {
   title: "Seks",
   brand: "six",
-  caption: "Malha nórdica: seks é seis em norueguês, dinamarquês e feroês.",
-  ofSix: "jogo 1 de 6 · malha nórdica",
+  ofSix: "jogo 1 de 6",
   boardLabel: "Tabuleiro do Seks",
 } as const;
 

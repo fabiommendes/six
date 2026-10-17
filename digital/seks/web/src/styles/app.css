@@ -71,7 +71,6 @@ button:focus-visible, input:focus-visible + .choice-body { outline: 3px solid va
 button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 
 .foot { margin-top: auto; padding-top: 4px; line-height: 0; }
-.foot-cap { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
 
 .flying-die { position: fixed; z-index: 50; pointer-events: none; line-height: 0; will-change: transform; }
 
@@ -79,7 +78,7 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 @media (max-height: 560px) {
   .screen { padding: 8px 12px 8px 8px; gap: 20px; --board: min(852px, calc(100dvh - 16px), calc(100vw - 400px)); }
   h1 { font-size: 40px; margin: 6px 0 2px; }
-  .sub, .band, .legend, .foot, .foot-cap, .brand .of { display: none; }
+  .sub, .band, .legend, .foot, .brand .of { display: none; }
   .turn .who { font-size: 24px; }
   .turn .what { display: none; }
   .note { margin-top: 8px; font-size: 15px; padding: 8px 10px; min-height: 0; }
@@ -100,7 +99,7 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
   .brand { font-size: 12px; gap: 6px; }
   .brand .of { display: none; }
   h1 { font-size: 34px; margin: 6px 0 0; }
-  .sub, .band, .legend, .foot, .foot-cap { display: none; }
+  .sub, .band, .legend, .foot { display: none; }
   .turn { justify-content: flex-end; gap: 8px; }
   .turn .who { font-size: 20px; }
   .mobile-turn { display: flex; }
