@@ -14,7 +14,8 @@
 //!   (how a game ends).
 //! - Plays: `command` (`Command` and the list of legal ones), `apply` (what
 //!   a play changes) and `capture` (custody), `event` (`GameEvent`, `Transition`, `GameError`),
-//!   `engine` (`Engine`, the entry points).
+//!   `engine` (`Engine`, the entry points), `notation` (text of cells and
+//!   commands).
 
 #![warn(unreachable_pub)]
 
@@ -28,6 +29,7 @@ mod die;
 mod engine;
 mod event;
 mod history;
+mod notation;
 mod outcome;
 mod state;
 mod zobrist;
@@ -38,12 +40,14 @@ mod testing;
 mod tests;
 
 pub use board::Board;
-pub use cell::{Cell, BOARD_SIZE, CELL_COUNT};
+pub use capture::captures;
+pub use cell::{Cell, BOARD_SIZE, CELL_COUNT, DIRECTIONS};
 pub use command::{legal_commands, legal_commands_into, Command};
 pub use diagram::DiagramError;
 pub use die::{Die, Side, MAX_VALUE};
 pub use engine::Engine;
 pub use event::{GameError, GameEvent, Transition};
+pub use notation::NotationError;
 pub use outcome::{
     DrawReason, Outcome, WinReason, MAX_PLIES_WITHOUT_CAPTURE, REPETITIONS_FOR_DRAW,
 };

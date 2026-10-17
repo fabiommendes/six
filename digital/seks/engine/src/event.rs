@@ -61,13 +61,13 @@ impl fmt::Display for GameError {
         match self {
             GameError::GameOver => f.write_str("the game is over"),
             GameError::NotYourDie { at } => {
-                write!(f, "no die of the side to move at {at:?}")
+                write!(f, "no die of the side to move at {at}")
             }
             GameError::IllegalMove { from, to } => {
-                write!(f, "the die at {from:?} cannot move to {to:?}")
+                write!(f, "the die at {from} cannot move to {to}")
             }
             GameError::CannotIncrement { at } => {
-                write!(f, "the die at {at:?} already shows 6")
+                write!(f, "the die at {at} already shows 6")
             }
         }
     }

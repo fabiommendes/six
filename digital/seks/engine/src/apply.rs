@@ -1,7 +1,7 @@
 //! Applying a legal command to a state: the one place where the board, the
 //! turn, the counters and the hash history change together.
 
-use crate::capture::{captures, Captures};
+use crate::capture::{find, Captures};
 use crate::command::{distance, Command};
 use crate::die::Die;
 use crate::outcome;
@@ -33,7 +33,7 @@ pub(crate) fn apply(state: &mut GameState, command: Command) -> Applied {
             state.board.set(from, None);
             state.board.set(to, Some(moved));
             reached_goal = to.row() == mover.goal_row();
-            captured = captures(&state.board, to, mover);
+            captured = find(&state.board, to, mover);
             for (cell, die) in captured.into_iter().flatten() {
                 hash ^= zobrist::die_key(cell, die);
                 state.board.set(cell, None);

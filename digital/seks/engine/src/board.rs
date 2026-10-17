@@ -51,7 +51,9 @@ impl Board {
         self.cells[cell.index()]
     }
 
-    pub(crate) fn set(&mut self, cell: Cell, die: Option<Die>) {
+    /// Puts `die` in `cell`, or empties it. Positions built this way are
+    /// taken as they are: nothing checks them against the rules.
+    pub fn set(&mut self, cell: Cell, die: Option<Die>) {
         self.cells[cell.index()] = die;
     }
 

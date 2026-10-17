@@ -16,8 +16,9 @@ pub const BOARD_SIZE: u8 = 11;
 /// Number of cells of the board.
 pub const CELL_COUNT: usize = BOARD_SIZE as usize * BOARD_SIZE as usize;
 
-/// The 8 directions a die may move in, as `(columns, rows)` offsets.
-pub(crate) const DIRECTIONS: [(i8, i8); 8] = [
+/// The 8 directions a die may move in, as `(columns, rows)` offsets, in the
+/// order the legal moves are listed: north, then counterclockwise.
+pub const DIRECTIONS: [(i8, i8); 8] = [
     (0, 1),
     (-1, 1),
     (-1, 0),

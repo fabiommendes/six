@@ -30,14 +30,15 @@ impl GameState {
     }
 
     /// A game from the position in `diagram` (see the crate docs), with
-    /// `to_move` to play. The count of plays without a capture is 0 and the
-    /// position counts once for repetition. No outcome is derived: the
-    /// position is taken as it is, even if a side has no play.
+    /// `to_move` to play, as [`GameState::from_board`] does.
     pub fn from_diagram(diagram: &str, to_move: Side) -> Result<GameState, DiagramError> {
         Board::from_diagram(diagram).map(|board| GameState::from_board(board, to_move))
     }
 
-    pub(crate) fn from_board(board: Board, to_move: Side) -> GameState {
+    /// A game from `board` with `to_move` to play: the count of plies
+    /// without a capture is 0 and the position counts once for repetition.
+    /// No outcome is derived.
+    pub fn from_board(board: Board, to_move: Side) -> GameState {
         GameState {
             board,
             to_move,
@@ -72,6 +73,14 @@ impl GameState {
     /// drawn at 100.
     pub fn plies_without_capture(&self) -> u8 {
         self.plies_without_capture
+    }
+
+    /// How many times the current position has occurred since the last
+    /// capture, this time included: 1 on its first appearance, 3 when the
+    /// game is drawn by repetition. Positions are compared with the side to
+    /// move.
+    pub fn repetitions(&self) -> usize {
+        self.history.current_occurrences()
     }
 
     /// The Zobrist hash of the current position, side to move included.

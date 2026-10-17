@@ -3,5 +3,7 @@
 mod capture;
 mod commands;
 mod ending;
+mod extras;
+mod notation;
 mod setup;
 mod turn;

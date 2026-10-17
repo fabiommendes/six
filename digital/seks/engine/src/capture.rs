@@ -9,14 +9,16 @@
 
 use crate::board::Board;
 use crate::cell::{Cell, ORTHOGONALS};
+use crate::command::Command;
 use crate::die::{Die, Side};
+use crate::state::GameState;
 
 /// The dice captured by one move, one slot per direction: north, west, south,
 /// east.
 pub(crate) type Captures = [Option<(Cell, Die)>; 4];
 
 /// The dice that the die of `mover` standing in `to` captures.
-pub(crate) fn captures(board: &Board, to: Cell, mover: Side) -> Captures {
+pub(crate) fn find(board: &Board, to: Cell, mover: Side) -> Captures {
     ORTHOGONALS.map(|(columns, rows)| {
         let victim = to.offset(columns, rows)?;
         let die = board.get(victim).filter(|die| die.side() != mover)?;
@@ -26,4 +28,22 @@ pub(crate) fn captures(board: &Board, to: Cell, mover: Side) -> Captures {
             .filter(|partner| partner.side() == mover)
             .map(|_| (victim, die))
     })
+}
+
+/// How many dice `command` would capture in `state`, without applying it:
+/// the same custody check that `Engine::command` runs, on the board before
+/// the move. 0 for an increment. The answer is only meaningful for a legal
+/// command.
+///
+/// The board before the move is enough because the cell the die leaves can
+/// only matter as the far end of a custody along the path, and the path is
+/// empty.
+pub fn captures(state: &GameState, command: Command) -> u8 {
+    match command {
+        Command::Move { to, .. } => find(&state.board, to, state.to_move)
+            .iter()
+            .flatten()
+            .count() as u8,
+        Command::Increment { .. } => 0,
+    }
 }
