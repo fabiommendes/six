@@ -51,11 +51,11 @@ inicial padrão; as jogadas são o índice de cada uma na lista de
 varint de 7 bits e base64url. Quem abre o link joga a cor da vez; o
 navegador guarda a cor, o id e as jogadas de cada partida.
 
-- [ ] P1. Módulo genérico do formato (`src/logic/link.ts`): codifica e
+- [x] P1. Módulo genérico do formato (`src/logic/link.ts`): codifica e
   decodifica versão, id, posição inicial e jogadas contra um motor
   abstrato; erros com código (formato, versão, posição, jogada). Testes de
   ida e volta, de erros e vetor fixo.
-- [ ] P2. Adaptador do Seks (`src/logic/seks-link.ts`): motor do link sobre
+- [x] P2. Adaptador do Seks (`src/logic/seks-link.ts`): motor do link sobre
   `SeksGame`, posição inicial padrão vazia e posição de diagrama/fixture
   compacta. Testes com partidas inteiras (jogadas aleatórias com semente),
   vetor fixo partida a link, tamanho de 300 jogadas.
