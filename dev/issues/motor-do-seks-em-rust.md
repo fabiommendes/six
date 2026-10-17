@@ -1,6 +1,6 @@
 ---
 type: issue
-status: todo
+status: in_progress
 tags: [seks, digital, rust]
 relatedTo: [dev/adr/0001-monorepo-de-coordenacao.md, regras/seks]
 kind: enhancement
