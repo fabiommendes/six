@@ -36,7 +36,7 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
   host.innerHTML = `
     <main class="start">
       <div class="start-card">
-        <div class="brand"><span class="mark"></span>${APP.brand}<span class="of">${APP.ofSix}</span></div>
+        <div class="brand"><span class="mark"></span>${APP.brand}</div>
         <h1>${APP.title}</h1>
         <div class="band"></div>
         <form class="start-form">

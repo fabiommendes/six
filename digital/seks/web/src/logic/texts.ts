@@ -21,7 +21,6 @@ const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1
 export const APP = {
   title: "Seks",
   brand: "six",
-  ofSix: "jogo 1 de 6",
   boardLabel: "Tabuleiro do Seks",
 } as const;
 

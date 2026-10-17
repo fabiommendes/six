@@ -56,7 +56,7 @@ const SKELETON = `
   <div class="panel">
     <div class="head top">
       <div>
-        <div class="brand"><span class="mark"></span>${APP.brand}<span class="of">${APP.ofSix}</span></div>
+        <div class="brand"><span class="mark"></span>${APP.brand}</div>
         <h1>${APP.title}</h1>
       </div>
       <div class="turn mobile-turn"></div>
@@ -293,7 +293,7 @@ export class GameScreen {
     const count = snapshot.view.dice.filter((die) => die.side === side).length;
     const active = snapshot.view.outcome === null && snapshot.view.to_move === side;
     const tag = sideTag(snapshot.mode, side);
-    const captured = snapshot.captured.filter((die) => die.side === side).map((die) => dieIcon(die.value, side, compact ? 20 : 26)).join("");
+    const captured = snapshot.captured.filter((die) => die.side === side).map((die) => dieIcon(die.value, side, 20)).join("");
     return `<div class="side${active ? " active" : ""}" data-side="${side}">
       <span>${dieIcon(6, side, compact ? 18 : 24)}</span>
       <div><span class="name">${SIDE_NAME[side]}</span><span class="n">${diceCount(count)}${tag ? ` · ${tag}` : ""}</span>${active ? '<span class="now">JOGA AGORA</span>' : ""}</div>
