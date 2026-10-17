@@ -17,7 +17,7 @@ Hotseat ou jogo contra o bot, com toque ou mouse, em retrato e paisagem.
 - `src/engine`: carregador do WASM e invólucro tipado do `Game`.
 - `src/logic`: seleção, partida (`Match`, desfazer, capturados), contador,
   textos ao jogador e posições de teste. Não depende de DOM nem de WebGL.
-- `src/bot`: Web Worker do bot, protocolo, níveis e o bot provisório.
+- `src/bot`: Web Worker do bot, protocolo e níveis; `chooser.ts` roda o bot do `seks-bots` (WASM).
 - `src/board`: tabuleiro e dados em Three.js, motivo da moldura.
 - `src/ui`: telas (inicial e de jogo) e o painel, em DOM.
 - `tests/`: vitest com o WASM real no Node, sem mock do motor.
@@ -31,8 +31,18 @@ Hotseat ou jogo contra o bot, com toque ou mouse, em retrato e paisagem.
 - `contador`: a mesma posição com 85 jogadas sem captura.
 - `fim`: as Brancas ganham jogando c8 para c11.
 
-## Bot provisório
+## Bot
 
-O bot de verdade ainda não está no WASM. O Worker é real, mas o bot só sorteia
-entre as jogadas legais, em qualquer nível. Trocar pelo bot de verdade é mudar
-só `src/bot/chooser.ts` e o Worker.
+O bot é o alfa-beta de `seks-bots`, no WASM (`Bot` de `digital/seks/wasm`).
+Roda num Web Worker, um por partida, que guarda a tabela de transposição entre
+as jogadas. Os níveis da tela inicial (`src/bot/levels.ts`) são orçamentos de
+busca, não de tempo, então valem em qualquer máquina:
+
+| Nível | Nós por jogada | Ruído |
+|---|---|---|
+| Fácil | 200 | 100 (um dado) |
+| Médio | 2000 | 30 |
+| Difícil | o padrão do `seks-bots` (`Bot.defaultNodes()`) | 0 |
+
+O Difícil acompanha o padrão dos bots quando ele muda. O ruído sorteia entre as
+jogadas até essa distância da melhor.

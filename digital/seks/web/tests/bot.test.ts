@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { BotCancelled, WorkerBot, type WorkerLike } from "../src/bot/client";
+import { BotRunner } from "../src/bot/chooser";
 import { handleBotRequest } from "../src/bot/handler";
 import { BOT_LEVELS, DEFAULT_BOT_LEVEL } from "../src/bot/levels";
-import type { BotRequest } from "../src/bot/protocol";
-import { SeksGame } from "../src/engine/game";
+import type { BotLevel, BotRequest } from "../src/bot/protocol";
+import { SeksBot, SeksGame } from "../src/engine/game";
 
 const level = DEFAULT_BOT_LEVEL;
 
@@ -41,14 +42,27 @@ describe("levels", () => {
     expect(BOT_LEVELS.map((l) => l.id)).toEqual(["easy", "medium", "hard"]);
     expect(BOT_LEVELS).toContain(DEFAULT_BOT_LEVEL);
   });
+
+  it("grows the search from level to level, and the strongest one is the default of the bots", () => {
+    const [easy, medium, hard] = BOT_LEVELS;
+    expect(easy!.nodes!).toBeLessThan(medium!.nodes!);
+    expect(hard).toMatchObject({ nodes: null, depth: null, noise: 0 });
+    expect(SeksBot.defaultNodes()).toBeGreaterThan(medium!.nodes!);
+    expect(easy!.noise).toBeGreaterThan(medium!.noise);
+    expect(medium!.noise).toBeGreaterThan(hard!.noise);
+  });
+
+  it("builds a bot for each level", () => {
+    for (const l of BOT_LEVELS) new SeksBot(l).free();
+  });
 });
 
 describe("handleBotRequest", () => {
-  it("rebuilds the game from its state and answers a legal command", () => {
+  it("rebuilds the game from its state and answers a legal command, at every level", () => {
     const game = SeksGame.create();
     game.command("b2-b4");
-    for (let i = 0; i < 20; i++) {
-      const response = handleBotRequest({ id: 7, state: game.stateJson(), level });
+    for (const l of BOT_LEVELS) {
+      const response = handleBotRequest({ id: 7, state: game.stateJson(), level: l });
       expect(response.id).toBe(7);
       expect("command" in response && game.legalCommands()).toContain("command" in response ? response.command : "");
     }
@@ -65,12 +79,54 @@ describe("handleBotRequest", () => {
     expect(response).toMatchObject({ id: 2, error: expect.stringContaining("no legal command") });
   });
 
-  it("uses the random source it is given", () => {
+  it("plays the same command for the same random source, and noise makes the source matter", () => {
     const game = SeksGame.create();
-    const first = handleBotRequest({ id: 1, state: game.stateJson(), level }, () => 0);
-    const last = handleBotRequest({ id: 1, state: game.stateJson(), level }, () => 0.999999);
-    expect("command" in first && first.command).toBe(game.legalCommands()[0]);
-    expect("command" in last && last.command).toBe(game.legalCommands().at(-1));
+    const easy = BOT_LEVELS[0]!;
+    const play = (source: number) => handleBotRequest({ id: 1, state: game.stateJson(), level: easy }, undefined, () => source);
+    expect(play(0.25)).toEqual(play(0.25));
+    const commands = new Set(
+      Array.from({ length: 40 }, (_, i) => {
+        const response = play(i / 40);
+        return "command" in response ? response.command : "";
+      }),
+    );
+    expect(commands.size).toBeGreaterThan(1);
+  });
+
+  it("keeps the bot of the runner between requests and swaps it when the level changes", () => {
+    const runner = new BotRunner();
+    const game = SeksGame.create();
+    for (const l of [BOT_LEVELS[0]!, BOT_LEVELS[0]!, BOT_LEVELS[1]!, BOT_LEVELS[0]!]) {
+      const response = handleBotRequest({ id: 1, state: game.stateJson(), level: l }, runner);
+      expect("command" in response).toBe(true);
+    }
+    runner.dispose();
+    expect("command" in handleBotRequest({ id: 2, state: game.stateJson(), level: BOT_LEVELS[1]! }, runner)).toBe(true);
+    runner.dispose();
+  });
+
+  it("plays whole games: the Hard level beats the Easy one with either colour", () => {
+    const [easy, , hard] = BOT_LEVELS as [BotLevel, BotLevel, BotLevel];
+    for (const hardSide of ["white", "black"] as const) {
+      const runners = { easy: new BotRunner(), hard: new BotRunner() };
+      const game = SeksGame.create();
+      let seed = hardSide === "white" ? 1 : 2;
+      const source = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32);
+      let view = game.view();
+      for (let ply = 0; ply < 300 && view.outcome === null; ply++) {
+        const isHard = view.to_move === hardSide;
+        const response = handleBotRequest(
+          { id: ply, state: game.stateJson(), level: isHard ? hard : easy },
+          isHard ? runners.hard : runners.easy,
+          source,
+        );
+        if (!("command" in response)) throw new Error(response.error);
+        view = game.command(response.command).view;
+      }
+      expect(view.outcome).toMatchObject({ kind: "win", winner: hardSide });
+      runners.easy.dispose();
+      runners.hard.dispose();
+    }
   });
 });
 

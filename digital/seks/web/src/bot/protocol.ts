@@ -1,25 +1,19 @@
-import type { Command } from "../engine/game";
+import type { BotParams, Command } from "../engine/game";
 
 /** The ids of the bot levels shown on the start screen. */
 export type BotLevelId = "easy" | "medium" | "hard";
 
 /**
- * A difficulty level: the parameters that the bots of `seks-bots` expose
- * (`dev/issues/bots-do-seks.md`). The provisional bot ignores them.
+ * A difficulty level: the search budget of the bot of `seks-bots`
+ * (`BotParams`) and the name shown to the player.
  */
-export interface BotLevel {
+export interface BotLevel extends BotParams {
   readonly id: BotLevelId;
   /** The name shown to the player. */
   readonly label: string;
-  /** Search nodes per play. */
-  readonly nodes: number;
-  /** Depth limit of the search, or `null` to let the nodes decide. */
-  readonly depth: number | null;
-  /** Noise at the root of the search, from 0 (always the best play) up. */
-  readonly noise: number;
 }
 
-/** What the page sends to the bot Worker: the game to play on, as `SeksGame.stateJson()`. */
+/** What the page sends to the bot Worker: the game to play on, as `SeksGame.stateJson()`, and the level. */
 export interface BotRequest {
   readonly id: number;
   readonly state: string;

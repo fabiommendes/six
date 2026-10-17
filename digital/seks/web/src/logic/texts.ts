@@ -54,7 +54,6 @@ export const START = {
   sideBlack: "Pretas",
   sideBlackNote: "jogam em segundo",
   levelLegend: "Nível do bot",
-  provisionalBot: "Bot provisório: por enquanto ele joga ao acaso, em qualquer nível.",
 } as const;
 
 export const COUNTER = {

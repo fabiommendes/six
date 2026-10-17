@@ -1,14 +1,26 @@
-import type { Command, SeksGame } from "../engine/game";
-import type { BotLevel } from "./protocol";
+import { SeksBot, type Command, type SeksGame } from "../engine/game";
+import type { BotLevel, BotLevelId } from "./protocol";
 
 /**
- * The play of the bot. PROVISIONAL: it draws one of the legal commands and
- * ignores `level`. The real bot (`seks-bots` in WASM) replaces this function
- * and nothing else: the Worker, its protocol and the match stay as they are.
+ * The play of the bot: the alpha-beta bot of `seks-bots` in WASM, with the
+ * search budget of the level. A runner keeps the bot (and its search table)
+ * between plays, so one runner serves one game; it runs in the Worker.
  */
-export function chooseCommand(game: SeksGame, _level: BotLevel, random: () => number = Math.random): Command {
-  const legal = game.legalCommands();
-  const chosen = legal[Math.floor(random() * legal.length)];
-  if (chosen === undefined) throw new Error("no legal command: the game is over");
-  return chosen;
+export class BotRunner {
+  private current: { readonly id: BotLevelId; readonly bot: SeksBot } | null = null;
+
+  /** The command for the side to move in `game`; `seed` is any integer. Throws if the game is over. */
+  choose(game: SeksGame, level: BotLevel, seed: number): Command {
+    if (this.current?.id !== level.id) {
+      this.dispose();
+      this.current = { id: level.id, bot: new SeksBot(level) };
+    }
+    return this.current.bot.choose(game, seed);
+  }
+
+  /** Frees the bot. The runner can still be used afterwards. */
+  dispose(): void {
+    this.current?.bot.free();
+    this.current = null;
+  }
 }

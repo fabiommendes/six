@@ -55,7 +55,6 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
               <legend>${START.levelLegend}</legend>
               <div class="levels">${BOT_LEVELS.map((level) => radio("level", level.id, level.label, "", initial.level === level.id)).join("")}</div>
             </fieldset>
-            <p class="provisional">${START.provisionalBot}</p>
           </div>
           <button type="submit" class="primary">${BUTTONS.play}</button>
         </form>

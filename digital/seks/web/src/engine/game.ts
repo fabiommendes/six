@@ -1,4 +1,4 @@
-import { Game } from "@seks-wasm";
+import { Bot, Game } from "@seks-wasm";
 import type { Command } from "@wire/Command";
 import type { DieOptions } from "@wire/DieOptions";
 import type { Side } from "@wire/Side";
@@ -73,7 +73,54 @@ export class SeksGame {
     return JSON.parse(this.game.undo()) as View;
   }
 
+  /** The `Game` of `seks-wasm`, for the bot to read the position from. Not for the interface. */
+  get wasm(): Game {
+    return this.game;
+  }
+
   free(): void {
     this.game.free();
+  }
+}
+
+/** The search budget of a bot (see `Bot` in `seks-wasm`). */
+export interface BotParams {
+  /** Search nodes per play; `null` for the default level of the bots. */
+  readonly nodes: number | null;
+  /** Depth limit in plies; `null` for none. */
+  readonly depth: number | null;
+  /** Plays at most this far (100 = one die) below the best are chosen at random; 0 plays the best. */
+  readonly noise: number;
+}
+
+/**
+ * The alpha-beta bot of `seks-bots`, in WASM. It keeps its search table
+ * between plays, so one `SeksBot` serves one game. It lives where the search
+ * runs (the Worker); `free()` it when the game is over.
+ */
+export class SeksBot {
+  private readonly bot: Bot;
+
+  constructor(params: BotParams) {
+    this.bot = new Bot(params.nodes ?? undefined, params.depth ?? undefined, params.noise);
+  }
+
+  /** The nodes per play of the default level, the strongest one. */
+  static defaultNodes(): number {
+    return Bot.defaultNodes();
+  }
+
+  /** The command to play on `game`; the same `seed` gives the same play. Throws if the game is over. */
+  choose(game: SeksGame, seed: number): Command {
+    return this.bot.choose(game.wasm, seed >>> 0);
+  }
+
+  /** Forgets the search table: call when a new game starts. */
+  newGame(): void {
+    this.bot.newGame();
+  }
+
+  free(): void {
+    this.bot.free();
   }
 }

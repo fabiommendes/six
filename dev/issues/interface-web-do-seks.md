@@ -107,3 +107,9 @@ Passos:
 - [x] R3. `?fixture=esboco` e captura de tela ao lado de `jogo.png`.
 - [x] R10. `just check` inteiro, conferência de termos proibidos, issue em
   `in_review`.
+- [x] R5. Troca do bot provisório pelo bot de `seks-bots` no WASM (R4 de
+  `dev/issues/seks-wasm.md`): o Worker guarda um `Bot` por partida, os níveis
+  viram orçamentos de busca (Fácil 200 nós e ruído 100; Médio 2000 nós e ruído
+  30; Difícil o padrão dos bots), o aviso de bot provisório saiu da tela
+  inicial e do README. Medido no Chromium: o nível Difícil leva cerca de 58 ms
+  por jogada no Worker.

@@ -138,7 +138,6 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 .levels .choice { margin: 0; }
 .levels .choice-body { justify-content: center; text-align: center; padding: 10px 6px; }
 .bot-options[hidden] { display: none; }
-.provisional { margin: -6px 0 18px; font-size: 15px; color: var(--muted); font-style: italic; }
 .primary { width: 100%; font-size: 22px; padding: 12px; background: var(--seks); color: #fff; border-color: var(--ink); }
 .start .foot { margin-top: 22px; padding-top: 0; }
 
