@@ -211,7 +211,13 @@ que os outros da mesma fase.
 - [x] `seks-bots train CONFIG.json`: repete gerações (autojogo com os pesos
   atuais, tune, partida em lote contra a geração anterior) e só promove a
   geração que melhora o Elo com o limite inferior do intervalo acima de 0.
-  Retoma do ponto onde parou. Saída em `digital/seks/bots/train/runs/<nome>/`
+  Retoma do ponto onde parou.
+- [x] Portão contra empates (depois da primeira execução, cujos pesos
+  aprenderam a não forçar a vitória: 46% de empates contra si mesmos): o
+  `ab` ganha `contempt=C` (padrão 100, calibrado), usado no autojogo, no
+  portão e no nível do jogador; o portão recusa uma geração cujo lote do
+  portão ou lote espelhado (a geração contra ela mesma, 400 partidas)
+  empate mais de 10%. Números em `dev/notes/bots-do-seks.md`. Saída em `digital/seks/bots/train/runs/<nome>/`
   (`log.csv` com perda de treino e validação e Elo por geração, pesos de
   cada geração, dados e partidas).
 - [ ] O que vai para o git: código, `weights/hand.json`,

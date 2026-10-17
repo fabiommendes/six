@@ -65,13 +65,18 @@ impl SelfPlay {
                 let sender = sender.clone();
                 let next = &next;
                 scope.spawn(move || {
-                    let mut bot = AlphaBeta::from_spec(&self.bot).unwrap();
+                    // One bot per side: with a contempt, the scores in a
+                    // bot's table depend on the side at its root.
+                    let mut bots = [
+                        AlphaBeta::from_spec(&self.bot).unwrap(),
+                        AlphaBeta::from_spec(&self.bot).unwrap(),
+                    ];
                     loop {
                         let game = next.fetch_add(1, Ordering::Relaxed);
                         if game >= self.games {
                             break;
                         }
-                        let played = self.play(game, &mut bot);
+                        let played = self.play(game, &mut bots);
                         let failed = played.is_err();
                         if sender.send((game, played)).is_err() || failed {
                             next.store(self.games, Ordering::Relaxed);
@@ -121,18 +126,21 @@ impl SelfPlay {
     fn play(
         &self,
         game: usize,
-        bot: &mut AlphaBeta,
+        bots: &mut [AlphaBeta; 2],
     ) -> std::result::Result<(Vec<Sample>, End, Option<Side>), String> {
         let opening = &self.openings[game % self.openings.len()];
         let mut state = opening.state()?;
         let seed = derive(self.seed, game as u64);
-        let base_noise = bot.noise();
-        bot.new_game();
+        let base_noise = bots[0].noise();
+        for bot in bots.iter_mut() {
+            bot.new_game();
+        }
         let mut samples = Vec::new();
         for ply in 0..self.max_plies {
             if state.outcome().is_some() {
                 break;
             }
+            let bot = &mut bots[usize::from(state.to_move() == Side::Black)];
             bot.set_noise(if ply < self.noise_plies {
                 self.noise
             } else {
@@ -155,7 +163,9 @@ impl SelfPlay {
                 .map_err(|e| format!("game {game}, ply {ply}: {e}"))?
                 .state;
         }
-        bot.set_noise(base_noise);
+        for bot in bots.iter_mut() {
+            bot.set_noise(base_noise);
+        }
         let (winner, end) = End::of(state.outcome());
         let result = match winner {
             Some(Side::White) => Result::Win,

@@ -1,7 +1,10 @@
 //! The training loop, `seks-bots train CONFIG.json`: generation after
 //! generation, self-play with the current weights, Texel tuning, and a
 //! batch of the tuned weights against the current ones. The tuned weights
-//! are promoted only if the lower end of the 95% Elo interval is above 0.
+//! are promoted only if the lower end of the 95% Elo interval is above 0
+//! and neither that batch nor a batch of the tuned weights against
+//! themselves (the mirror) draws more than `gate.max_draw_rate` of its
+//! games: weights that draw a lot have learned to stop playing for a win.
 //!
 //! Everything goes to `<out>/<name>/`: `config.json`, `log.csv` (one line
 //! per generation), `state.json` (the last generation done and the current
@@ -79,6 +82,21 @@ pub struct GateConfig {
     pub games: usize,
     pub openings: String,
     pub max_plies: u32,
+    /// Games of the mirror batch, on the same openings.
+    #[serde(default = "default_mirror_games")]
+    pub mirror_games: usize,
+    /// The largest share of draws, in the gate and in the mirror, of
+    /// promoted weights.
+    #[serde(default = "default_max_draw_rate")]
+    pub max_draw_rate: f64,
+}
+
+fn default_mirror_games() -> usize {
+    400
+}
+
+fn default_max_draw_rate() -> f64 {
+    0.10
 }
 
 /// The progress of a run.
@@ -140,7 +158,7 @@ pub fn run(config: &Config) -> Result<(), String> {
         std::fs::write(
             &log_path,
             "generation,samples,train_quiet,validation_quiet,k,train_loss_before,train_loss,\
-validation_loss_before,validation_loss,best_epoch,elo,elo_low,elo_high,draws,promoted,seconds\n",
+validation_loss_before,validation_loss,best_epoch,elo,elo_low,elo_high,draws,mirror_draws,promoted,seconds\n",
         )
         .map_err(io(&log_path))?;
     }
@@ -248,21 +266,43 @@ validation_loss_before,validation_loss,best_epoch,elo,elo_low,elo_high,draws,pro
         }
         std::fs::write(&gate, lines).map_err(io(&gate))?;
         let summary = Summary::new(&batch.bots, &records);
-        let promoted = summary.elo_low > 0.0;
+
+        // The tuned weights against themselves.
+        let tuned_bot = with_weights(&config.gate.bot, &tuned);
+        let mirror = Batch {
+            bots: [tuned_bot.clone(), tuned_bot],
+            openings: gate_openings.clone(),
+            games: config.gate.mirror_games,
+            seed: derive(config.seed, 2000 + generation as u64),
+            threads,
+            max_plies: config.gate.max_plies,
+            games_out: None,
+        };
+        let mirror_records = mirror.run(&|_| {})?;
+        let mirror_draws = Summary::new(&mirror.bots, &mirror_records).draws;
+        let draw_rate = |draws: u64, games: usize| draws as f64 / games.max(1) as f64;
+        let stronger = summary.elo_low > 0.0;
+        let drawish = draw_rate(summary.draws, records.len()) > config.gate.max_draw_rate
+            || draw_rate(mirror_draws, mirror_records.len()) > config.gate.max_draw_rate;
+        let promoted = stronger && !drawish;
         eprintln!(
-            "gen {generation}: gate Elo {:+.0} [{:+.0}, {:+.0}], {}",
+            "gen {generation}: gate Elo {:+.0} [{:+.0}, {:+.0}], draws {} of {}, mirror draws {} of {}, {}",
             summary.elo,
             summary.elo_low,
             summary.elo_high,
-            if promoted {
-                "promoted"
-            } else {
-                "kept the previous weights"
+            summary.draws,
+            records.len(),
+            mirror_draws,
+            mirror_records.len(),
+            match (stronger, drawish) {
+                (true, false) => "promoted",
+                (true, true) => "kept the previous weights: too many draws",
+                _ => "kept the previous weights",
             }
         );
         let field = |key: &str| report[key].to_string();
         let line = format!(
-            "{generation},{},{},{},{},{},{},{},{},{},{:.1},{:.1},{:.1},{},{},{:.0}\n",
+            "{generation},{},{},{},{},{},{},{},{},{},{:.1},{:.1},{:.1},{},{},{},{:.0}\n",
             field("samples"),
             field("train_quiet"),
             field("validation_quiet"),
@@ -276,6 +316,7 @@ validation_loss_before,validation_loss,best_epoch,elo,elo_low,elo_high,draws,pro
             summary.elo_low,
             summary.elo_high,
             summary.draws,
+            mirror_draws,
             promoted,
             clock.elapsed().as_secs_f64()
         );

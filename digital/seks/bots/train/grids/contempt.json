@@ -1,0 +1,18 @@
+{
+  "name": "contempt",
+  "defaults": {"openings": "openings/base.txt", "games": 400, "threads": 6},
+  "experiments": [
+    {"name": "mirror-passive", "kind": "batch",
+     "bots": ["ab:nodes=5000,contempt={c},weights=@train/runs/base-passive/gen-001-weights.json",
+              "ab:nodes=5000,contempt={c},weights=@train/runs/base-passive/gen-001-weights.json"],
+     "grid": {"c": [0, 25, 50, 100, 200]}},
+    {"name": "cost-passive", "kind": "batch",
+     "bots": ["ab:nodes=5000,contempt={c},weights=@train/runs/base-passive/gen-001-weights.json",
+              "ab:nodes=5000,contempt=0,weights=@train/runs/base-passive/gen-001-weights.json"],
+     "grid": {"c": [25, 50, 100, 200]}},
+    {"name": "cost-hand", "kind": "batch",
+     "bots": ["ab:nodes=5000,contempt={c},weights=@weights/hand.json",
+              "ab:nodes=5000,contempt=0,weights=@weights/hand.json"],
+     "grid": {"c": [25, 50, 100, 200]}}
+  ]
+}

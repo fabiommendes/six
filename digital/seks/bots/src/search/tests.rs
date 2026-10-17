@@ -119,3 +119,14 @@ fn noise_picks_among_moves_near_the_best() {
         .collect();
     assert!(picks.len() > 1);
 }
+
+#[test]
+fn contempt_makes_a_draw_cost_the_root_side() {
+    let mut search = searcher();
+    assert_eq!((search.draw(0), search.draw(1)), (0, 0));
+    search.contempt = 50;
+    assert_eq!(
+        (search.draw(0), search.draw(1), search.draw(2)),
+        (-50, 50, -50)
+    );
+}

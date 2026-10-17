@@ -10,7 +10,9 @@
 //! (`crate::eval`). A win is `WIN - ply`, where `ply` counts from the root
 //! to the move that wins, so shorter wins score higher. A draw is 0, and so
 //! is a position that already occurred since the last capture (in the game
-//! or in the search path): the side to move can repeat it.
+//! or in the search path): the side to move can repeat it. With a
+//! [`Searcher::contempt`] of `C`, a draw is `-C` for the side to move at the
+//! root and `+C` for its opponent, so the root side plays for a win.
 
 mod table;
 
@@ -87,6 +89,9 @@ pub struct Searcher {
     can_abort: bool,
     aborted: bool,
     pub options: Options,
+    /// What a draw costs the side to move at the root, in evaluation
+    /// units; 0 scores draws as 0 for both sides.
+    pub contempt: i32,
 }
 
 /// The parts of the search that may change its result. All on by default;
@@ -137,6 +142,7 @@ impl Searcher {
             can_abort: false,
             aborted: false,
             options: Options::default(),
+            contempt: 0,
         }
     }
 
@@ -292,7 +298,8 @@ impl Searcher {
         self.aborted
     }
 
-    /// The score of a finished game or a repeated position, if `state` is one.
+    /// The score of a finished game or a repeated position, if `state` is
+    /// one, with draws as 0.
     fn terminal(state: &GameState, ply: usize) -> Option<i32> {
         match state.outcome() {
             // The side that just moved won.
@@ -300,6 +307,22 @@ impl Searcher {
             Some(Outcome::Draw(_)) => Some(0),
             None if state.repetitions() >= 2 => Some(0),
             None => None,
+        }
+    }
+
+    /// [`Searcher::terminal`] with draws scored by the contempt.
+    fn terminal_with_contempt(&self, state: &GameState, ply: usize) -> Option<i32> {
+        // A win is never 0, so 0 is a draw.
+        Self::terminal(state, ply).map(|score| if score == 0 { self.draw(ply) } else { score })
+    }
+
+    /// The score of a draw for the side to move `ply` plies below the root:
+    /// the root side at even plies.
+    fn draw(&self, ply: usize) -> i32 {
+        if ply.is_multiple_of(2) {
+            -self.contempt
+        } else {
+            self.contempt
         }
     }
 
@@ -339,7 +362,7 @@ impl Searcher {
         ply: usize,
         stop: &mut dyn FnMut() -> bool,
     ) -> i32 {
-        if let Some(score) = Self::terminal(state, ply) {
+        if let Some(score) = self.terminal_with_contempt(state, ply) {
             return score;
         }
         if self.tick(stop) {
@@ -533,7 +556,7 @@ impl Searcher {
         depth: u32,
         stop: &mut dyn FnMut() -> bool,
     ) -> i32 {
-        if let Some(score) = Self::terminal(state, ply) {
+        if let Some(score) = self.terminal_with_contempt(state, ply) {
             return score;
         }
         if self.tick(stop) {

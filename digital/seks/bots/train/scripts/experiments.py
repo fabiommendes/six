@@ -225,6 +225,7 @@ def log_lines(run_dir: Path) -> str:
                 f"{float(row['validation_loss_before']):.5f} -> "
                 f"{float(row['validation_loss']):.5f}, Elo {float(row['elo']):+.0f} "
                 f"[{float(row['elo_low']):+.0f}, {float(row['elo_high']):+.0f}], "
+                f"draws {row['draws']}, mirror draws {row.get('mirror_draws', '-')}, "
                 f"{'promoted' if row['promoted'] == 'true' else 'kept'}, "
                 f"{float(row['seconds']):.0f} s"
             )

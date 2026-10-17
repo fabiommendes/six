@@ -25,6 +25,8 @@
     "bot": "ab:nodes=5000",
     "games": 2000,
     "openings": "openings/gate.txt",
-    "max_plies": 400
+    "max_plies": 400,
+    "mirror_games": 400,
+    "max_draw_rate": 0.1
   }
 }

@@ -8,7 +8,7 @@ use crate::bot::{Bot, Decision};
 use crate::eval::{Evaluator, Weights};
 use crate::search::{Limits, Options, Searcher};
 
-/// The bot `ab[:depth=D,nodes=N,ms=T,tt=MIB,noise=E,weights=@FILE,nmp=B,lmr=B,prune=B]`.
+/// The bot `ab[:depth=D,nodes=N,ms=T,tt=MIB,noise=E,contempt=C,weights=@FILE,nmp=B,lmr=B,prune=B]`.
 pub struct AlphaBeta {
     spec: String,
     searcher: Searcher,
@@ -23,6 +23,11 @@ impl AlphaBeta {
     pub const DEFAULT_NODES: u64 = 20_000;
     /// Size of the transposition table, in MiB, unless `tt` says otherwise.
     pub const DEFAULT_TABLE_MIB: usize = 16;
+    /// What a draw costs the bot unless `contempt` says otherwise
+    /// ([`Searcher::contempt`]): about one die. In batches of 400 games it
+    /// cost no Elo and removed the draws by repetition between two `ab`
+    /// bots (`dev/notes/bots-do-seks.md`).
+    pub const DEFAULT_CONTEMPT: i32 = 100;
 
     /// Reads the arguments after `ab:`, comma separated `key=value` pairs.
     pub fn from_args(spec: &str, args: &str) -> Result<AlphaBeta, String> {
@@ -31,6 +36,7 @@ impl AlphaBeta {
         let mut ms = None;
         let mut mib = Self::DEFAULT_TABLE_MIB;
         let mut noise = 0;
+        let mut contempt = Self::DEFAULT_CONTEMPT;
         let mut weights = None;
         let mut options = Options::default();
         let flag = |key: &str, value: &str| match value {
@@ -54,6 +60,7 @@ impl AlphaBeta {
                 "ms" => ms = Some(value.parse().map_err(|_| bad(key, value))?),
                 "tt" => mib = value.parse().map_err(|_| bad(key, value))?,
                 "noise" => noise = value.parse().map_err(|_| bad(key, value))?,
+                "contempt" => contempt = value.parse().map_err(|_| bad(key, value))?,
                 "nmp" => options.null_move = flag(key, value)?,
                 "lmr" => options.late_reductions = flag(key, value)?,
                 "prune" => options.pruning = flag(key, value)?,
@@ -64,8 +71,10 @@ impl AlphaBeta {
                 _ => return Err(format!("bot {spec}: unknown argument {key:?}")),
             }
         }
-        if noise < 0 || mib == 0 {
-            return Err(format!("bot {spec}: noise and tt must be positive"));
+        if noise < 0 || mib == 0 || contempt < 0 {
+            return Err(format!(
+                "bot {spec}: noise, tt and contempt must not be negative, tt not 0"
+            ));
         }
         // Without any limit, the default level.
         let unlimited = nodes.is_none() && ms.is_none() && limits.depth == Limits::default().depth;
@@ -77,6 +86,7 @@ impl AlphaBeta {
         let evaluator = Evaluator::new(&weights.unwrap_or_default());
         let mut searcher = Searcher::new(evaluator, mib);
         searcher.options = options;
+        searcher.contempt = contempt;
         Ok(AlphaBeta {
             spec: spec.into(),
             searcher,
@@ -87,10 +97,13 @@ impl AlphaBeta {
     }
 
     /// A bot with `weights`, `limits` and `noise`, named `spec`.
+    /// The contempt is [`AlphaBeta::DEFAULT_CONTEMPT`].
     pub fn new(spec: &str, weights: &Weights, limits: Limits, noise: i32) -> AlphaBeta {
+        let mut searcher = Searcher::new(Evaluator::new(weights), Self::DEFAULT_TABLE_MIB);
+        searcher.contempt = Self::DEFAULT_CONTEMPT;
         AlphaBeta {
             spec: spec.into(),
-            searcher: Searcher::new(Evaluator::new(weights), Self::DEFAULT_TABLE_MIB),
+            searcher,
             limits,
             ms: None,
             noise,

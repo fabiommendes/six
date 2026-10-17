@@ -58,6 +58,8 @@ pub trait Bot {
 ///   - `tt=MIB`: transposition table size, 16 MiB by default;
 ///   - `noise=E`: chooses at random among the root moves at most `E` below
 ///     the best score, 0 by default;
+///   - `contempt=C`: a draw scores `-C` for the bot instead of 0, so it
+///     plays for a win; [`AlphaBeta::DEFAULT_CONTEMPT`] by default;
 ///   - `weights=@FILE`: the weights file, `weights/default.json` by default;
 ///   - `nmp=0`, `lmr=0`, `prune=0`: turn off null-move pruning, late move
 ///     reductions, or futility and late move pruning, for experiments.
@@ -170,6 +172,7 @@ mod tests {
             "ab:ms=100",
             "ab:tt=1",
             "ab:noise=20",
+            "ab:contempt=50",
             "ab:depth=4,nodes=100,tt=2,noise=0,ms=50",
             "ab:weights=@weights/hand.json",
             "ab:nmp=0,lmr=1",
@@ -186,6 +189,7 @@ mod tests {
             "ab:depth=x",
             "ab:nodes=-1",
             "ab:noise=-5",
+            "ab:contempt=-1",
             "ab:tt=0",
             "ab:speed=3",
             "ab:depth",
