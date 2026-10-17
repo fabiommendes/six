@@ -34,6 +34,7 @@ export const BUTTONS = {
   play: "Jogar",
   home: "Voltar ao início",
   resign: "Desistir",
+  viewBoard: "Ver tabuleiro",
   cancel: "Cancelar",
 } as const;
 
@@ -79,6 +80,7 @@ export const MAIL = {
   shareTitle: "Seks",
   shareLeftText: "Saí da nossa partida de Seks. Abra o link para escolher o que fazer com ela.",
   levelLabel: "Nível do bot",
+  sendResult: "Mande o link para o outro jogador ver o resultado.",
   continueWithBot: "Continuar contra o bot",
   end: "Encerrar",
   resignAsk: "Desistir da partida? O outro jogador recebe um link avisando e escolhe entre continuar contra o bot e encerrar. A partida sai da sua lista.",
@@ -231,6 +233,31 @@ export function boardLabel(snapshot: MatchSnapshot): string {
   const base = `${APP.boardLabel}: ${turnTitle(snapshot.view.to_move).toLowerCase()}`;
   const selected: Cell | undefined = snapshot.selection?.at;
   return selected === undefined ? `${base}.` : `${base}; dado em ${selected} selecionado.`;
+}
+
+/** The card over the board when the game ends. */
+export interface EndCard {
+  readonly title: string;
+  /** One line, with the terms of the glossary. */
+  readonly reason: string;
+  readonly tone: "win" | "loss" | "neutral";
+}
+
+/**
+ * The card for the end of the game, from the point of view of who plays:
+ * "Você venceu" or "Você perdeu" against the bot or by correspondence, the
+ * side that won in hotseat, a draw with its reason. `null` while it goes on.
+ */
+export function endCard(snapshot: MatchSnapshot): EndCard | null {
+  const outcome = snapshot.view.outcome;
+  if (outcome === null) return null;
+  const result = resultText(outcome, snapshot.view);
+  const mode = snapshot.mode;
+  if (result.winner !== null && (mode.kind === "bot" || mode.kind === "correspondence")) {
+    const won = result.winner === mode.human;
+    return { title: won ? "Você venceu" : "Você perdeu", reason: result.reason, tone: won ? "win" : "loss" };
+  }
+  return { title: result.title, reason: result.reason, tone: "neutral" };
 }
 
 /** The end of a game as the screen words it: a headline and the reason. */

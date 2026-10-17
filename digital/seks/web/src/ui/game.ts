@@ -13,6 +13,7 @@ import {
   APP,
   BUTTONS,
   COUNTER,
+  endCard,
   LEGEND,
   MAIL,
   SIDE_NAME,
@@ -79,7 +80,18 @@ export interface GameScreenOptions {
 }
 
 const SKELETON = `
-  <div class="board-wrap"><div class="board" id="board"></div></div>
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+    <div class="end-card" role="dialog" aria-label="Fim da partida" hidden>
+      <h2 class="end-title"></h2>
+      <p class="end-reason"></p>
+      <p class="end-extra" hidden></p>
+      <div class="end-buttons">
+        <button type="button" data-action="new"></button>
+        <button type="button" data-action="dismiss-end">${BUTTONS.viewBoard}</button>
+      </div>
+    </div>
+  </div>
   <div class="panel">
     <div class="head top">
       <div>
@@ -146,6 +158,8 @@ export class GameScreen {
   /** What the confirmation under the panel asks, if it is open. */
   private asking: "resign" | null = null;
   private mailLinkShown = "";
+  /** The player closed the card of the end of the game to look at the board. */
+  private endDismissed = false;
 
   constructor(
     private readonly host: HTMLElement,
@@ -271,7 +285,10 @@ export class GameScreen {
     const action = button.dataset.action;
     if (action === "undo") this.match.undo();
     else if (action === "new") this.options.onNewGame();
-    else if (action === "resign") this.ask("resign");
+    else if (action === "dismiss-end") {
+      this.endDismissed = true;
+      this.render(this.match.snapshot());
+    } else if (action === "resign") this.ask("resign");
     else if (action === "cancel") this.ask(null);
     else if (action === "confirm-resign") this.resign();
     else if (action === "copy") void this.copyLink();
@@ -398,7 +415,32 @@ export class GameScreen {
     if (this.resignedLink !== null) note.innerHTML = `<b>${esc(MAIL.resignedTitle)}</b> ${esc(MAIL.resignedRest)}`;
     else if (showLeft && left !== null) note.innerHTML = `<b>${esc(MAIL.leftTitle(left))}</b> ${esc(snapshot.view.outcome === null ? MAIL.leftRest : MAIL.leftOverRest)}`;
     if (this.frozen) need<HTMLButtonElement>(host, '[data-action="undo"]').disabled = true;
-    need(host, '[data-action="new"]').textContent = mail ? BUTTONS.home : BUTTONS.newGame;
+    const home = mail ? BUTTONS.home : BUTTONS.newGame;
+    need(host, '.actions [data-action="new"]').textContent = home;
+    this.renderEnd(snapshot, home);
+  }
+
+  /** The card over the board at the end of the game, on the side of the board away from the last play. */
+  private renderEnd(snapshot: ReturnType<Match["snapshot"]>, home: string): void {
+    const card = endCard(snapshot);
+    if (card === null) this.endDismissed = false;
+    const element = need(this.host, ".end-card");
+    // The card waits for the last play to land.
+    element.hidden = card === null || this.endDismissed || snapshot.busy;
+    if (card === null) return;
+    element.dataset.tone = card.tone;
+    need(this.host, ".end-title").textContent = card.title;
+    need(this.host, ".end-reason").textContent = card.reason;
+    const extra = need(this.host, ".end-extra");
+    const sendLink = this.mailWaiting(snapshot);
+    extra.hidden = !sendLink;
+    extra.textContent = sendLink ? MAIL.sendResult : "";
+    need(this.host, '.end-card [data-action="new"]').textContent = home;
+    // Seen from the bottom, a play in the upper half of the board is far from a card at the bottom.
+    const row = snapshot.last === null ? 1 : Number(snapshot.last.to.slice(1));
+    const fromBottom = this.viewpoint === "white" ? row : 12 - row;
+    element.classList.toggle("top", fromBottom <= 6);
+    element.classList.toggle("bottom", fromBottom > 6);
   }
 
   /** A press outside the board and the buttons clears the selection too. */

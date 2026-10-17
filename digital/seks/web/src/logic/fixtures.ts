@@ -1,3 +1,4 @@
+import { DEFAULT_BOT_LEVEL } from "../bot/levels";
 import { SeksGame } from "../engine/game";
 import type { Cell } from "../engine/cells";
 import type { Captured, LastPlay, Mode } from "./match";
@@ -86,9 +87,47 @@ export function endingFixture(): Fixture {
   };
 }
 
+/** The Whites win with c8 to c11 against the bot, playing the Whites. */
+export function winFixture(): Fixture {
+  return { ...endingFixture(), mode: { kind: "bot", human: "white", level: DEFAULT_BOT_LEVEL } };
+}
+
+/** The human plays the Blacks and the bot, with the Whites to move, ends the game at once with c8 to c11. */
+export function lossFixture(): Fixture {
+  return { ...endingFixture(), mode: { kind: "bot", human: "black", level: DEFAULT_BOT_LEVEL } };
+}
+
+/** The sketch position at 99 plies without a capture: any play that does not capture draws (b4 to b5 is one). */
+export function drawFixture(): Fixture {
+  const sketch = sketchFixture();
+  return { ...sketch, game: withPliesWithoutCapture(sketch.game, 99), select: null, counterFrom: null };
+}
+
+const STUCK_DIAGRAM = `
+  b6 w1 .. .. .. .. .. .. .. .. ..
+  w1 w1 .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  w1 .. .. .. .. .. .. .. .. .. ..`;
+
+/** The only Black die is a 6 boxed in a corner: any play of the Whites, such as a1 to a2, leaves the Blacks with no play. */
+export function stuckFixture(): Fixture {
+  return { game: SeksGame.fromDiagram(STUCK_DIAGRAM, "white"), mode: { kind: "hotseat" }, last: null, captured: [], select: null, counterFrom: null };
+}
+
 /** The fixtures that the page opens with `?fixture=NAME`. */
 export const FIXTURES: Readonly<Record<string, () => Fixture>> = {
   esboco: sketchFixture,
   contador: counterFixture,
   fim: endingFixture,
+  vitoria: winFixture,
+  derrota: lossFixture,
+  empate: drawFixture,
+  "sem-jogada": stuckFixture,
 };

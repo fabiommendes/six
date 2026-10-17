@@ -175,3 +175,22 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 .mail-game-text { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
 .mail-game-text .t { font-weight: 800; font-size: 17px; line-height: 1.1; }
 .mail-game-text .d { font-size: 15px; color: var(--muted); }
+
+/* The end of the game: a card over the board, on the side away from the last play. */
+.board-wrap { position: relative; }
+.end-card { position: absolute; left: 50%; transform: translateX(-50%); width: min(460px, 88%); box-sizing: border-box; padding: 16px 20px 18px; background: var(--wool); border: 2px solid var(--ink); box-shadow: 0 4px 0 var(--ink); text-align: center; z-index: 3; }
+.end-card.top { top: 4%; }
+.end-card.bottom { bottom: 4%; }
+.end-card[data-tone="win"] { border-color: var(--seks); box-shadow: 0 4px 0 var(--seks); }
+.end-title { margin: 0; font: 800 44px/1 "Alegreya", serif; color: var(--seks); }
+.end-card[data-tone="loss"] .end-title { color: var(--ink); }
+.end-reason { margin: 8px 0 0; font-size: 17px; line-height: 1.25; }
+.end-extra { margin: 6px 0 0; font-size: 15px; color: var(--muted); }
+.end-buttons { display: flex; gap: 8px; margin-top: 14px; }
+.end-buttons button { flex: 1 1 0; }
+.end-buttons button:first-child { background: var(--seks); color: #fff; border-color: var(--ink); }
+@keyframes end-rise { from { opacity: 0; transform: translate(-50%, 24px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: no-preference) {
+  .end-card:not([hidden]) { animation: end-rise 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.1); }
+}
+@media (max-width: 760px) { .end-title { font-size: 34px; } .end-card { padding: 12px 14px 14px; } }

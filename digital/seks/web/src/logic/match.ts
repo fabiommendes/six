@@ -276,7 +276,17 @@ export class Match {
       destinations: this.selection?.moves ?? NO_MARKS.destinations,
       lastFrom: last?.from ?? null,
       lastTo: last?.to ?? null,
+      decisive: this.decisiveCells(last),
     };
+  }
+
+  /** What decided the game: the die that reached the back row, or every die of the side left with no play. */
+  private decisiveCells(last: LastPlay | null): Cell[] {
+    const outcome = this.game.view().outcome;
+    if (outcome === null || outcome.kind !== "win") return [];
+    if (outcome.reason === "back_row") return last === null ? [] : [last.to];
+    const loser = outcome.winner === "white" ? "black" : "white";
+    return this.game.view().dice.filter((die) => die.side === loser).map((die) => die.cell);
   }
 
   private selectionBoard(view: View): SelectionBoard {

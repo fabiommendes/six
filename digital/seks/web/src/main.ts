@@ -263,7 +263,7 @@ async function openFixture(name: string): Promise<boolean> {
     counterFrom: fixture.counterFrom ?? undefined,
     tilted: preferredTilt(),
     onTilt: keepTilt,
-    bot: null,
+    bot: fixture.mode.kind === "bot" ? spawnBot() : null,
     onNewGame: newGame,
   });
   await screen.start();

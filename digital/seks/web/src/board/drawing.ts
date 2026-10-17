@@ -207,7 +207,7 @@ export function drawShadow(px: number, share: number, blur: number): HTMLCanvasE
   return canvas;
 }
 
-export type MarkKind = "ring" | "selected" | "from" | "to";
+export type MarkKind = "ring" | "selected" | "from" | "to" | "decisive";
 
 /**
  * A mark of play, drawn in one cell (`px` by `px`). Each has its own shape:
@@ -231,6 +231,13 @@ export function drawMark(kind: MarkKind, px: number): HTMLCanvasElement {
     ctx.rect(i, i, px - 2 * i, px - 2 * i);
     ctx.fill();
     ctx.stroke();
+  } else if (kind === "decisive") {
+    // What decided the game: a heavy red frame with a thin one inside, over the whole cell.
+    ctx.strokeStyle = COLORS.seks;
+    ctx.lineWidth = px * 0.08;
+    ctx.strokeRect(px * 0.04, px * 0.04, px * 0.92, px * 0.92);
+    ctx.lineWidth = px * 0.025;
+    ctx.strokeRect(px * 0.14, px * 0.14, px * 0.72, px * 0.72);
   } else if (kind === "from") {
     const i = px * 0.2;
     const w = px - 2 * i;

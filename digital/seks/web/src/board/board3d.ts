@@ -116,6 +116,7 @@ export class Board3D implements Stage {
   private readonly fromMark: Mesh;
   private readonly toMark: Mesh;
   private readonly rings: Mesh[] = [];
+  private readonly decisiveMarks: Mesh[] = [];
   private marks: Marks = NO_MARKS;
   /** How far the world is turned, in radians: 0 for the Whites' point of view, a half turn more for each change. */
   private yaw = 0;
@@ -157,9 +158,9 @@ export class Board3D implements Stage {
     this.block.visible = false;
     this.world.add(this.block);
 
-    this.markTextures = { ring: markTexture("ring"), selected: markTexture("selected"), from: markTexture("from"), to: markTexture("to") };
+    this.markTextures = { ring: markTexture("ring"), selected: markTexture("selected"), from: markTexture("from"), to: markTexture("to"), decisive: markTexture("decisive") };
     const markMaterial = (kind: MarkKind) => new MeshBasicMaterial({ map: this.markTextures[kind], transparent: true, depthWrite: false });
-    this.markMaterials = { ring: markMaterial("ring"), selected: markMaterial("selected"), from: markMaterial("from"), to: markMaterial("to") };
+    this.markMaterials = { ring: markMaterial("ring"), selected: markMaterial("selected"), from: markMaterial("from"), to: markMaterial("to"), decisive: markMaterial("decisive") };
     this.selectedMark = this.newMark("selected");
     this.fromMark = this.newMark("from");
     this.toMark = this.newMark("to");
@@ -189,6 +190,9 @@ export class Board3D implements Stage {
     this.placeMark(this.toMark, marks.lastTo, 0.001);
     marks.destinations.forEach((cell, i) => this.placeMark(this.ring(i), cell, 0.002));
     for (let i = marks.destinations.length; i < this.rings.length; i++) this.rings[i]!.visible = false;
+    const decisive = marks.decisive ?? [];
+    while (this.decisiveMarks.length < decisive.length) this.decisiveMarks.push(this.newMark("decisive"));
+    this.decisiveMarks.forEach((mark, i) => this.placeMark(mark, decisive[i] ?? null, 0.003));
     this.invalidate();
   }
 
