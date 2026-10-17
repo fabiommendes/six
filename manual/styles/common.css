@@ -1,0 +1,106 @@
+/* Shared by the site and the PDF. Provisional and neutral until the visual
+   identity is decided (dev/rfc/identidade-visual.md): system fonts, the
+   palette of rulebook/palette.py (cores.css is generated from it). */
+
+@import url("cores.css");
+
+:root {
+  --display: Georgia, "DejaVu Serif", serif;
+  --texto: system-ui, "Noto Sans", "DejaVu Sans", sans-serif;
+}
+
+body {
+  font-family: var(--texto);
+  color: var(--tinta);
+  background: var(--papel);
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+a { color: var(--destaque); }
+
+/* ---- Chapter opening ---- */
+
+.abertura__rotulo {
+  display: block;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--destaque);
+}
+.abertura__titulo { margin: 0.1em 0 0; }
+.abertura__resumo { color: var(--tinta-suave); margin: 0.4em 0 0; }
+
+/* ---- Text ---- */
+
+.texto h2 { border-bottom: 2px solid var(--tinta); padding-bottom: 0.15em; }
+.texto h3 { font-family: var(--texto); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.95em; }
+.texto ul, .texto ol { padding-left: 1.3em; }
+.texto li { margin: 0.25em 0; }
+.texto strong { font-weight: 700; }
+.texto em { font-style: italic; }
+
+.texto table { border-collapse: collapse; width: 100%; }
+.texto th {
+  text-align: left;
+  background: var(--tinta);
+  color: var(--papel);
+  padding: 0.35em 0.6em;
+}
+.texto td { padding: 0.35em 0.6em; border-bottom: 1px solid var(--linha); vertical-align: top; }
+
+a.termo { color: inherit; text-decoration: underline dotted var(--destaque); }
+
+/* ---- Admonitions (!!! nota) ---- */
+
+.admonition {
+  background: var(--papel-escuro);
+  border-left: 4px solid var(--destaque);
+  padding: 0.6em 1em;
+}
+.admonition-title { font-weight: 700; margin: 0 0 0.3em; }
+.admonition > p:last-child { margin-bottom: 0; }
+
+/* ---- Board diagrams ---- */
+
+.diagrama { margin: 1.2em 0; text-align: center; break-inside: avoid; }
+.diagrama__svg { max-width: 100%; height: auto; }
+.diagrama figcaption { font-size: 0.9em; color: var(--tinta-suave); margin-top: 0.4em; }
+.diagramas { display: flex; flex-wrap: wrap; gap: 0 2em; justify-content: center; }
+.diagramas .diagrama { flex: 0 1 auto; }
+
+/* ---- Glossary ---- */
+
+.glossario { margin: 0; }
+.glossario__item { break-inside: avoid; margin-bottom: 0.8em; }
+.glossario dt { font-family: var(--display); font-weight: 700; font-size: 1.05em; }
+.glossario dd { margin: 0.1em 0 0; }
+.glossario dd p { margin: 0 0 0.3em; }
+.glossario__ver { font-size: 0.9em; color: var(--tinta-suave); }
+
+/* ---- Buttons ---- */
+
+.botao {
+  display: inline-block;
+  background: var(--tinta);
+  color: var(--papel);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.45em 1em;
+  border-radius: 4px;
+}
+.botao--claro { background: var(--papel); color: var(--tinta); border: 2px solid var(--tinta); }
+
+.faixa-rascunho {
+  background: var(--rascunho);
+  color: var(--tinta);
+  text-align: center;
+  font-weight: 600;
+  padding: 0.3em;
+}

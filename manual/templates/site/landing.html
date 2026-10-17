@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Six · Seis jogos com dados</title>
+  <meta name="description" content="Six: seis jogos com dados de seis faces, jogados com o mesmo kit.">
+  <link rel="stylesheet" href="assets/css/common.css">
+  <link rel="stylesheet" href="assets/css/landing.css">
+</head>
+<body class="entrada">
+{% if edition.draft %}<div class="faixa-rascunho">Versão de rascunho, não publicar</div>{% endif %}
+<header class="entrada__topo">
+  <h1 class="entrada__six">Six</h1>
+  <p class="entrada__sub">Seis jogos com dados de seis faces, jogados com o mesmo kit.</p>
+  <p class="entrada__acoes">
+    <a class="botao" href="manual.html">Ler as regras</a>
+    <a class="botao botao--claro" href="manual.pdf" download>Baixar o PDF</a>
+  </p>
+</header>
+<main class="entrada__jogos">
+  <ol class="jogos">
+  {% for chapter in games %}
+    <li class="jogo">
+      <a href="{{ chapter.slug }}.html">
+        <span class="jogo__num">{{ loop.index }}</span>
+        <span class="jogo__nome">{{ chapter.title }}</span>
+        {% if chapter.summary %}<span class="jogo__resumo">{{ chapter.summary }}</span>{% endif %}
+        {% if chapter.players %}<span class="jogo__jogadores">{{ chapter.players }} jogadores</span>{% endif %}
+      </a>
+    </li>
+  {% endfor %}
+  {% for number in range(games | length + 1, 7) %}
+    <li class="jogo jogo--futuro">
+      <span class="jogo__num">{{ number }}</span>
+      <span class="jogo__nome">Em breve</span>
+    </li>
+  {% endfor %}
+  </ol>
+</main>
+<footer class="rodape">
+  <p><strong>Six</strong> · Edição de {{ edition.date }}{% if edition.commit %} ({{ edition.commit[:7] }}){% endif %}</p>
+</footer>
+</body>
+</html>

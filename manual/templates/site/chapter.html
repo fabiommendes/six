@@ -1,0 +1,20 @@
+{% extends "site/layout.html" %}
+{% block body_class %}pagina-capitulo pagina-{{ page.slug }}{% endblock %}
+{% block main %}
+<article class="capitulo capitulo--{{ page.slug }}">
+  <header class="abertura">
+    <span class="abertura__rotulo">{{ page.label }}</span>
+    <h1 class="abertura__titulo">{{ page.title }}</h1>
+    {% if page.summary %}<p class="abertura__resumo">{{ page.summary }}</p>{% endif %}
+  </header>
+  <div class="texto">
+  {{ game_open(page.game) }}
+  {{ body }}
+  {{ game_close(page.game) }}
+  </div>
+  <nav class="paginacao" aria-label="Navegação entre capítulos">
+    {% if previous %}<a class="paginacao__anterior" href="{{ previous.slug }}.html"><small>Anterior</small>{{ previous.title }}</a>{% else %}<span></span>{% endif %}
+    {% if following %}<a class="paginacao__proximo" href="{{ following.slug }}.html"><small>Próximo</small>{{ following.title }}</a>{% endif %}
+  </nav>
+</article>
+{% endblock %}

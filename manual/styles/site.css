@@ -1,0 +1,66 @@
+/* Site layout: top bar, chapter sidebar, reading column. */
+
+body { margin: 0; font-size: 17px; }
+
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7em 1.5em;
+  border-bottom: 2px solid var(--tinta);
+}
+.topo__marca { color: var(--tinta); text-decoration: none; display: flex; align-items: baseline; gap: 0.6em; }
+.topo__six { font-family: var(--display); font-size: 1.6em; font-weight: 700; }
+.topo__sub { color: var(--tinta-suave); font-size: 0.9em; }
+
+.pagina {
+  display: grid;
+  grid-template-columns: 16em minmax(0, 46em);
+  gap: 3em;
+  max-width: 68em;
+  margin: 0 auto;
+  padding: 2em 1.5em 4em;
+}
+
+.indice__titulo { font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8em; }
+.indice__lista, .indice__secoes { list-style: none; padding: 0; margin: 0; }
+.indice__item { margin: 0.3em 0; }
+.indice__item a { color: var(--tinta); text-decoration: none; }
+.indice__item--atual > a { font-weight: 700; color: var(--destaque); }
+.indice__num { display: inline-block; width: 1.6em; color: var(--tinta-suave); }
+.indice__secoes { margin: 0.2em 0 0.5em 1.6em; font-size: 0.9em; }
+.indice__secoes a { color: var(--tinta-suave); }
+.indice__menu { display: none; }
+
+.abertura { margin-bottom: 1.5em; }
+.abertura__titulo { font-size: 2.6em; }
+
+.paginacao { display: flex; justify-content: space-between; gap: 1em; margin-top: 3em; }
+.paginacao a { color: var(--tinta); text-decoration: none; }
+.paginacao small { display: block; color: var(--tinta-suave); text-transform: uppercase; font-size: 0.75em; }
+.paginacao__proximo { text-align: right; }
+
+.inicio__six { font-size: 4em; margin: 0; }
+.inicio__chamada { font-size: 1.15em; }
+.inicio__capitulos { list-style: none; padding: 0; }
+.inicio__capitulo a {
+  display: block;
+  padding: 0.7em 0;
+  border-bottom: 1px solid var(--linha);
+  color: var(--tinta);
+  text-decoration: none;
+}
+.inicio__rotulo { display: block; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.1em; color: var(--destaque); }
+.inicio__titulo { font-family: var(--display); font-size: 1.4em; font-weight: 700; }
+.inicio__resumo { display: block; color: var(--tinta-suave); }
+
+.glossario { columns: 2 18em; column-gap: 2.5em; }
+
+.rodape { text-align: center; color: var(--tinta-suave); font-size: 0.85em; padding: 2em; }
+.rodape a { color: inherit; }
+
+@media (max-width: 52em) {
+  .pagina { grid-template-columns: minmax(0, 1fr); gap: 1em; }
+  .indice__lateral { display: none; }
+  .indice__menu { display: block; }
+}

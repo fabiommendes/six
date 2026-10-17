@@ -1,6 +1,6 @@
 ---
 type: issue
-status: in_progress
+status: in_review
 tags: [manual, build]
 relatedTo: [dev/adr/0002-build-do-manual-copiado-do-rio.md]
 kind: task
@@ -25,3 +25,14 @@ O ADR 0002 decide copiar a parte genérica de `rio/manual/rulebook` para
   mudaram.
 - Nada específico do Rio sobra no código: cartas, facções, mapas, ícones de
   carta, fontes Hearns e Bakso Sapi.
+
+## Plano
+
+- [x] Copiar a parte genérica do `rulebook` do Rio e tirar cartas, facções,
+  mapas, ícones e fontes.
+- [x] Glossários por jogo (`regras/<jogo>/GLOSSARY.md`), com âncoras
+  `jogo-termo` e sinônimos proibidos checados por jogo.
+- [x] Diagramas de tabuleiro com dados de pontos (bloco `tabuleiro`).
+- [x] Página de entrada da coleção.
+- [x] Capítulos: a coleção, o kit (rascunho), o Seks e o glossário.
+- [x] `justfile` com `manual`, `manual-serve`, `manual-check` e `check`.

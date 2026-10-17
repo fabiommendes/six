@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page %}{{ page.title }} · {% endif %}Six · Livro de regras</title>
+  <meta name="description" content="Livro de regras de Six, seis jogos com dados de seis faces.">
+  <link rel="stylesheet" href="assets/css/common.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+{% if edition.draft %}<div class="faixa-rascunho">Versão de rascunho, não publicar</div>{% endif %}
+<header class="topo">
+  <a class="topo__marca" href="manual.html"><span class="topo__six">Six</span><span class="topo__sub">Livro de regras</span></a>
+  <a class="botao" href="manual.pdf" download>Baixar PDF</a>
+</header>
+<div class="pagina">
+  {% macro chapter_list() %}
+      <ol class="indice__lista">
+      {% for chapter, sections in nav %}
+        <li class="indice__item{% if page and page.slug == chapter.slug %} indice__item--atual{% endif %}{% if chapter.appendix %} indice__item--apendice{% endif %}">
+          <a href="{{ chapter.slug }}.html"><span class="indice__num">{{ chapter.label.split()[-1] }}</span>{{ chapter.title }}</a>
+          {% if page and page.slug == chapter.slug and sections %}
+          <ol class="indice__secoes">
+            {% for anchor, title in sections %}<li><a href="#{{ anchor }}">{{ title }}</a></li>{% endfor %}
+          </ol>
+          {% endif %}
+        </li>
+      {% endfor %}
+      </ol>
+  {% endmacro %}
+  <nav class="indice" aria-label="Capítulos">
+    {# Wide screens: always-open sidebar. Narrow screens: collapsible menu. #}
+    <div class="indice__lateral">
+      <p class="indice__titulo">Capítulos</p>
+      {{ chapter_list() }}
+    </div>
+    <details class="indice__menu">
+      <summary>Capítulos</summary>
+      {{ chapter_list() }}
+    </details>
+  </nav>
+  <main class="conteudo" id="conteudo">
+  {% block main %}{% endblock %}
+  </main>
+</div>
+<footer class="rodape">
+  <p><a href="index.html"><strong>Six</strong></a> · Livro de regras · Edição de {{ edition.date }}{% if edition.commit %} ({{ edition.commit[:7] }}){% endif %}</p>
+</footer>
+</body>
+</html>

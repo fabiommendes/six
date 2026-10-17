@@ -18,12 +18,13 @@ Nível 1 do ADR 0002 do tooling-root:
 
 ## Comandos
 
-`just` lista as receitas. Ainda não há um comando de checagem do repositório
-inteiro; cada parte tem o seu:
+`just` lista as receitas.
 
-- manual: `just manual` (site e PDF), `just manual-check` (trechos do manual
-  cujas fontes em `regras/` mudaram);
-- protótipo do Seks: `cd digital/seks/prototipo && uv run task ci`.
+- Checagem: `just check` (build e lint do manual, sincronia com `regras/`,
+  lint e testes do protótipo). Define "pronto".
+- Manual: `just manual` (site e PDF), `just manual-serve`, `just manual-check`
+  (trechos do manual cujas fontes em `regras/` mudaram). Detalhes em
+  `manual/README.md`.
 - Issues, RFCs e ADRs: `r2 issue list`, `r2 rfc list`, `r2 adr list`.
 
 ## Mapa
@@ -65,3 +66,5 @@ inteiro; cada parte tem o seu:
   o designer.
 - Renomear um título de `regras/` ou um termo de glossário quebra as âncoras
   do manual: rode `just manual-check` e corrija o que quebrar.
+- Mudou uma regra: atualize o trecho do manual que a reformula, rode
+  `sync-mark` nele (ver `manual/README.md`) e faça commit do lock junto.

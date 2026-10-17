@@ -1,0 +1,20 @@
+{% extends "site/layout.html" %}
+{% block body_class %}pagina-inicio{% endblock %}
+{% block main %}
+<section class="inicio">
+  <h1 class="inicio__six">Six</h1>
+  <p class="inicio__chamada">Seis jogos com dados de seis faces, jogados com o mesmo kit.
+  Leia online ou <a href="manual.pdf" download>baixe o livro em PDF</a> para imprimir.</p>
+  <ol class="inicio__capitulos">
+  {% for chapter, sections in nav %}
+    <li class="inicio__capitulo{% if chapter.appendix %} inicio__capitulo--apendice{% endif %}">
+      <a href="{{ chapter.slug }}.html">
+        <span class="inicio__rotulo">{{ chapter.label }}</span>
+        <span class="inicio__titulo">{{ chapter.title }}</span>
+        {% if chapter.summary %}<span class="inicio__resumo">{{ chapter.summary }}</span>{% endif %}
+      </a>
+    </li>
+  {% endfor %}
+  </ol>
+</section>
+{% endblock %}

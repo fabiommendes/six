@@ -1,0 +1,8 @@
+# Internal symbol -> published word. Authors write the emoji or `:id:` in the
+# chapters; the build replaces both with `nome`. Example:
+#
+#   simbolos:
+#     - id: dado-branco
+#       nome: dado branco
+#       emoji: ["⚪"]
+simbolos: []

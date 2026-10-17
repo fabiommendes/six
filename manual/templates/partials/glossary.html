@@ -1,0 +1,17 @@
+{{ game_open(game) }}
+<dl class="glossario">
+{% for t in terms %}
+  <div class="glossario__item" id="{{ t.anchor }}">
+    <dt>{{ t.name }}</dt>
+    <dd>
+      {{ t.html }}
+      {% if t.see_also %}
+      <p class="glossario__ver">Ver também:
+        {% for name in t.see_also %}{% set found = find(name) %}{% if found %}<a href="#{{ found.anchor }}">{{ found.name }}</a>{% else %}{{ name }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+      </p>
+      {% endif %}
+    </dd>
+  </div>
+{% endfor %}
+</dl>
+{{ game_close(game) }}

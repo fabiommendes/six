@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Six · Livro de regras</title>
+  <meta name="author" content="Fábio Macêdo Mendes">
+  <meta name="description" content="Livro de regras de Six">
+  <link rel="stylesheet" href="assets/css/common.css">
+  <link rel="stylesheet" href="assets/css/print.css">
+</head>
+<body>
+<section class="capa">
+  <h1 class="capa__six">Six</h1>
+  <p class="capa__sub">Livro de regras</p>
+  <p class="capa__sobre">Seis jogos com dados de seis faces</p>
+  {% if edition.draft %}<p class="capa__rascunho">Rascunho, não publicar</p>{% endif %}
+</section>
+
+<nav class="sumario">
+  <h1 class="sumario__titulo">Sumário</h1>
+  <ol class="sumario__lista">
+  {% for chapter, body in sections %}
+    <li class="sumario__item{% if chapter.appendix %} sumario__item--apendice{% endif %}">
+      <a href="#{{ chapter.slug }}"><span class="sumario__rotulo">{{ chapter.label }}</span><span class="sumario__nome">{{ chapter.title }}</span></a>
+    </li>
+  {% endfor %}
+  </ol>
+</nav>
+
+{% for chapter, body in sections %}
+<section class="capitulo capitulo--{{ chapter.slug }}{% if chapter.appendix %} capitulo--apendice{% endif %}" id="{{ chapter.slug }}">
+  <header class="abertura">
+    <span class="abertura__rotulo">{{ chapter.label }}</span>
+    <h1 class="abertura__titulo">{{ chapter.title }}</h1>
+    {% if chapter.summary %}<p class="abertura__resumo">{{ chapter.summary }}</p>{% endif %}
+  </header>
+  <div class="texto">
+  {{ game_open(chapter.game) }}
+  {{ body }}
+  {{ game_close(chapter.game) }}
+  </div>
+</section>
+{% endfor %}
+
+<section class="contracapa">
+  <p class="contracapa__six">Six</p>
+  <p class="contracapa__edicao">Edição de {{ edition.date }}{% if edition.commit %} · {{ edition.commit[:7] }}{% endif %}</p>
+</section>
+</body>
+</html>

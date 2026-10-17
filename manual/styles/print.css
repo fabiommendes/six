@@ -1,0 +1,135 @@
+/* PDF layout (WeasyPrint): A4 pages, running header, page numbers, chapter
+   breaks, cover and back cover. Margin boxes do not resolve var(), so their
+   colors are spelled out (all of them are in rulebook/palette.py). */
+
+@page {
+  size: A4;
+  margin: 22mm 18mm 20mm 18mm;
+  @top-left {
+    content: "SIX · LIVRO DE REGRAS";
+    font-family: system-ui, "Noto Sans", "DejaVu Sans", sans-serif;
+    font-weight: 600;
+    font-size: 7.5pt;
+    letter-spacing: 0.15em;
+    color: #1f1d1a;
+    border-bottom: 1pt solid #1f1d1a;
+    vertical-align: bottom;
+    padding-bottom: 2mm;
+  }
+  @top-right {
+    content: string(capitulo);
+    font-family: system-ui, "Noto Sans", "DejaVu Sans", sans-serif;
+    font-weight: 600;
+    font-size: 7.5pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #c2410c;
+    border-bottom: 1pt solid #1f1d1a;
+    vertical-align: bottom;
+    padding-bottom: 2mm;
+  }
+}
+@page :left {
+  @bottom-left { content: counter(page); font-size: 9pt; color: #1f1d1a; }
+}
+@page :right {
+  @bottom-right { content: counter(page); font-size: 9pt; color: #1f1d1a; }
+}
+@page capa {
+  margin: 0;
+  @top-left { content: none; border: none; }
+  @top-right { content: none; border: none; }
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+@page sumario {
+  @top-left { content: none; border: none; }
+  @top-right { content: none; border: none; }
+}
+
+html { font-size: 10.5pt; }
+body { margin: 0; background: none; }
+
+/* ---- Cover ---- */
+
+.capa {
+  page: capa;
+  height: 297mm;
+  position: relative;
+  text-align: center;
+}
+.capa__six { font-size: 120pt; margin: 0; padding-top: 90mm; }
+.capa__sub { font-family: var(--display); font-size: 24pt; margin: 4mm 0 0; }
+.capa__sobre { font-size: 11pt; color: var(--tinta-suave); margin-top: 6mm; }
+.capa__rascunho {
+  position: absolute;
+  top: 10mm;
+  right: 10mm;
+  background: var(--rascunho);
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2mm 4mm;
+}
+
+/* ---- Table of contents ---- */
+
+.sumario { page: sumario; break-before: page; }
+.sumario__titulo { font-size: 32pt; margin-bottom: 8mm; }
+.sumario__lista { list-style: none; padding: 0; margin: 0; }
+.sumario__item { border-bottom: 0.5pt solid var(--linha); }
+.sumario__item a { display: block; padding: 2.5mm 0; color: var(--tinta); text-decoration: none; }
+.sumario__item a::after { content: leader(" ") target-counter(attr(href), page); }
+.sumario__rotulo {
+  display: inline-block;
+  width: 30mm;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 8pt;
+  color: var(--destaque);
+}
+.sumario__nome { font-family: var(--display); font-size: 14pt; }
+
+/* ---- Chapters ---- */
+
+.capitulo { break-before: page; }
+.abertura { margin-bottom: 7mm; }
+.abertura__titulo { string-set: capitulo content(); font-size: 32pt; }
+.texto h2 { font-size: 17pt; margin: 8mm 0 3mm; break-after: avoid; }
+.texto h3 { font-size: 10pt; margin: 6mm 0 1.5mm; break-after: avoid; }
+.texto p { margin: 0 0 2.5mm; orphans: 3; widows: 3; }
+.texto ul, .texto ol { margin: 0 0 3mm; }
+.texto table { margin: 3mm 0 5mm; break-inside: avoid; }
+.admonition { margin: 5mm 0; break-inside: avoid; }
+.diagrama__svg { max-height: 60mm; width: auto; }
+.diagrama--grande .diagrama__svg { max-height: 110mm; }
+
+/* ---- Glossary ---- */
+
+.glossario { column-count: 2; column-gap: 8mm; }
+.glossario dd p { font-size: 9.5pt; }
+
+/* ---- Back cover ---- */
+
+.contracapa { page: capa; break-before: page; height: 297mm; position: relative; }
+.contracapa__six {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 120mm;
+  text-align: center;
+  font-family: var(--display);
+  font-size: 60pt;
+  margin: 0;
+}
+.contracapa__edicao {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18mm;
+  text-align: center;
+  font-size: 8.5pt;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+}
