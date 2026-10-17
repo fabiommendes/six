@@ -1,6 +1,6 @@
 ---
 type: issue
-status: in_progress
+status: in_review
 tags: [seks, digital, rust]
 relatedTo: [dev/adr/0001-monorepo-de-coordenacao.md, regras/seks]
 kind: enhancement
@@ -77,6 +77,6 @@ Propostas que o designer revisa antes da implementação estão marcadas com
   `test_game.py`, sem interface, save, seleção e desfazer), com as
   coordenadas convertidas, e um teste por nota `Detalhe` e por item de
   `regras/seks/04-captura.md`.
-- [ ] Crate `seks-bots` em `digital/seks/bots/`: bot aleatório e guloso de um
+- [x] Crate `seks-bots` em `digital/seks/bots/`: bot aleatório e guloso de um
   nível (material e avanço), RNG com semente próprio (splitmix64, sem
   dependência). Teste de autojogo: 200 partidas de cada par terminam sem erro.
