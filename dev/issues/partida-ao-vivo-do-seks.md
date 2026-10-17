@@ -32,6 +32,10 @@ pública (Trystero). Depende do formato da partida de
   Sem desfazer.
 - R6. Testes da camada de sala com um transporte falso (sem rede); teste no
   navegador com duas abas conectadas de verdade, fora do `just check`.
+- R7. "Desistir" (decisão em `dev/rfc/rede-sem-servidor.md`): quem desiste
+  sai da partida; o outro jogador escolhe continuar contra o bot, a partir
+  da posição atual, ou encerrar. Reaproveita o que a partida por
+  correspondência fizer para isso.
 
 ## Out of scope
 

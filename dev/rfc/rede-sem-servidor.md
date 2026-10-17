@@ -81,12 +81,18 @@ regras do Seks: recebe comandos em texto e um motor que valida. Fica em
 - Servidor, ranking e busca de adversário: eventual modo pago no futuro.
 - Ordem: correspondência primeiro (define o formato da partida no link), P2P
   depois, reaproveitando o formato.
+- Desistir (resposta do designer): o jogo físico não tem regra de
+  desistência, e o digital não cria uma regra de resultado. É uma saída da
+  partida:
+  - em rede, quem quer sair aperta "Desistir"; o outro jogador escolhe
+    continuar contra o bot, a partir da posição atual, ou encerrar a
+    partida;
+  - numa partida local (hotseat ou contra o bot), sair oferece "Voltar para
+    o início" ou "Terminar com bots", em que dois bots jogam o resto da
+    partida e o jogador assiste até o fim.
 
 ## Open questions
 
-- O jogo físico não tem desistência. Em rede, um jogador pode sumir. A
-  interface oferece "desistir" (vitória do outro) ou só "sair da partida"
-  (sem resultado)? É regra do jogo, decide o designer.
 - Partida por correspondência tem prazo por jogada?
 
 ## Outcome
