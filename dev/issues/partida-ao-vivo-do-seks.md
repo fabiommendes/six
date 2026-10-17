@@ -72,11 +72,11 @@ longo.
   partida (marcada como desistida) até copiar ou compartilhar o link.
 - [x] P4. Painel da correspondência sem rolar em 1440x900 com o link e a dica
   juntos.
-- [ ] P5. Transporte: interface, transporte em memória para os testes e
+- [x] P5. Transporte: interface, transporte em memória para os testes e
   transporte Trystero (Nostr). Dependência fixada.
 - [ ] P6. Convite (`src/logic/invite.ts`), rota do fragmento e `live` na
   entrada guardada. Testes.
-- [ ] P7. Protocolo e `LiveSession` com testes no transporte falso: conexão,
+- [x] P7. Protocolo e `LiveSession` com testes no transporte falso: conexão,
   jogadas, jogada ilegal, dessincronia e ressincronização, queda e reconexão,
   desistência.
 - [ ] P8. `Match` em modo ao vivo (jogada do outro, sem desfazer), hash da

@@ -64,6 +64,12 @@ export class SeksGame {
     return JSON.parse(this.game.command(command)) as Transition;
   }
 
+  /** The hash of the position now (Zobrist, 16 hex digits): the last of the `State` history. */
+  hash(): string {
+    const history = this.state().history;
+    return history[history.length - 1] ?? "";
+  }
+
   canUndo(): boolean {
     return this.game.canUndo();
   }
