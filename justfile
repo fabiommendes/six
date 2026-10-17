@@ -62,6 +62,16 @@ seks-types-check:
     TS_RS_EXPORT_DIR="$tmp" cargo test -q -p seks-engine --features wire --lib export_bindings
     diff -r "$tmp" seks/wasm/types || { echo "tipos desatualizados: rode just seks-types" >&2; exit 1; }
 
+# Gera o pacote WebAssembly do motor do Seks em digital/seks/wasm/pkg (pede wasm-pack e o alvo wasm32-unknown-unknown)
+[group('seks')]
+seks-wasm:
+    cd digital && wasm-pack build seks/wasm --target web --release
+
+# Gera o pacote WebAssembly e joga partidas inteiras pelo Game no Node
+[group('seks')]
+seks-wasm-test: seks-wasm
+    node --test digital/seks/wasm/tests/game.test.mjs
+
 # --- Bots do Seks -----------------------------------------------------------
 
 # Lote entre dois bots do Seks, cada abertura com as duas cores (ex.: just seks-batch ab random)
@@ -101,4 +111,5 @@ check:
     cd digital && cargo clippy --all-targets --all-features -- -D warnings
     cd digital && cargo test --all-features
     just seks-types-check
+    just seks-wasm-test
     cd digital && cargo build -q -p seks-bots --lib --target wasm32-unknown-unknown

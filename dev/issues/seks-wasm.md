@@ -75,8 +75,8 @@ Passos:
   estado, aplicar comando com eventos, destinos e incremento de um dado,
   comandos legais, desfazer, visão.
 - [x] R3. Testes do `Game` em Rust (nativo).
-- [ ] R3. `wasm-pack build` e teste em Node que joga uma partida inteira
+- [x] R3. `wasm-pack build` e teste em Node que joga uma partida inteira
   pelo `Game`; README com pré-requisitos e comandos.
-- [ ] R5. Receita `just seks-wasm` e build WASM no `just check`.
+- [x] R5. Receita `just seks-wasm` e build WASM no `just check`.
 - [ ] R4. (Fora desta rodada: depende da API dos bots.) O `Game` expõe o
   bot de `seks-bots`.

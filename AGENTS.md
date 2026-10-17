@@ -22,9 +22,13 @@ Nível 1 do ADR 0002 do tooling-root:
 
 - Checagem: `just check` (build e lint do manual, sincronia com `regras/`,
   lint e testes do protótipo, `cargo fmt --check`, `cargo clippy` e
-  `cargo test` do motor e dos bots em Rust, build WASM dos bots). Define
+  `cargo test` do motor e dos bots em Rust, build WASM dos bots, tipos e teste
+  em Node do `seks-wasm`). Define
   "pronto".
 - Motor do Seks: `just seks-engine-test`.
+- Motor em WebAssembly: `just seks-wasm` (pacote em `digital/seks/wasm/pkg`),
+  `just seks-wasm-test` (partidas inteiras no Node), `just seks-types` (tipos
+  TypeScript do `wire`). Pré-requisitos em `digital/seks/wasm/README.md`.
 - Bots do Seks: `just seks-batch A B` (lote entre dois bots), `just
   seks-train [CONFIG]` (treino, retoma se parou), `just seks-experiments
   GRID` (grade de experimentos com resumo curto), `just seks-bench`
@@ -43,6 +47,7 @@ Nível 1 do ADR 0002 do tooling-root:
 | `manual/` | Livro de regras único (PDF e site) e o código que o gera |
 | `digital/<jogo>/` | Uma pasta por implementação digital |
 | `digital/seks/engine/` | Motor do Seks em Rust (`seks-engine`), no workspace Cargo de `digital/` |
+| `digital/seks/wasm/` | `seks-wasm`: o motor em WebAssembly (`Game`) e os tipos TypeScript do `wire` |
 | `digital/seks/bots/` | Bots do Seks (`seks-bots`): aleatório, guloso e alfa-beta, lotes e treino |
 | `digital/seks/prototipo/` | Protótipo do Seks em Python e Pyxel, referência de comportamento |
 | `arte/` | Identidade visual (ADR 0005); `esbocos/` guarda as quatro direções esboçadas, como referência |
