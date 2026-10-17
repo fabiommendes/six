@@ -37,10 +37,9 @@ use seks_bots::by_name;
 use seks_bots::eval::Weights;
 use seks_bots::game_file::GameFile;
 use seks_bots::openings;
-use seks_bots::train::dataset;
 use seks_bots::train::run::Config;
 use seks_bots::train::selfplay::SelfPlay;
-use seks_bots::train::tune::{tune as train_tune, Tune};
+use seks_bots::train::tune::{tune_files, Tune};
 use seks_engine::GameState;
 
 const USAGE: &str = "usage: seks-bots batch --bots A,B --openings FILE [--games N] [--seed S] \
@@ -104,10 +103,10 @@ fn number<T: std::str::FromStr>(flag: &str, value: &str) -> Result<T, String> {
         .map_err(|_| format!("{flag}: {value} is not a valid number"))
 }
 
-/// All threads of the machine but 2, at least 1.
+/// Threads of the expensive commands unless `--threads` says otherwise:
+/// [`seks_bots::DEFAULT_THREADS`], at most the machine's.
 fn default_threads() -> NonZeroUsize {
-    let all = std::thread::available_parallelism().map_or(1, NonZeroUsize::get);
-    NonZeroUsize::new(all.saturating_sub(2).max(1)).unwrap()
+    seks_bots::default_threads()
 }
 
 fn read_openings(path: &str) -> Result<Vec<openings::Opening>, String> {
@@ -371,20 +370,13 @@ fn tune(flags: &[(&str, &str)]) -> Result<(), String> {
     if data.is_empty() {
         return Err(format!("--data is required\n{USAGE}"));
     }
-    let mut samples = Vec::new();
-    for path in data {
-        samples.extend(dataset::read_file(Path::new(path))?);
-    }
+    let paths: Vec<PathBuf> = data.iter().map(PathBuf::from).collect();
     let text = std::fs::read_to_string(init).map_err(|e| format!("{init}: {e}"))?;
     let init = Weights::from_json(&text).map_err(|e| format!("{init}: {e}"))?;
-    let (weights, report) = train_tune(
-        &samples,
-        &init,
-        &settings,
-        &mut |epoch, train, validation| {
+    let (weights, report) =
+        tune_files(&paths, &init, &settings, &mut |epoch, train, validation| {
             eprintln!("step {epoch}: train {train:.6}, validation {validation:.6}");
-        },
-    )?;
+        })?;
     std::fs::write(out, weights.to_json()).map_err(|e| format!("{out}: {e}"))?;
     eprintln!("{out}: {report:?}");
     Ok(())

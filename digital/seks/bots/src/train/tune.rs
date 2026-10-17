@@ -57,6 +57,8 @@ impl Default for Tune {
 /// What a tuning run did.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Report {
+    /// Positions read, quiet or not.
+    pub samples: usize,
     pub k: f64,
     pub train_samples: usize,
     pub validation_samples: usize,
@@ -108,51 +110,85 @@ pub fn is_quiet(sample: &Sample) -> bool {
             .all(|command| captures(&state, command) == 0)
 }
 
-fn build(samples: &[&Sample], threads: NonZeroUsize) -> Data {
-    let chunk = samples.len().div_ceil(threads.get()).max(1);
-    let parts: Vec<Data> = std::thread::scope(|scope| {
-        let handles: Vec<_> = samples
-            .chunks(chunk)
-            .map(|part| {
-                scope.spawn(move || {
-                    let mut data = Data {
-                        entries: Vec::with_capacity(part.len() * 48),
-                        starts: vec![0],
-                        result: Vec::with_capacity(part.len()),
-                        score: Vec::with_capacity(part.len()),
-                    };
-                    for sample in part {
-                        let features = vector(&sample.board, sample.to_move);
-                        for (j, &n) in features.iter().enumerate() {
-                            if n != 0 {
-                                data.entries.push((j as u16, n as i16));
+impl Data {
+    fn new() -> Data {
+        Data {
+            entries: Vec::new(),
+            starts: vec![0],
+            result: Vec::new(),
+            score: Vec::new(),
+        }
+    }
+
+    fn push(&mut self, sample: &Sample) {
+        let features = vector(&sample.board, sample.to_move);
+        for (j, &n) in features.iter().enumerate() {
+            if n != 0 {
+                self.entries.push((j as u16, n as i16));
+            }
+        }
+        self.starts.push(self.entries.len());
+        self.result.push(sample.outcome_for_mover());
+        self.score.push(sample.score as f64);
+    }
+
+    fn append(&mut self, other: Data) {
+        let base = self.entries.len();
+        self.entries.extend_from_slice(&other.entries);
+        self.starts
+            .extend(other.starts[1..].iter().map(|s| s + base));
+        self.result.extend_from_slice(&other.result);
+        self.score.extend_from_slice(&other.score);
+    }
+}
+
+/// The quiet positions read so far, split into training and validation.
+struct Builder {
+    train: Data,
+    validation: Data,
+    samples: usize,
+    threads: NonZeroUsize,
+}
+
+impl Builder {
+    fn new(threads: NonZeroUsize) -> Builder {
+        Builder {
+            train: Data::new(),
+            validation: Data::new(),
+            samples: 0,
+            threads,
+        }
+    }
+
+    /// Adds the quiet positions of `chunk`, filtered and turned into
+    /// features in parallel, in order.
+    fn add(&mut self, chunk: &[Sample]) {
+        self.samples += chunk.len();
+        let size = chunk.len().div_ceil(self.threads.get()).max(1);
+        let parts: Vec<(Data, Data)> = std::thread::scope(|scope| {
+            let handles: Vec<_> = chunk
+                .chunks(size)
+                .map(|part| {
+                    scope.spawn(move || {
+                        let (mut train, mut validation) = (Data::new(), Data::new());
+                        for sample in part.iter().filter(|s| is_quiet(s)) {
+                            if sample.game % 10 == 0 {
+                                validation.push(sample);
+                            } else {
+                                train.push(sample);
                             }
                         }
-                        data.starts.push(data.entries.len());
-                        data.result.push(sample.outcome_for_mover());
-                        data.score.push(sample.score as f64);
-                    }
-                    data
+                        (train, validation)
+                    })
                 })
-            })
-            .collect();
-        handles.into_iter().map(|h| h.join().unwrap()).collect()
-    });
-    let mut data = Data {
-        entries: Vec::new(),
-        starts: vec![0],
-        result: Vec::new(),
-        score: Vec::new(),
-    };
-    for part in parts {
-        let base = data.entries.len();
-        data.entries.extend_from_slice(&part.entries);
-        data.starts
-            .extend(part.starts[1..].iter().map(|s| s + base));
-        data.result.extend_from_slice(&part.result);
-        data.score.extend_from_slice(&part.score);
+                .collect();
+            handles.into_iter().map(|h| h.join().unwrap()).collect()
+        });
+        for (train, validation) in parts {
+            self.train.append(train);
+            self.validation.append(validation);
+        }
     }
-    data
 }
 
 fn sigmoid(x: f64) -> f64 {
@@ -249,14 +285,46 @@ pub fn tune(
     settings: &Tune,
     log: &mut dyn FnMut(usize, f64, f64),
 ) -> Result<(Weights, Report), String> {
-    let quiet: Vec<&Sample> = samples.iter().filter(|s| is_quiet(s)).collect();
-    let (validation, train): (Vec<&Sample>, Vec<&Sample>) =
-        quiet.into_iter().partition(|s| s.game % 10 == 0);
-    if train.is_empty() || validation.is_empty() {
+    let mut builder = Builder::new(settings.threads);
+    for chunk in samples.chunks(CHUNK) {
+        builder.add(chunk);
+    }
+    fit(builder, init, settings, log)
+}
+
+/// Samples read and turned into features at a time.
+const CHUNK: usize = 1 << 16;
+
+/// Like [`tune`], reading the data files in chunks: only the features of
+/// the quiet positions stay in memory.
+pub fn tune_files(
+    paths: &[std::path::PathBuf],
+    init: &Weights,
+    settings: &Tune,
+    log: &mut dyn FnMut(usize, f64, f64),
+) -> Result<(Weights, Report), String> {
+    let mut builder = Builder::new(settings.threads);
+    for path in paths {
+        super::dataset::read_chunks(path, CHUNK, &mut |chunk| builder.add(chunk))?;
+    }
+    fit(builder, init, settings, log)
+}
+
+fn fit(
+    builder: Builder,
+    init: &Weights,
+    settings: &Tune,
+    log: &mut dyn FnMut(usize, f64, f64),
+) -> Result<(Weights, Report), String> {
+    let Builder {
+        train,
+        validation,
+        samples,
+        ..
+    } = builder;
+    if train.len() == 0 || validation.len() == 0 {
         return Err("not enough quiet positions to tune".into());
     }
-    let train = build(&train, settings.threads);
-    let validation = build(&validation, settings.threads);
     let mut weights = init.values.clone();
     let k = fit_k(&train, &weights);
     let target = |data: &Data| -> Vec<f64> {
@@ -306,6 +374,7 @@ pub fn tune(
     }
     let (validation_loss, values, best_epoch, train_loss) = best;
     let report = Report {
+        samples,
         k,
         train_samples: train.len(),
         validation_samples: validation.len(),
@@ -319,6 +388,7 @@ pub fn tune(
         "source": "tune",
         "k": k,
         "lambda": settings.lambda,
+        "samples": samples,
         "l2": settings.l2,
         "train_samples": report.train_samples,
         "validation_samples": report.validation_samples,

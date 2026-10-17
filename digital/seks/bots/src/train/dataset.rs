@@ -142,6 +142,64 @@ pub fn read(input: &mut impl Read) -> std::result::Result<Vec<Sample>, String> {
     body.chunks_exact(RECORD).map(Sample::decode).collect()
 }
 
+/// Reads a data file by path in chunks of up to `chunk` samples, calling
+/// `f` on each, so a large file never sits whole in memory.
+pub fn read_chunks(
+    path: &std::path::Path,
+    chunk: usize,
+    f: &mut dyn FnMut(&[Sample]),
+) -> std::result::Result<usize, String> {
+    let error = |e: String| format!("{}: {e}", path.display());
+    let file = std::fs::File::open(path).map_err(|e| error(e.to_string()))?;
+    let mut input = std::io::BufReader::new(file);
+    let mut header = [0; HEADER];
+    input
+        .read_exact(&mut header)
+        .map_err(|_| error("not a seks-bots data file".into()))?;
+    check_header(&header).map_err(error)?;
+    let mut bytes = vec![0; RECORD * chunk.max(1)];
+    let mut samples = Vec::with_capacity(chunk.max(1));
+    let mut total = 0;
+    loop {
+        let mut filled = 0;
+        while filled < bytes.len() {
+            match input.read(&mut bytes[filled..]) {
+                Ok(0) => break,
+                Ok(n) => filled += n,
+                Err(e) => return Err(error(e.to_string())),
+            }
+        }
+        if filled % RECORD != 0 {
+            return Err(error("the file ends in the middle of a record".into()));
+        }
+        samples.clear();
+        for record in bytes[..filled].chunks_exact(RECORD) {
+            samples.push(Sample::decode(record).map_err(error)?);
+        }
+        if !samples.is_empty() {
+            f(&samples);
+            total += samples.len();
+        }
+        if filled < bytes.len() {
+            return Ok(total);
+        }
+    }
+}
+
+fn check_header(bytes: &[u8]) -> std::result::Result<(), String> {
+    if bytes.len() < HEADER || &bytes[..8] != MAGIC {
+        return Err("not a seks-bots data file".into());
+    }
+    let version = u32::from_le_bytes(bytes[8..12].try_into().unwrap());
+    let size = u32::from_le_bytes(bytes[12..16].try_into().unwrap()) as usize;
+    if version != VERSION || size != RECORD {
+        return Err(format!(
+            "data format {version} with {size}-byte records is not supported"
+        ));
+    }
+    Ok(())
+}
+
 /// Reads a data file by path.
 pub fn read_file(path: &std::path::Path) -> std::result::Result<Vec<Sample>, String> {
     let mut file = std::fs::File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
@@ -173,6 +231,13 @@ mod tests {
         file.extend_from_slice(&sample.encode());
         assert_eq!(read(&mut file.as_slice()).unwrap(), vec![sample, sample]);
         assert!(read(&mut &file[..file.len() - 1]).is_err());
+        let path = std::env::temp_dir().join(format!("seks-data-{}.bin", std::process::id()));
+        file.extend_from_slice(&sample.encode());
+        std::fs::write(&path, &file).unwrap();
+        let mut sizes = Vec::new();
+        let total = read_chunks(&path, 2, &mut |chunk| sizes.push(chunk.len())).unwrap();
+        std::fs::remove_file(&path).unwrap();
+        assert_eq!((total, sizes), (3, vec![2, 1]));
     }
 
     #[test]

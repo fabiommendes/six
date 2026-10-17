@@ -36,3 +36,14 @@ pub mod tactics;
 pub mod train;
 
 pub use bot::{by_name, Bot, Decision, Greedy, Random};
+
+/// Threads of the expensive commands (batches, self-play, tuning) by
+/// default: half the cores of the training machine, so other work keeps
+/// running (`dev/notes/bots-do-seks.md`).
+pub const DEFAULT_THREADS: usize = 6;
+
+/// [`DEFAULT_THREADS`], but no more than the machine has.
+pub fn default_threads() -> std::num::NonZeroUsize {
+    let all = std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get);
+    std::num::NonZeroUsize::new(DEFAULT_THREADS.min(all).max(1)).unwrap()
+}

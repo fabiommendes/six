@@ -43,6 +43,7 @@ fn a_node_limited_ab_gives_the_same_records_with_1_and_3_threads() {
 }
 
 #[test]
+#[ignore = "slow: just seks-bots-slow-test"]
 fn a_thousand_games_of_random_against_greedy_end_without_error() {
     let records = batch(["random", "greedy"], 1000, 4).run(&|_| {}).unwrap();
     let summary = Summary::new(&["random".into(), "greedy".into()], &records);

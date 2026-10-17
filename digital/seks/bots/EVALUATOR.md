@@ -91,12 +91,14 @@ Pesos à mão (`hand.json`):
 ## Como ajustar
 
 - À mão: edite um JSON e jogue um lote contra os pesos atuais, com nós
-  fixos:
-  `seks-bots batch --bots ab:nodes=5000,weights=@novo.json,ab:nodes=5000 --openings openings/base.txt`.
-- Pelo treino (`seks-bots train`, ver `dev/issues/bots-do-seks.md`): autojogo,
-  Texel tuning e promoção só se a geração nova vencer a anterior. Promover
-  pesos é um commit que troca `weights/default.json` e registra a execução na
-  seção abaixo.
+  fixos: `just seks-batch ab:nodes=5000,weights=@novo.json ab:nodes=5000`.
+- Pelo treino, `just seks-train [CONFIG]` (`train/base.json` por padrão):
+  autojogo, Texel tuning e promoção só se a geração nova vencer a anterior
+  (`src/train/`). Grades de experimentos: `just seks-experiments GRID`
+  (`train/scripts/experiments.py`). Promover pesos é um commit que troca
+  `weights/default.json` e registra a execução na seção abaixo.
+- Execuções caras rodam com teto de CPU e memória: ver
+  `dev/notes/bots-do-seks.md`, que também guarda as medições.
 
 ## Gerações promovidas
 

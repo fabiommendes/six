@@ -15,9 +15,8 @@ use std::time::Instant;
 
 use serde::{Deserialize, Serialize};
 
-use super::dataset;
 use super::selfplay::SelfPlay;
-use super::tune::{tune, Tune};
+use super::tune::{tune_files, Tune};
 use crate::batch::{Batch, Summary};
 use crate::eval::Weights;
 use crate::openings::{read, Opening};
@@ -33,7 +32,7 @@ pub struct Config {
     pub generations: u32,
     /// The weights of generation 0.
     pub init: String,
-    /// Threads; all but 2 of the machine when 0.
+    /// Threads; [`crate::DEFAULT_THREADS`] when 0.
     #[serde(default)]
     pub threads: usize,
     /// Where the runs go.
@@ -106,10 +105,7 @@ fn io(path: &Path) -> impl Fn(std::io::Error) -> String + '_ {
 
 /// Runs or resumes `config`, printing one line per step to stderr.
 pub fn run(config: &Config) -> Result<(), String> {
-    let threads = NonZeroUsize::new(config.threads).unwrap_or_else(|| {
-        let all = std::thread::available_parallelism().map_or(1, NonZeroUsize::get);
-        NonZeroUsize::new(all.saturating_sub(2).max(1)).unwrap()
-    });
+    let threads = NonZeroUsize::new(config.threads).unwrap_or_else(crate::default_threads);
     let dir = Path::new(&config.out).join(&config.name);
     std::fs::create_dir_all(&dir).map_err(io(&dir))?;
     let config_path = dir.join("config.json");
@@ -191,14 +187,12 @@ validation_loss_before,validation_loss,best_epoch,elo,elo_low,elo_high,draws,pro
         let tuned = gen_dir.join("weights.json");
         let report_path = gen_dir.join("tune.json");
         if !tuned.exists() {
-            let mut samples = Vec::new();
             let first = generation
                 .saturating_sub(config.tune.window.max(1) - 1)
                 .max(1);
-            for g in first..=generation {
-                let path = dir.join(format!("gen-{g:03}")).join("data.bin");
-                samples.extend(dataset::read_file(&path)?);
-            }
+            let paths: Vec<PathBuf> = (first..=generation)
+                .map(|g| dir.join(format!("gen-{g:03}")).join("data.bin"))
+                .collect();
             let settings = Tune {
                 lambda: config.tune.lambda,
                 epochs: config.tune.epochs,
@@ -208,15 +202,14 @@ validation_loss_before,validation_loss,best_epoch,elo,elo_low,elo_high,draws,pro
                 threads,
             };
             let (mut weights, report) =
-                tune(&samples, &load(&current)?, &settings, &mut |_, _, _| {})?;
+                tune_files(&paths, &load(&current)?, &settings, &mut |_, _, _| {})?;
             if let serde_json::Value::Object(meta) = &mut weights.meta {
                 meta.insert("run".into(), config.name.clone().into());
                 meta.insert("generation".into(), generation.into());
-                meta.insert("samples".into(), samples.len().into());
             }
             std::fs::write(&tuned, weights.to_json()).map_err(io(&tuned))?;
             let report = serde_json::json!({
-                "samples": samples.len(),
+                "samples": report.samples,
                 "train_quiet": report.train_samples,
                 "validation_quiet": report.validation_samples,
                 "k": report.k,

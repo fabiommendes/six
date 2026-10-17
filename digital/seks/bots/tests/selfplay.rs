@@ -1,5 +1,6 @@
 //! Self-play of the simple bots: every pairing finishes its games without
 //! an engine error (R5 of `dev/issues/motor-do-seks-em-rust.md`).
+//! 800 games: out of `just check`, run by `just seks-bots-slow-test`.
 
 use seks_bots::by_name;
 use seks_bots::game::play;
@@ -28,17 +29,20 @@ fn play_games(white: &str, black: &str, games: u64) {
 }
 
 #[test]
+#[ignore = "slow: just seks-bots-slow-test"]
 fn random_against_random() {
     play_games("random", "random", 200);
 }
 
 #[test]
+#[ignore = "slow: just seks-bots-slow-test"]
 fn random_against_greedy() {
     play_games("random", "greedy", 200);
     play_games("greedy", "random", 200);
 }
 
 #[test]
+#[ignore = "slow: just seks-bots-slow-test"]
 fn greedy_against_greedy() {
     play_games("greedy", "greedy", 200);
 }

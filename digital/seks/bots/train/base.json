@@ -3,7 +3,7 @@
   "seed": 1,
   "generations": 6,
   "init": "weights/hand.json",
-  "threads": 10,
+  "threads": 6,
   "out": "train/runs",
   "selfplay": {
     "bot": "ab:nodes=5000",

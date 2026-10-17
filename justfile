@@ -74,30 +74,42 @@ seks-wasm-test: seks-wasm
 
 # --- Bots do Seks -----------------------------------------------------------
 
+# Teto das execuções caras dos bots (lotes, treino, experimentos, bench):
+# 600% de CPU, 4 GB de memória e prioridade mínima de CPU e disco, para não
+# travar a máquina, que outras sessões também usam. Os comandos usam 6
+# threads por padrão (--threads N ou "threads" na configuração mudam).
+seks_limits := "systemd-run --user --scope -q -p CPUQuota=600% -p MemoryMax=4G -- nice -n 19 ionice -c3"
+
 # Lote entre dois bots do Seks, cada abertura com as duas cores (ex.: just seks-batch ab random)
 [group('seks')]
 seks-batch a b *flags:
-    cd digital && cargo build --release -q -p seks-bots
-    cd digital/seks/bots && ../../target/release/seks-bots batch --bots {{a}},{{b}} --openings openings/base.txt {{flags}}
+    cd digital && CARGO_BUILD_JOBS=4 cargo build --release -q -p seks-bots
+    cd digital/seks/bots && {{seks_limits}} ../../target/release/seks-bots batch --bots {{a}},{{b}} --openings openings/base.txt {{flags}}
 
 # Treina os pesos dos bots do Seks a partir de uma configuração; retoma se parou
 [group('seks')]
 seks-train config="train/base.json":
-    cd digital && cargo build --release -q -p seks-bots
-    cd digital/seks/bots && ../../target/release/seks-bots train {{config}}
+    cd digital && CARGO_BUILD_JOBS=4 cargo build --release -q -p seks-bots
+    cd digital/seks/bots && {{seks_limits}} ../../target/release/seks-bots train {{config}}
 
 # Grade de experimentos de treino, com uma linha de resumo por experimento
 [group('seks')]
 seks-experiments grid *flags:
-    cd digital/seks/bots/train/scripts && uv run experiments.py run {{grid}} {{flags}}
+    cd digital && CARGO_BUILD_JOBS=4 cargo build --release -q -p seks-bots
+    cd digital/seks/bots/train/scripts && {{seks_limits}} uv run experiments.py run {{grid}} {{flags}}
 
 # Velocidade do bot padrão do Seks, nativo e em WASM no Node (pede `rustup target add wasm32-wasip1`)
 [group('seks')]
 seks-bench:
-    cd digital && cargo build --release -q -p seks-bots --example bench
-    cd digital && cargo build --release -q -p seks-bots --example bench --target wasm32-wasip1
-    cd digital && ./target/release/examples/bench
-    node digital/seks/bots/wasm/bench.mjs
+    cd digital && CARGO_BUILD_JOBS=4 cargo build --release -q -p seks-bots --example bench
+    cd digital && CARGO_BUILD_JOBS=4 cargo build --release -q -p seks-bots --example bench --target wasm32-wasip1
+    cd digital && {{seks_limits}} ./target/release/examples/bench
+    {{seks_limits}} node digital/seks/bots/wasm/bench.mjs
+
+# Testes lentos dos bots do Seks (centenas de partidas), fora do check
+[group('seks')]
+seks-bots-slow-test:
+    cd digital && CARGO_BUILD_JOBS=4 {{seks_limits}} cargo test --release -q -p seks-bots -- --ignored --skip generate_the_suite
 
 # --- Verificações -----------------------------------------------------------
 
