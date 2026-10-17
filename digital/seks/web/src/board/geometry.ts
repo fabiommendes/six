@@ -1,8 +1,11 @@
-import { Matrix4, Quaternion, Vector3 } from "three";
+import { Matrix4, Plane, Quaternion, Raycaster, Vector2, Vector3, type Camera } from "three";
 import { BOARD_SIZE, cellName, parseCell, type Cell, type Coord } from "../engine/cells";
 
 /** The board is laid out in cell units: a cell is 1 by 1, the origin is the centre of the board. */
 export const DIE_SIZE = 0.78;
+
+/** How thick the board is: half a die, about the width of the band of motif of the wide frame. */
+export const BOARD_THICKNESS = DIE_SIZE / 2;
 
 /** The centre of a cell on the plane of the board: `x` grows with the file, `z` toward the Whites (row 1). */
 export function cellCenter(cell: Cell | Coord): { x: number; z: number } {
@@ -16,6 +19,15 @@ export function cellAtPoint(x: number, z: number): Cell | null {
   const row = Math.floor((BOARD_SIZE + 1) / 2 - z + 0.5);
   if (col < 0 || col >= BOARD_SIZE || row < 1 || row > BOARD_SIZE) return null;
   return cellName(col, row);
+}
+
+const GROUND = new Plane(new Vector3(0, 1, 0), 0);
+
+/** The cell on the board under a point of the canvas (`x`, `y` in -1..1, y up) seen by `camera`, ignoring the dice. */
+export function cellAtScreen(camera: Camera, x: number, y: number, raycaster = new Raycaster()): Cell | null {
+  raycaster.setFromCamera(new Vector2(x, y), camera);
+  const point = raycaster.ray.intersectPlane(GROUND, new Vector3());
+  return point ? cellAtPoint(point.x, point.z) : null;
 }
 
 /** One face of a die in the die's own axes: the normal, and where "right" and "up" of its pips point. */

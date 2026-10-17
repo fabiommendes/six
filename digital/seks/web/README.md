@@ -22,6 +22,14 @@ Hotseat ou jogo contra o bot, com toque ou mouse, em retrato e paisagem.
 - `src/ui`: telas (inicial e de jogo) e o painel, em DOM.
 - `tests/`: vitest com o WASM real no Node, sem mock do motor.
 
+## Vistas
+
+Vista de cima: câmera ortográfica. Vista inclinada: câmera em perspectiva
+(campo de visão de 35 graus, 38 graus da vertical) e o tabuleiro como um bloco
+de meio dado de espessura (`BOARD_THICKNESS`). Nas duas, `src/board/view.ts`
+ajusta a câmera para o tabuleiro inteiro, com coordenadas, caber no canvas em
+qualquer proporção.
+
 ## Posições de teste
 
 `?fixture=NOME` abre uma posição pronta, para olhar a tela sem jogar até lá:
