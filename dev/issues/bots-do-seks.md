@@ -1,6 +1,6 @@
 ---
 type: issue
-status: in_progress
+status: in_review
 tags: [seks, digital, rust, bots]
 relatedTo: [dev/issues/motor-do-seks-em-rust.md, dev/adr/0004-bots-do-seks-alfa-beta-com-avaliacao-ajustada.md, regras/seks]
 kind: enhancement
@@ -245,7 +245,7 @@ que os outros da mesma fase.
   `#[cfg(not(target_arch = "wasm32"))]`, como o `run_parallel` do Rio.
 - [x] Benchmark em `wasm32-wasip1` rodado com `node:wasi` (R7). Precisa de
   `rustup target add wasm32-wasip1`.
-- [ ] Escolher N0 do nível padrão, medir R6, R7 e R8 e registrar em
+- [x] Escolher N0 do nível padrão, medir R6, R7 e R8 e registrar em
   `dev/notes/bots-do-seks.md`.
 - [x] `just`: receitas `seks-batch`, `seks-train` e `seks-bench`;
   `digital/Cargo.toml` ganha `seks/bots` nos membros; `AGENTS.md` cita as

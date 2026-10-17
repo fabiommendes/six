@@ -31,29 +31,38 @@ bench) segue estes limites:
   centenas de partidas ficam atrás de `#[ignore]`, fora do `just check`, e
   rodam com `just seks-bots-slow-test`.
 
-## Medições até aqui (2026-10-17)
+## Nível padrão: N0, R6, R7 e R8 (2026-10-17)
 
-Medidas com a máquina carregada por outras sessões (load entre 12 e 18),
-antes dos limites acima, com 10 threads; os tempos por jogada daqui não
-valem para o R7, que tem de ser medido numa thread.
+Medidas com os pesos promovidos (geração 1 da segunda execução, abaixo) e o
+treino parado. `ab` padrão é `ab:nodes=60000`, contempt 100, TT de 16 MiB.
 
-- **R6, objetivo do treino, já atingido com os pesos à mão** (`ab` padrão,
-  `ab:nodes=20000`, `default.json` igual a `hand.json`): 400 vitórias em 400
-  contra `random` (taxa de vitória 100%, [99,0%, 100%]) e 400 em 400 contra
-  `greedy`, em `openings/base.txt`. Média de 18 jogadas por partida. Falta
-  repetir com os pesos promovidos e o N0 final.
-- O `greedy` já vence o `random` em 1000 de 1000 partidas.
-- Busca: a poda de jogadas tardias e fúteis valeu +368 Elo [+319, +430] em
-  400 partidas com nós iguais; o null move ficou neutro (-17 [-65, +30]);
-  dobrar os nós (20 mil para 40 mil) vale +133 Elo [+84, +188].
-- Velocidade (`seks-bots bench`, 16 posições, 20 mil nós cada): nativo cerca
-  de 640 mil nós/s com a máquina livre e 381 mil carregada; WASM
-  (`wasm32-wasip1` no Node 22) 259 mil na mesma carga, 68% do nativo
-  (R7 pede 40%). Avaliação: 0,54 µs; gerar as jogadas: 0,75 µs.
-- `ab` contra `ab` com ruído na raiz nas 8 a 10 primeiras jogadas (autojogo):
-  97% das partidas acabam na fileira de fundo, 3% por repetição e 0,3% por
-  100 jogadas sem captura; 55 jogadas por partida. O R8 formal (400 partidas
-  no nível padrão, sem ruído) ainda não foi medido.
+- **N0 = 60 000 nós.** Numa thread, contra `random` (`openings/base.txt`,
+  400 partidas, load 1,4 a 3,4): 20 mil nós dão 31,5 ms por jogada (máximo
+  63), 40 mil 65,7 ms (127) e 60 mil 99,5 ms (194). O custo cresce linear,
+  cerca de 1,65 ms por mil nós. 60 mil deixa folga de 2x na média e de 2,5x
+  no máximo do R7 para máquinas carregadas e para o WASM; dobrar os nós
+  valia +133 Elo (medição antiga, 20 para 40 mil).
+- **R6, passa.** 400 vitórias em 400 contra `random` (100%, [99,0%, 100%];
+  21 jogadas por partida) e 400 em 400 contra `greedy` (100%, [99,0%,
+  100%]; 18 jogadas).
+- **R7, passa.** Nas partidas do R6, numa thread, load 1 a 1,5: média de
+  99,9 ms (máximo 193) contra `random` e 91,3 ms (máximo 161) contra
+  `greedy`, cerca de 540 mil nós/s. `just seks-bench` (load 5,9): nativo 562
+  mil nós/s, WASM (`wasm32-wasip1` no Node) 376 mil, 67% do nativo (pede
+  40%). No navegador, a interface mediu 58 ms por jogada com 20 mil nós
+  (load ~7), o que dá cerca de 175 ms com 60 mil.
+- **R8.** 400 partidas `ab` contra `ab` no nível padrão, sem ruído,
+  `openings/base.txt`, 6 threads: +178 =44 -178. Empates: 44 (11%), todos
+  por 100 jogadas sem captura; nenhum por repetição nem por falta de
+  jogada. 356 partidas acabam na fileira de fundo. Média de 104 jogadas e
+  3,7 capturas por partida. Com 6 threads em paralelo, 176 ms por jogada
+  (máximo 513), não comparável ao R7.
+- O `greedy` vence o `random` em 1000 de 1000 partidas.
+- Busca (medido com os pesos à mão e 20 mil nós): a poda de jogadas tardias
+  e fúteis valeu +368 Elo [+319, +430] em 400 partidas com nós iguais; o
+  null move ficou neutro (-17 [-65, +30]); dobrar os nós (20 mil para 40
+  mil) vale +133 Elo [+84, +188]. Avaliação: 0,54 µs; gerar as jogadas:
+  0,75 µs.
 
 ## Treino
 

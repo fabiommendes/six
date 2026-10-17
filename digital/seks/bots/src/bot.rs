@@ -65,7 +65,7 @@ pub trait Bot {
 ///     reductions, or futility and late move pruning, for experiments.
 ///
 ///   `ab` with no `depth`, `nodes` or `ms` is the default level,
-///   `ab:nodes=N0` with N0 = [`AlphaBeta::DEFAULT_NODES`].
+///   `ab:nodes=N0` with N0 = [`AlphaBeta::DEFAULT_NODES`] (60 000).
 pub fn by_name(spec: &str) -> Result<Box<dyn Bot + Send>, String> {
     let (name, args) = spec.split_once(':').unwrap_or((spec, ""));
     match (name, args) {

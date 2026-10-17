@@ -19,8 +19,10 @@ pub struct AlphaBeta {
 }
 
 impl AlphaBeta {
-    /// Nodes per move of the default level, `ab` with no arguments.
-    pub const DEFAULT_NODES: u64 = 20_000;
+    /// Nodes per move of the default level, `ab` with no arguments: about
+    /// 100 ms per move natively on one thread (500 ms at most is the
+    /// budget), measured in `dev/notes/bots-do-seks.md`.
+    pub const DEFAULT_NODES: u64 = 60_000;
     /// Size of the transposition table, in MiB, unless `tt` says otherwise.
     pub const DEFAULT_TABLE_MIB: usize = 16;
     /// What a draw costs the bot unless `contempt` says otherwise
