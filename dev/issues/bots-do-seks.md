@@ -131,7 +131,7 @@ que os outros da mesma fase.
 
 ### Fase 1: lote, partidas e estatística
 
-- [ ] Pedidos ao motor (lista abaixo), combinados com quem cuida da issue do
+- [x] Pedidos ao motor (lista abaixo), combinados com quem cuida da issue do
   motor. Os itens 1 e 3 bloqueiam a fase 2; os outros podem chegar depois.
 - [ ] **(paralelo)** `stats.rs`: pontos, Elo e intervalo de 95% pela
   variância trinomial (vitória, empate, derrota). Testes com valores
