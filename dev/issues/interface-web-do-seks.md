@@ -29,8 +29,14 @@ Site estático, sem rede. Leia a seção "Decisions" do RFC.
   motor.
   - Aceito quando testes de interface cobrem cada caso acima.
 - R3. Tabuleiro 11 por 11 em Three.js, câmera ortográfica vista de cima, com
-  câmera inclinada como opção. Dados com pontos, brancos e pretos, sobre
-  madeira clara, até o RFC de identidade visual decidir.
+  câmera inclinada como opção. Visual da direção "motivo por língua" (ADR
+  0005), a partir de `arte/esbocos/c-motivos-por-lingua/jogo.html`: moldura
+  com a malha nórdica do Seks, paleta e fontes do `LEIAME.md` da mesma pasta,
+  dados com pontos e marcas de jogada por forma (seleção, destino, origem e
+  destino da última jogada).
+  - Aceito quando uma captura da tela de jogo, lado a lado com
+    `arte/esbocos/c-motivos-por-lingua/jogo.png`, mostra os mesmos elementos
+    na mesma posição da partida do esboço.
 - R4. Animações: mover desliza o dado e gira para a face do número de casas
   andadas; incrementar gira uma face no lugar; o dado capturado vai para uma
   área ao lado do tabuleiro; a última jogada fica marcada.
@@ -50,4 +56,5 @@ Site estático, sem rede. Leia a seção "Decisions" do RFC.
 
 - Jogo em rede: `dev/issues/servidor-do-seks.md`.
 - Extrair o tabuleiro e o dado para `digital/kit/`.
-- Identidade visual definitiva.
+- Temas alternativos (as outras direções de `arte/esbocos/`).
+- Ajustes de desenho dos motivos dos outros cinco jogos.
