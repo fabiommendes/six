@@ -1,0 +1,18 @@
+{
+  "name": "regularization",
+  "defaults": {"openings": "openings/gate.txt", "threads": 6},
+  "experiments": [
+    {"name": "tune", "kind": "tune", "data": ["train/runs/base/gen-001/data.bin"],
+     "init": "weights/hand.json", "lambda": 0.5, "epochs": 1000, "lr": 1.0, "patience": 100,
+     "grid": {"l2": [0.001, 0.01, 0.1]},
+     "gate": {"bot": "ab:nodes=5000", "games": 400}},
+    {"name": "tune-lambda", "kind": "tune", "data": ["train/runs/base/gen-001/data.bin"],
+     "init": "weights/hand.json", "l2": 0.0001, "epochs": 1000, "lr": 1.0, "patience": 100,
+     "grid": {"lambda": [1.0]},
+     "gate": {"bot": "ab:nodes=5000", "games": 400}},
+    {"name": "mirror", "kind": "batch", "games": 400,
+     "bots": ["ab:nodes=5000,weights=@train/runs/experiments/regularization/{w}/weights.json",
+              "ab:nodes=5000,weights=@train/runs/experiments/regularization/{w}/weights.json"],
+     "grid": {"w": ["tune-l2=0.001", "tune-l2=0.01", "tune-l2=0.1", "tune-lambda-lambda=1.0"]}}
+  ]
+}

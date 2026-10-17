@@ -122,10 +122,31 @@ partidas por geração, janela de 2 gerações, portão de 2000 partidas em
 - O autojogo usa um bot por lado: com contempt, as notas guardadas na
   tabela de transposição dependem de quem está na raiz.
 
+### Regularização do tune
+
+Com contempt e o portão novo, a geração 1 (`l2` = 0,0001) venceu os pesos à
+mão por +170 Elo [+153, +187], mas o espelho empatou 254 de 400 partidas
+(63%), e o portão a recusou. Nos mesmos dados (447 092 posições de autojogo
+com os pesos à mão), `train/grids/regularization.json`, portão de 400
+partidas contra os pesos à mão e espelho de 400, `ab:nodes=5000`,
+`openings/gate.txt`:
+
+| Tune | Perda de validação | Elo contra os pesos à mão | Empates no espelho |
+|---|---|---|---|
+| `l2` = 0,001 | 0,06192 para 0,05945 | +159 [+124, +197] | 254 (240 sem captura) |
+| `l2` = 0,01 | 0,06192 para 0,05937 | +212 [+175, +254] | 154 (148 sem captura) |
+| **`l2` = 0,1** | 0,06192 para 0,06048 | **+215 [+177, +258]** | **14** (12 sem captura) |
+| `lambda` = 1, `l2` = 0,0001 | | +117 [+82, +154] | 2 |
+
+O decaimento em direção aos pesos iniciais segura a tabela de avanço, e os
+pesos mais fortes são também os que menos empatam: os empates da primeira
+execução vinham do tune, não do jogo. `train/base.json` passa a usar
+`l2` = 0,1.
+
 ### Segunda execução
 
-Execução `train/base.json` do zero, com contempt 100 e o portão contra
-empates.
+Execução `train/base.json` com contempt 100, o portão contra empates e
+`l2` = 0,1 (o autojogo da geração 1 é o mesmo da tentativa recusada).
 
 | Geração | Posições | Perda de validação | Elo contra a anterior | Empates portão / espelho | Promovida |
 |---|---|---|---|---|---|
