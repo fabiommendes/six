@@ -43,6 +43,8 @@ export interface GameScreenOptions {
   readonly resume?: readonly Command[];
   /** Whether the camera starts tilted. */
   readonly tilted?: boolean;
+  /** Called when the player switches the view, with whether it is now tilted. */
+  readonly onTilt?: (tilted: boolean) => void;
   /** The side the board is seen from at the start (a match that resumes); by default, the side the player should see. */
   readonly viewpoint?: Side;
   /** Called with what it takes to open this match again, at every change of it. */
@@ -207,6 +209,7 @@ export class GameScreen {
       this.board?.setTilted(this.tilted);
       this.render(this.match.snapshot());
       this.persist();
+      this.options.onTilt?.(this.tilted);
     }
   };
 

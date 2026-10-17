@@ -4,6 +4,7 @@ import { SeksGame } from "./engine/game";
 import { loadWasm } from "./engine/wasm";
 import { FIXTURES } from "./logic/fixtures";
 import { clearSession, loadSession, saveSession, type Session, type SessionStore } from "./logic/session";
+import { loadTiltedPreference, saveTiltedPreference } from "./logic/view-preference";
 import { GameScreen, spawnBot } from "./ui/game";
 import { need } from "./ui/dom";
 import { DEFAULT_CHOICE, modeFromChoice, showStart, type StartChoice } from "./ui/start";
@@ -29,6 +30,23 @@ function devStore(): SessionStore | null {
 const store = devStore();
 const keep = store ? (session: Session) => saveSession(store, session) : undefined;
 
+/**
+ * The view (from above or tilted) the player chose lasts across matches and
+ * visits, in every build: it is kept in the local storage.
+ */
+function viewStore(): Storage | null {
+  try {
+    return localStorage;
+  } catch {
+    return null;
+  }
+}
+const views = viewStore();
+const preferredTilt = () => (views ? (loadTiltedPreference(views) ?? false) : false);
+const keepTilt = (tilted: boolean) => {
+  if (views) saveTiltedPreference(views, tilted);
+};
+
 let choice: StartChoice = DEFAULT_CHOICE;
 let leaveStart: (() => void) | null = null;
 let screen: GameScreen | null = null;
@@ -52,6 +70,8 @@ async function play(picked: StartChoice): Promise<void> {
     mode,
     game: SeksGame.create(),
     bot: mode.kind === "bot" ? spawnBot() : null,
+    tilted: preferredTilt(),
+    onTilt: keepTilt,
     onSession: keep,
     onNewGame: toStart,
   });
@@ -65,7 +85,9 @@ async function resume(session: Session): Promise<void> {
     game: SeksGame.fromStateJson(session.base),
     seed: session.seed,
     resume: session.commands,
+    // The saved match keeps its own view while it lasts; the next one starts with the preference.
     tilted: session.tilted,
+    onTilt: keepTilt,
     viewpoint: session.viewpoint,
     bot: session.mode.kind === "bot" ? spawnBot() : null,
     onSession: keep,
@@ -85,6 +107,8 @@ async function openFixture(name: string): Promise<boolean> {
     seed: { last: fixture.last, captured: fixture.captured },
     select: fixture.select,
     counterFrom: fixture.counterFrom ?? undefined,
+    tilted: preferredTilt(),
+    onTilt: keepTilt,
     bot: null,
     onNewGame: toStart,
   });

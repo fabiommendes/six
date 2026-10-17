@@ -41,6 +41,11 @@ tabuleiro gira meia volta para o lado da vez depois que a animação da jogada
 termina, e também ao desfazer. Em desenvolvimento (`vite`), a partida, a vista e
 a orientação sobrevivem a reload e HMR (`sessionStorage`; `logic/session.ts`).
 
+A vista escolhida (de cima ou inclinada) fica no `localStorage` (`logic/view-preference.ts`),
+em qualquer build, e vale para as próximas partidas e visitas, inclusive depois de
+"Nova partida". Uma partida restaurada pela sessão do desenvolvimento mantém a sua
+vista enquanto dura; um valor inválido no storage é ignorado.
+
 ## Posições de teste
 
 `?fixture=NOME` abre uma posição pronta, para olhar a tela sem jogar até lá:
