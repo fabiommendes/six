@@ -150,3 +150,19 @@ Execução `train/base.json` com contempt 100, o portão contra empates e
 
 | Geração | Posições | Perda de validação | Elo contra a anterior | Empates portão / espelho | Promovida |
 |---|---|---|---|---|---|
+| 1 | 447 092 | 0,06192 para 0,06048 | +231 [+213, +250] | 8 / 14 | sim |
+| 2 | 1 075 571 | 0,05813 para 0,05770 | +278 [+260, +297] | 177 / 126 | não |
+
+A geração 2 (autojogo com os pesos da 1, janela de duas gerações de dados)
+ficou mais forte que a 1, mas voltou a empatar: 31% contra si mesma, e no
+lote do portão 174 dos 177 empates foram por 100 jogadas sem captura. O
+portão a recusou e o treino parou aí; a geração 1 foi promovida para
+`weights/default.json`. O tune ainda empurra os pesos para um jogo que não
+força a vitória quando os dados vêm de um bot forte; uma terceira execução
+precisaria atacar isso (por exemplo, `l2` maior ou o alvo do tune mais
+perto do resultado), e fica para depois.
+
+**R5** (2000 partidas, `ab:nodes=5000`, `openings/gate.txt`, geração 1
+contra `hand.json`): +1577 =8 -415, Elo +231 [+213, +250]. Passa (pede
++50 com o limite inferior acima de 0). É o mesmo lote do portão: mesma
+semente e bots determinísticos.

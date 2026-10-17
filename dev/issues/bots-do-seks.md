@@ -220,7 +220,7 @@ que os outros da mesma fase.
   empate mais de 10%. Números em `dev/notes/bots-do-seks.md`. Saída em `digital/seks/bots/train/runs/<nome>/`
   (`log.csv` com perda de treino e validação e Elo por geração, pesos de
   cada geração, dados e partidas).
-- [ ] O que vai para o git: código, `weights/hand.json`,
+- [x] O que vai para o git: código, `weights/hand.json`,
   `weights/default.json` (a geração promovida, com metadados: execução,
   geração, número de posições, perda, Elo medido), configurações em
   `train/*.json`, `openings/`, `tests/positions/`. Fica fora
@@ -235,7 +235,7 @@ que os outros da mesma fase.
   experimentos sem escrever código novo e manter fora do contexto dos agentes
   a saída longa dos lotes: o agente lê só o resumo. Projeto `uv`, só com a
   biblioteca padrão se der.
-- [ ] Medir R5 e registrar a curva por geração em
+- [x] Medir R5 e registrar a curva por geração em
   `dev/notes/bots-do-seks.md`.
 
 ### Fase 4: custo e WASM

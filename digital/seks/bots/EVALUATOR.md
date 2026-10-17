@@ -97,9 +97,25 @@ Pesos à mão (`hand.json`):
   (`src/train/`). Grades de experimentos: `just seks-experiments GRID`
   (`train/scripts/experiments.py`). Promover pesos é um commit que troca
   `weights/default.json` e registra a execução na seção abaixo.
+- Empates: o `ab` pontua o empate como `-contempt` (100 por padrão, cerca
+  de um dado), e o portão do treino recusa uma geração que empate mais de
+  10% no lote do portão ou contra si mesma (`gate.max_draw_rate`). Pesos
+  ajustados sem esse portão aprenderam a não forçar a vitória.
 - Execuções caras rodam com teto de CPU e memória: ver
   `dev/notes/bots-do-seks.md`, que também guarda as medições.
 
 ## Gerações promovidas
 
-Nenhuma ainda: `default.json` é uma cópia de `hand.json`.
+| Execução | Geração | Posições | Perda de validação | Elo contra `hand.json` | Empates portão / espelho |
+|---|---|---|---|---|---|
+| `train/base.json` (`l2` = 0,1), 2026-10-17 | 1 | 447 092 | 0,06192 para 0,06048 | +231 [+213, +250] | 8 / 14 |
+
+O Elo vem de 2000 partidas com `ab:nodes=5000` em `openings/gate.txt`.
+A geração 2 venceu a 1 por +278 [+260, +297], mas empatou 126 de 400
+partidas contra si mesma (31%; no lote do portão, 174 dos 177 empates
+foram por 100 jogadas sem captura), e o portão a recusou; o treino parou aí. Mudanças grandes em relação aos
+pesos à mão: material de 138 (dado 1) a 276 (dado 6), em vez de 90 a 110;
+`gap_them` -51 em vez de -60; `blockers_us` 19 e `blockers_them` -18.
+`threats_*` e `at_risk_them` não mudam: o tune só vê posições quietas, em
+que essas features são zero. Números por geração em
+`dev/notes/bots-do-seks.md`.
