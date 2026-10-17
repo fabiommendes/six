@@ -55,5 +55,40 @@ export function sketchFixture(): Fixture {
   };
 }
 
+/** The sketch position at 85 plies without a capture: the count shows by the rule of R7. */
+export function counterFixture(): Fixture {
+  const sketch = sketchFixture();
+  return { ...sketch, game: withPliesWithoutCapture(sketch.game, 85), select: null, counterFrom: null };
+}
+
+const ENDING_DIAGRAM = `
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. w3 .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. b1
+  .. .. .. .. b1 .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  .. .. .. .. .. .. .. .. .. .. ..
+  w1 .. .. .. .. .. .. .. .. .. ..`;
+
+/** The Whites win with c8 to c11 (a die ends its move on the Blacks' back row): to see the end of a game. */
+export function endingFixture(): Fixture {
+  return {
+    game: SeksGame.fromDiagram(ENDING_DIAGRAM, "white"),
+    mode: { kind: "hotseat" },
+    last: null,
+    captured: [],
+    select: null,
+    counterFrom: null,
+  };
+}
+
 /** The fixtures that the page opens with `?fixture=NAME`. */
-export const FIXTURES: Readonly<Record<string, () => Fixture>> = { esboco: sketchFixture };
+export const FIXTURES: Readonly<Record<string, () => Fixture>> = {
+  esboco: sketchFixture,
+  contador: counterFixture,
+  fim: endingFixture,
+};

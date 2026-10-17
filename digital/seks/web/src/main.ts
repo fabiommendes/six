@@ -57,7 +57,7 @@ async function openFixture(name: string): Promise<boolean> {
 }
 
 async function main(): Promise<void> {
-  host.textContent = "Carregando…";
+  host.textContent = "Abrindo o jogo…";
   try {
     await loadWasm();
   } catch {

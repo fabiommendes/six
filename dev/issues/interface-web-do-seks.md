@@ -1,6 +1,6 @@
 ---
 type: issue
-status: in_progress
+status: in_review
 tags: [seks, digital, web, interface]
 relatedTo: [dev/rfc/interface-do-seks.md, dev/issues/seks-wasm.md]
 kind: enhancement
@@ -93,17 +93,17 @@ Passos:
   cada caso (selecionar, mover, incrementar, 6, trocar, clicar fora).
 - [x] R1, R6. Partida (`Match`): hotseat, jogo contra bot, desfazer em laço até
   a vez do humano, capturados e última jogada, com testes.
-- [ ] R7. Contador a partir de 80, aviso de repetição, vencedor e motivo, empate
+- [x] R7. Contador a partir de 80, aviso de repetição, vencedor e motivo, empate
   e motivo, com testes.
-- [ ] R9. Textos ao jogador com os termos do glossário e teste contra as
+- [x] R9. Textos ao jogador com os termos do glossário e teste contra as
   palavras de `Não usar:`.
 - [x] R5. Web Worker do bot e bot provisório, níveis, com testes.
-- [ ] R3. Tabuleiro em Three.js: moldura com a malha nórdica, casas, dados com
+- [x] R3. Tabuleiro em Three.js: moldura com a malha nórdica, casas, dados com
   pontos, marcas por forma, câmera de cima e inclinada, clique e toque.
-- [ ] R4. Animações: mover (desliza e gira), incrementar (gira no lugar),
+- [x] R4. Animações: mover (desliza e gira), incrementar (gira no lugar),
   captura (voa para a área do painel), marcas da última jogada.
-- [ ] R1, R7, R8. Telas: inicial, jogo (painel do esboço), fim de jogo, retrato e
+- [x] R1, R7, R8. Telas: inicial, jogo (painel do esboço), fim de jogo, retrato e
   paisagem, toque.
-- [ ] R3. `?fixture=esboco` e captura de tela ao lado de `jogo.png`.
-- [ ] R10. `just check` inteiro, conferência de termos proibidos, issue em
+- [x] R3. `?fixture=esboco` e captura de tela ao lado de `jogo.png`.
+- [x] R10. `just check` inteiro, conferência de termos proibidos, issue em
   `in_review`.

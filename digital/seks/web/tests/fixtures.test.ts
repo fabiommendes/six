@@ -44,3 +44,21 @@ describe("withPliesWithoutCapture", () => {
     expect(same.view().plies_without_capture).toBe(80);
   });
 });
+
+describe("the fixtures for looking at the screen", () => {
+  it("counter shows the count by the rule, with no selection", () => {
+    const fixture = FIXTURES.contador!();
+    expect(fixture.game.view().plies_without_capture).toBe(85);
+    expect(fixture.counterFrom).toBeNull();
+    expect(fixture.select).toBeNull();
+  });
+
+  it("ending ends the game with a single move: c8 to c11", async () => {
+    const fixture = FIXTURES.fim!();
+    const { match } = newMatch(fixture.game, fixture.mode, null);
+    await match.start();
+    await match.click("c8");
+    await match.click("c11");
+    expect(match.snapshot().view.outcome).toEqual({ kind: "win", winner: "white", reason: "back_row" });
+  });
+});
