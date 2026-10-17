@@ -72,6 +72,26 @@ seks-wasm:
 seks-wasm-test: seks-wasm
     nice -n 19 node --test digital/seks/wasm/tests/game.test.mjs
 
+# --- Interface web do Seks --------------------------------------------------
+
+# Instala as dependências da interface web do Seks (pnpm)
+[group('seks')]
+seks-web-install:
+    cd digital/seks/web && nice -n 19 pnpm install --frozen-lockfile --prefer-offline
+
+# Serve a interface web do Seks em desenvolvimento (pede `just seks-wasm` antes)
+[group('seks')]
+seks-web-dev:
+    cd digital/seks/web && node scripts/check-wasm.mjs --warn && pnpm dev --open
+
+# Tipos, testes e build da interface web do Seks, em digital/seks/web/dist (pede `just seks-wasm` antes)
+[group('seks')]
+seks-web-check: seks-web-install
+    cd digital/seks/web && node scripts/check-wasm.mjs
+    cd digital/seks/web && nice -n 19 pnpm typecheck
+    cd digital/seks/web && nice -n 19 pnpm test
+    cd digital/seks/web && nice -n 19 pnpm build
+
 # --- Bots do Seks -----------------------------------------------------------
 
 # Teto das execuções caras dos bots (lotes, treino, experimentos, bench):
@@ -113,7 +133,7 @@ seks-bots-slow-test:
 
 # --- Verificações -----------------------------------------------------------
 
-# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motor e bots em Rust (e o build WASM dos bots)
+# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motor e bots em Rust (e o build WASM dos bots), interface web do Seks
 [group('check')]
 check:
     make -C manual build
@@ -124,4 +144,5 @@ check:
     cd digital && cargo test --all-features
     just seks-types-check
     just seks-wasm-test
+    just seks-web-check
     cd digital && cargo build -q -p seks-bots --lib --target wasm32-unknown-unknown

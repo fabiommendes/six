@@ -84,7 +84,7 @@ Decisões de desenho:
 
 Passos:
 
-- [ ] R10. Esqueleto de `digital/seks/web/`: Vite, TypeScript, vitest, fontes
+- [x] R10. Esqueleto de `digital/seks/web/`: Vite, TypeScript, vitest, fontes
   da Alegreya empacotadas, receitas do `just` e `just check`, mapa e comandos
   do `AGENTS.md`.
 - [x] `seks-wasm`: `Game.fromDiagram`, com teste em Rust e em Node.

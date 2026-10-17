@@ -1,0 +1,9 @@
+/* Alegreya and Alegreya Sans: Huerta Tipográfica, SIL Open Font License 1.1 (public/fonts/OFL-*.txt). */
+@font-face { font-family: "Alegreya Sans"; src: url("/fonts/AlegreyaSans-Regular.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Alegreya Sans"; src: url("/fonts/AlegreyaSans-Italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: block; }
+@font-face { font-family: "Alegreya Sans"; src: url("/fonts/AlegreyaSans-Medium.woff2") format("woff2"); font-weight: 500; font-display: block; }
+@font-face { font-family: "Alegreya Sans"; src: url("/fonts/AlegreyaSans-Bold.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "Alegreya Sans"; src: url("/fonts/AlegreyaSans-ExtraBold.woff2") format("woff2"); font-weight: 800; font-display: block; }
+@font-face { font-family: "Alegreya Sans SC"; src: url("/fonts/AlegreyaSansSC-Medium.woff2") format("woff2"); font-weight: 500; font-display: block; }
+@font-face { font-family: "Alegreya Sans SC"; src: url("/fonts/AlegreyaSansSC-Bold.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "Alegreya"; src: url("/fonts/Alegreya-VF.woff2") format("woff2"); font-weight: 400 900; font-display: block; }
