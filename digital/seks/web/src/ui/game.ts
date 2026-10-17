@@ -3,8 +3,9 @@ import { COMPACT_BELOW } from "../board/layout";
 import { adaptWorker, WorkerBot } from "../bot/client";
 import type { BotPlayer } from "../bot/client";
 import type { Cell } from "../engine/cells";
-import type { SeksGame, Side } from "../engine/game";
+import type { Command, SeksGame, Side } from "../engine/game";
 import { Match, type Mode, type Seed } from "../logic/match";
+import type { Session } from "../logic/session";
 import { drawStatus } from "../logic/status";
 import {
   APP,
@@ -38,6 +39,12 @@ export interface GameScreenOptions {
   readonly counterFrom?: number;
   /** The bot, when `mode` is against it. */
   readonly bot: BotPlayer | null;
+  /** Commands already played from `game` (a match that resumes), replayed without animation. */
+  readonly resume?: readonly Command[];
+  /** Whether the camera starts tilted. */
+  readonly tilted?: boolean;
+  /** Called with what it takes to open this match again, at every change of it. */
+  readonly onSession?: (session: Session) => void;
   /** The player asked for a new game. */
   readonly onNewGame: () => void;
 }
@@ -112,8 +119,18 @@ export class GameScreen {
     };
     this.match = new Match(options.game, options.mode, stage, options.bot, options.seed);
     if (board) board.canActivate = (cell) => this.canActivate(cell);
+    if (options.resume) this.match.resume(options.resume);
+    if (options.tilted) {
+      this.tilted = true;
+      board?.setTilted(true, true);
+    }
 
-    this.off.push(this.match.subscribe((snapshot) => this.render(snapshot)));
+    this.off.push(
+      this.match.subscribe((snapshot) => {
+        this.render(snapshot);
+        this.persist();
+      }),
+    );
     host.addEventListener("click", this.onButton);
     document.addEventListener("pointerdown", this.onOutside);
     const observer = new ResizeObserver(() => this.drawStrips());
@@ -140,6 +157,10 @@ export class GameScreen {
     this.host.innerHTML = "";
   }
 
+  private persist(): void {
+    this.options.onSession?.({ mode: this.options.mode, ...this.match.record(), seed: this.options.seed ?? {}, tilted: this.tilted });
+  }
+
   private canActivate(cell: Cell): boolean {
     const snapshot = this.match.snapshot();
     if (!snapshot.humanToMove || snapshot.busy || snapshot.thinking) return false;
@@ -162,6 +183,7 @@ export class GameScreen {
       this.tilted = !this.tilted;
       this.board?.setTilted(this.tilted);
       this.render(this.match.snapshot());
+      this.persist();
     }
   };
 

@@ -201,12 +201,12 @@ export class Board3D implements Stage {
 
   // --- Camera ----------------------------------------------------------------
 
-  /** Tilts the camera (or looks from above again), turning smoothly unless motion is off. */
-  setTilted(tilted: boolean): void {
+  /** Tilts the camera (or looks from above again), turning smoothly unless motion is off or `instant`. */
+  setTilted(tilted: boolean, instant = false): void {
     this.tiltTarget = tilted ? 1 : 0;
     const run = ++this.tiltRun;
     const from = this.tilt;
-    const duration = this.options.reducedMotion() ? 0 : 450;
+    const duration = instant || this.options.reducedMotion() ? 0 : 450;
     void tween(duration, (t) => {
       if (run !== this.tiltRun) return;
       this.tilt = from + (this.tiltTarget - from) * easeInOut(t);

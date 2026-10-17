@@ -2,7 +2,7 @@ import type { BotPlayer } from "../bot/client";
 import { BotCancelled } from "../bot/client";
 import type { BotLevel } from "../bot/protocol";
 import type { Cell } from "../engine/cells";
-import type { Command, SeksGame, Side, View } from "../engine/game";
+import type { Command, SeksGame, Side, Transition, View } from "../engine/game";
 import type { Event } from "@wire/Event";
 import { NO_MARKS, type Marks } from "./marks";
 import { click, type Selection, type SelectionBoard } from "./selection";
@@ -77,6 +77,7 @@ export interface MatchSnapshot {
 }
 
 interface HistoryEntry {
+  readonly command: Command;
   readonly side: Side;
   readonly last: LastPlay;
   readonly captured: readonly Captured[];
@@ -111,6 +112,8 @@ export class Match {
   private epoch = 0;
   private disposed = false;
   private readonly listeners = new Set<(snapshot: MatchSnapshot) => void>();
+  /** The position the match started from, to save it. */
+  private readonly base: string;
 
   constructor(
     private readonly game: SeksGame,
@@ -118,7 +121,23 @@ export class Match {
     private readonly stage: Stage,
     private readonly bot: BotPlayer | null = null,
     private readonly seed: Seed = {},
-  ) {}
+  ) {
+    this.base = game.stateJson();
+  }
+
+  /**
+   * What it takes to open the same match again: the position it started
+   * from and the commands played since (the ones taken back are gone). The
+   * game keeps its own undo history, so replaying the commands rebuilds it.
+   */
+  record(): { base: string; commands: Command[] } {
+    return { base: this.base, commands: this.history.map((entry) => entry.command) };
+  }
+
+  /** Replays `commands` on the game without animation, as if they were played. Call before `start()`. */
+  resume(commands: readonly Command[]): void {
+    for (const command of commands) this.history.push(this.entry(command, this.game.command(command)));
+  }
 
   /** Puts the position on the stage and, if the bot plays first, asks it. */
   start(): Promise<void> {
@@ -238,8 +257,7 @@ export class Match {
 
   private async play(command: Command): Promise<void> {
     const transition = this.game.command(command);
-    const { last, captured } = summarize(transition.events);
-    const entry: HistoryEntry = { side: last.side, last, captured };
+    const entry = this.entry(command, transition);
     this.history.push(entry);
     this.inFlight = entry;
     this.selection = null;
@@ -252,6 +270,11 @@ export class Match {
     this.busy = false;
     this.notify();
     await this.askBot();
+  }
+
+  private entry(command: Command, transition: Transition): HistoryEntry {
+    const { last, captured } = summarize(transition.events);
+    return { command, side: last.side, last, captured };
   }
 
   private async askBot(): Promise<void> {
