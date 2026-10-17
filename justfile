@@ -45,6 +45,23 @@ seks-prototipo:
 seks-engine-test:
     cd digital && cargo test -p seks-engine --all-features
 
+# Regenera os tipos TypeScript do wire do motor em digital/seks/wasm/types (ts-rs)
+[group('seks')]
+seks-types:
+    rm -rf digital/seks/wasm/types
+    cd digital && TS_RS_EXPORT_DIR="$PWD/seks/wasm/types" cargo test -q -p seks-engine --features wire --lib export_bindings
+
+# Falha se digital/seks/wasm/types está desatualizado em relação ao wire do motor
+[group('seks')]
+seks-types-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    cd digital
+    TS_RS_EXPORT_DIR="$tmp" cargo test -q -p seks-engine --features wire --lib export_bindings
+    diff -r "$tmp" seks/wasm/types || { echo "tipos desatualizados: rode just seks-types" >&2; exit 1; }
+
 # --- Bots do Seks -----------------------------------------------------------
 
 # Lote entre dois bots do Seks, cada abertura com as duas cores (ex.: just seks-batch ab random)
@@ -83,4 +100,5 @@ check:
     cd digital && cargo fmt --check
     cd digital && cargo clippy --all-targets --all-features -- -D warnings
     cd digital && cargo test --all-features
+    just seks-types-check
     cd digital && cargo build -q -p seks-bots --lib --target wasm32-unknown-unknown

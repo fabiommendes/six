@@ -69,7 +69,7 @@ Passos:
 - [x] R2. Visão para a interface (`View`) no `wire`: dados, vez, contador de
   jogadas sem captura, repetições da posição, aviso de que a próxima
   repetição empata, resultado.
-- [ ] R2. Tipos TypeScript com `ts-rs` e receita `just seks-types`; teste
+- [x] R2. Tipos TypeScript com `ts-rs` e receita `just seks-types`; teste
   que falha se os arquivos gerados estão desatualizados.
 - [ ] R3. Crate `seks-wasm` (`digital/seks/wasm/`) com `Game`: criar, ler
   estado, aplicar comando com eventos, destinos e incremento de um dado,
