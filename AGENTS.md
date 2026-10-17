@@ -21,7 +21,9 @@ Nível 1 do ADR 0002 do tooling-root:
 `just` lista as receitas.
 
 - Checagem: `just check` (build e lint do manual, sincronia com `regras/`,
-  lint e testes do protótipo). Define "pronto".
+  lint e testes do protótipo, `cargo fmt --check`, `cargo clippy` e
+  `cargo test` do motor em Rust). Define "pronto".
+- Motor do Seks: `just seks-engine-test`.
 - Manual: `just manual` (site e PDF), `just manual-serve`, `just manual-check`
   (trechos do manual cujas fontes em `regras/` mudaram). Detalhes em
   `manual/README.md`.
@@ -34,6 +36,7 @@ Nível 1 do ADR 0002 do tooling-root:
 | `regras/` | Fonte da verdade: `kit.md` e uma pasta por jogo, com o glossário do jogo |
 | `manual/` | Livro de regras único (PDF e site) e o código que o gera |
 | `digital/<jogo>/` | Uma pasta por implementação digital |
+| `digital/seks/engine/` | Motor do Seks em Rust (`seks-engine`), no workspace Cargo de `digital/` |
 | `digital/seks/prototipo/` | Protótipo do Seks em Python e Pyxel, referência de comportamento |
 | `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` fica fora do git |
 

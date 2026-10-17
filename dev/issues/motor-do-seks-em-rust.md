@@ -49,7 +49,7 @@ Propostas que o designer revisa antes da implementação estão marcadas com
   captura é a única jogada irreversível, então nenhuma posição anterior a ela
   pode se repetir. Não contradiz o ADR 0001 do Rio: não é histórico de
   eventos.
-- [ ] Workspace Cargo em `digital/Cargo.toml` e crate `seks-engine` em
+- [x] Workspace Cargo em `digital/Cargo.toml` e crate `seks-engine` em
   `digital/seks/engine/`, sem dependências. `cargo fmt --check`,
   `cargo clippy -- -D warnings` e `cargo test` entram no `just check` e no
   `AGENTS.md`.

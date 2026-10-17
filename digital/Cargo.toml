@@ -1,0 +1,11 @@
+[workspace]
+resolver = "2"
+# Add `seks/bots` here when the Seks bots land.
+members = ["seks/engine"]
+
+[workspace.package]
+edition = "2021"
+
+[profile.release]
+opt-level = 3
+lto = true

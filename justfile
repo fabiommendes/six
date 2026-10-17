@@ -38,11 +38,21 @@ manual-coverage:
 seks-prototipo:
     cd digital/seks/prototipo && uv run seks
 
+# --- Motor do Seks ----------------------------------------------------------
+
+# Testes do motor do Seks em Rust
+[group('seks')]
+seks-engine-test:
+    cd digital && cargo test -p seks-engine
+
 # --- Verificações -----------------------------------------------------------
 
-# Tudo o que define "pronto": manual (build, lint e sincronia) e protótipo
+# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo e motor em Rust
 [group('check')]
 check:
     make -C manual build
     make -C manual check
     cd digital/seks/prototipo && uv run task lint && uv run task test
+    cd digital && cargo fmt --check
+    cd digital && cargo clippy --all-targets -- -D warnings
+    cd digital && cargo test
