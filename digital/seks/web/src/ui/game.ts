@@ -2,7 +2,7 @@ import { Board3D } from "../board/board3d";
 import { COMPACT_BELOW } from "../board/layout";
 import { adaptWorker, WorkerBot } from "../bot/client";
 import type { BotPlayer } from "../bot/client";
-import { BOT_LEVELS, DEFAULT_BOT_LEVEL } from "../bot/levels";
+import { DEFAULT_BOT_LEVEL } from "../bot/levels";
 import type { BotLevelId } from "../bot/protocol";
 import type { Cell } from "../engine/cells";
 import type { Command, SeksGame, Side } from "../engine/game";
@@ -13,7 +13,6 @@ import {
   APP,
   BUTTONS,
   COUNTER,
-  endCard,
   LEGEND,
   MAIL,
   SIDE_NAME,
@@ -29,8 +28,11 @@ import {
   turnTitle,
   type Gesture,
 } from "../logic/texts";
+import { ConfirmDialog, type Question } from "./confirm-dialog";
 import { esc, need } from "./dom";
+import { EndCardView } from "./end-card";
 import { flyToPanel } from "./flight";
+import { MailPanel } from "./mail-panel";
 import { brandMark, dieIcon, markIcon, motifStrip, tally } from "./svg";
 
 /** What a match by correspondence needs from the page around it (the links and the saved list). */
@@ -84,15 +86,7 @@ export interface GameScreenOptions {
 const SKELETON = `
   <div class="board-wrap">
     <div class="board" id="board"></div>
-    <div class="end-card" role="dialog" aria-label="Fim da partida" hidden>
-      <h2 class="end-title"></h2>
-      <p class="end-reason"></p>
-      <p class="end-extra" hidden></p>
-      <div class="end-buttons">
-        <button type="button" data-action="new"></button>
-        <button type="button" data-action="dismiss-end">${BUTTONS.viewBoard}</button>
-      </div>
-    </div>
+    ${EndCardView.html}
   </div>
   <div class="panel">
     <div class="head top">
@@ -108,26 +102,8 @@ const SKELETON = `
       <div class="turn desk-turn"></div>
       <p class="note" aria-live="polite"></p>
       <p class="note warn" hidden></p>
-      <p class="notice" hidden></p>
-      <div class="mail" hidden>
-        <input class="mail-link" type="text" readonly aria-label="${MAIL.linkLabel}">
-        <div class="mail-buttons">
-          <button type="button" data-action="copy">${MAIL.copy}</button>
-          <button type="button" data-action="share" hidden>${MAIL.share}</button>
-        </div>
-        <p class="mail-status" aria-live="polite"></p>
-      </div>
-      <div class="left" hidden>
-        <label class="left-level">${MAIL.levelLabel} <select>${BOT_LEVELS.map((level) => `<option value="${level.id}"${level.id === DEFAULT_BOT_LEVEL.id ? " selected" : ""}>${level.label}</option>`).join("")}</select></label>
-        <div class="left-buttons">
-          <button type="button" data-action="continue">${MAIL.continueWithBot}</button>
-          <button type="button" data-action="end">${MAIL.end}</button>
-        </div>
-      </div>
-      <div class="ask" role="alertdialog" aria-live="polite" hidden>
-        <p class="ask-text"></p>
-        <div class="ask-buttons"></div>
-      </div>
+      ${MailPanel.html}
+      ${ConfirmDialog.html}
       <div class="last"></div>
       <div class="sides"></div>
       <div class="count" hidden></div>
@@ -159,13 +135,11 @@ export class GameScreen {
   private shared = 0;
   /** The URL to send when the player resigned (a match by correspondence); `null` while in. */
   private resignedLink: string | null = null;
-  /** What the confirmation under the panel asks, if it is open. */
-  private asking: "resign" | "leave" | null = null;
+  private readonly confirm: ConfirmDialog;
+  private readonly mailPanel: MailPanel;
+  private readonly endView: EndCardView;
   /** The bot made to play both sides when the player chose to finish with bots (a hotseat match has none of its own). */
   private extraBot: BotPlayer | null = null;
-  private mailLinkShown = "";
-  /** The player closed the card of the end of the game to look at the board. */
-  private endDismissed = false;
 
   constructor(
     private readonly host: HTMLElement,
@@ -174,6 +148,15 @@ export class GameScreen {
     this.gesture = matchMedia("(pointer: coarse)").matches ? "toque" : "clique";
     host.className = "screen";
     host.innerHTML = SKELETON;
+    this.confirm = new ConfirmDialog(host);
+    this.endView = new EndCardView(host);
+    this.mailPanel = new MailPanel(host, {
+      link: () => this.currentLink(),
+      resigned: () => this.resignedLink !== null,
+      onSent: () => this.markShared(),
+      onContinue: (level) => options.mail?.onContinue(level),
+      onEnd: () => options.mail?.onEnd(),
+    });
     need(host, ".brand .mark").innerHTML = brandMark(26);
     need(host, ".legend").innerHTML = this.legend();
 
@@ -296,7 +279,7 @@ export class GameScreen {
     if (action === "undo") this.match.undo();
     else if (action === "new") this.options.onNewGame();
     else if (action === "dismiss-end") {
-      this.endDismissed = true;
+      this.endView.dismiss();
       this.render(this.match.snapshot());
     } else if (action === "resign") this.ask("resign");
     else if (action === "leave") this.ask("leave");
@@ -304,10 +287,7 @@ export class GameScreen {
     else if (action === "finish-with-bots") this.finishWithBots();
     else if (action === "cancel") this.ask(null);
     else if (action === "confirm-resign") this.resign();
-    else if (action === "copy") void this.copyLink();
-    else if (action === "share") void this.shareLink();
-    else if (action === "continue") this.options.mail?.onContinue(this.chosenLevel());
-    else if (action === "end") this.options.mail?.onEnd();
+    else if (this.mailPanel.handle(action)) return;
     else if (action === "tilt") {
       this.tilted = !this.tilted;
       this.board?.setTilted(this.tilted);
@@ -317,15 +297,10 @@ export class GameScreen {
     }
   };
 
-  private chosenLevel(): BotLevelId {
-    const value = need<HTMLSelectElement>(this.host, ".left-level select").value;
-    return (BOT_LEVELS.find((level) => level.id === value) ?? DEFAULT_BOT_LEVEL).id;
-  }
-
   /** The bots play the rest of the game, both sides, while the player watches. */
   private finishWithBots(): void {
     const bot = this.options.bot ?? (this.extraBot ??= this.options.spawnBot?.() ?? null);
-    this.asking = null;
+    this.confirm.set(null);
     if (bot === null) {
       this.render(this.match.snapshot());
       return;
@@ -333,8 +308,8 @@ export class GameScreen {
     void this.match.finishWithBots(bot, DEFAULT_BOT_LEVEL);
   }
 
-  private ask(question: "resign" | "leave" | null): void {
-    this.asking = question;
+  private ask(question: Question | null): void {
+    this.confirm.set(question);
     this.render(this.match.snapshot());
   }
 
@@ -343,7 +318,7 @@ export class GameScreen {
     const mail = this.options.mail;
     if (!mail || this.resignedLink !== null) return;
     this.resignedLink = mail.linkFor(this.match.record().commands, true);
-    this.asking = null;
+    this.confirm.set(null);
     mail.onResign();
     this.render(this.match.snapshot());
   }
@@ -353,45 +328,10 @@ export class GameScreen {
     return this.resignedLink ?? this.options.mail?.linkFor(this.match.record().commands, false) ?? "";
   }
 
-  private setMailStatus(text: string): void {
-    need(this.host, ".mail-status").textContent = text;
-  }
-
   /** The opponent has the plies once the link was copied or shared: from then on they cannot be undone. */
   private markShared(): void {
     this.shared = this.match.record().commands.length;
     this.match.lock();
-  }
-
-  private async copyLink(): Promise<void> {
-    const input = need<HTMLInputElement>(this.host, ".mail-link");
-    const link = this.currentLink();
-    let copied = false;
-    try {
-      await navigator.clipboard.writeText(link);
-      copied = true;
-    } catch {
-      input.select();
-      copied = document.execCommand?.("copy") ?? false;
-    }
-    if (!copied) {
-      input.select();
-      this.setMailStatus(MAIL.copyFailed);
-      return;
-    }
-    this.setMailStatus(MAIL.copied);
-    if (this.resignedLink === null) this.markShared();
-  }
-
-  private async shareLink(): Promise<void> {
-    try {
-      await navigator.share({ title: MAIL.shareTitle, text: this.resignedLink === null ? MAIL.shareText : MAIL.shareLeftText, url: this.currentLink() });
-    } catch {
-      // The player closed the sheet: nothing was sent.
-      return;
-    }
-    this.setMailStatus(MAIL.sharedDone);
-    if (this.resignedLink === null) this.markShared();
   }
 
   /** Whether a match by correspondence waits for the other player: the link is to be sent. */
@@ -401,53 +341,23 @@ export class GameScreen {
     return !snapshot.humanToMove;
   }
 
-  /** The parts of the panel that exist only for play by correspondence, and the confirmation. */
-  private renderMail(snapshot: ReturnType<Match["snapshot"]>): void {
+  /** The parts of the panel that depend on the kind of match: the link, the confirmation, the buttons and the end card. */
+  private renderSession(snapshot: ReturnType<Match["snapshot"]>): void {
     const host = this.host;
     const mail = this.options.mail;
-    const showLink = this.resignedLink !== null || this.mailWaiting(snapshot);
-    need(host, ".mail").hidden = !showLink;
-    if (showLink) {
-      const link = this.currentLink();
-      const input = need<HTMLInputElement>(host, ".mail-link");
-      if (link !== this.mailLinkShown) {
-        this.mailLinkShown = link;
-        input.value = link;
-        this.setMailStatus("");
-      }
-      need(host, '[data-action="share"]').hidden = typeof navigator.share !== "function";
-    }
-    const notice = need(host, ".notice");
-    notice.hidden = !this.options.notice;
-    notice.textContent = this.options.notice ?? "";
+    const over = snapshot.view.outcome !== null;
     const left = mail?.leftBy ?? null;
     const showLeft = left !== null && this.resignedLink === null;
-    need(host, ".left").hidden = !showLeft;
-    need(host, '[data-action="continue"]').hidden = snapshot.view.outcome !== null;
-    need(host, ".left-level").hidden = snapshot.view.outcome !== null;
-    need<HTMLButtonElement>(host, '[data-action="resign"]').hidden = !mail || this.frozen || snapshot.view.outcome !== null;
-
-    const ask = need(host, ".ask");
-    ask.hidden = this.asking === null;
-    if (this.asking === "leave") {
-      need(host, ".ask-text").textContent = MAIL.leaveAsk;
-      need(host, ".ask-buttons").innerHTML =
-        `<button type="button" data-action="new">${BUTTONS.backToStart}</button>` +
-        (this.options.bot !== null || this.options.spawnBot ? `<button type="button" data-action="finish-with-bots">${BUTTONS.finishWithBots}</button>` : "") +
-        `<button type="button" data-action="cancel">${BUTTONS.cancel}</button>`;
-    }
-    if (this.asking === "resign") {
-      need(host, ".ask-text").textContent = MAIL.resignAsk;
-      need(host, ".ask-buttons").innerHTML = `<button type="button" data-action="confirm-resign">${MAIL.resignConfirm}</button><button type="button" data-action="cancel">${BUTTONS.cancel}</button>`;
-    }
+    this.mailPanel.render({ showLink: this.resignedLink !== null || this.mailWaiting(snapshot), showLeft, over, notice: this.options.notice });
+    need<HTMLButtonElement>(host, '[data-action="resign"]').hidden = !mail || this.frozen || over;
+    this.confirm.render(this.options.bot !== null || this.options.spawnBot !== undefined);
 
     // Against the other player's absence the note says what happened.
     const note = need(host, ".note:not(.warn)");
     if (this.resignedLink !== null) note.innerHTML = `<b>${esc(MAIL.resignedTitle)}</b> ${esc(MAIL.resignedRest)}`;
-    else if (showLeft && left !== null) note.innerHTML = `<b>${esc(MAIL.leftTitle(left))}</b> ${esc(snapshot.view.outcome === null ? MAIL.leftRest : MAIL.leftOverRest)}`;
+    else if (showLeft && left !== null) note.innerHTML = `<b>${esc(MAIL.leftTitle(left))}</b> ${esc(over ? MAIL.leftOverRest : MAIL.leftRest)}`;
     if (this.frozen) need<HTMLButtonElement>(host, '[data-action="undo"]').disabled = true;
     const home = mail ? BUTTONS.home : BUTTONS.newGame;
-    const over = snapshot.view.outcome !== null;
     const local = snapshot.mode.kind === "hotseat" || snapshot.mode.kind === "bot";
     const leaving = local && !over;
     const watching = snapshot.mode.kind === "bots" && !snapshot.mode.stopped && !over;
@@ -455,30 +365,7 @@ export class GameScreen {
     need(host, '[data-action="stop-bots"]').hidden = !watching;
     need(host, '.actions [data-action="new"]').hidden = leaving || watching;
     need(host, '.actions [data-action="new"]').textContent = home;
-    this.renderEnd(snapshot, home);
-  }
-
-  /** The card over the board at the end of the game, on the side of the board away from the last play. */
-  private renderEnd(snapshot: ReturnType<Match["snapshot"]>, home: string): void {
-    const card = endCard(snapshot);
-    if (card === null) this.endDismissed = false;
-    const element = need(this.host, ".end-card");
-    // The card waits for the last play to land.
-    element.hidden = card === null || this.endDismissed || snapshot.busy;
-    if (card === null) return;
-    element.dataset.tone = card.tone;
-    need(this.host, ".end-title").textContent = card.title;
-    need(this.host, ".end-reason").textContent = card.reason;
-    const extra = need(this.host, ".end-extra");
-    const sendLink = this.mailWaiting(snapshot);
-    extra.hidden = !sendLink;
-    extra.textContent = sendLink ? MAIL.sendResult : "";
-    need(this.host, '.end-card [data-action="new"]').textContent = home;
-    // Seen from the bottom, a play in the upper half of the board is far from a card at the bottom.
-    const row = snapshot.last === null ? 1 : Number(snapshot.last.to.slice(1));
-    const fromBottom = this.viewpoint === "white" ? row : 12 - row;
-    element.classList.toggle("top", fromBottom <= 6);
-    element.classList.toggle("bottom", fromBottom > 6);
+    this.endView.render(snapshot, home, this.mailWaiting(snapshot), this.viewpoint);
   }
 
   /** A press outside the board and the buttons clears the selection too. */
@@ -557,7 +444,7 @@ export class GameScreen {
     tilt.textContent = this.tilted ? BUTTONS.tiltOff : BUTTONS.tiltOn;
     tilt.setAttribute("aria-pressed", String(this.tilted));
     host.classList.toggle("thinking", snapshot.thinking);
-    this.renderMail(snapshot);
+    this.renderSession(snapshot);
   }
 
   private sideRow(snapshot: ReturnType<Match["snapshot"]>, side: Side): string {
