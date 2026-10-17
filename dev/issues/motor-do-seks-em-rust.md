@@ -65,12 +65,12 @@ Propostas que o designer revisa antes da implementação estão marcadas com
   todas; `Engine::command(state, command)` devolve `Transition { state,
   events }` ou `GameError` para qualquer comando fora da lista.
 - [x] Captura (`capture.rs`) por custódia, só a partir do dado que se moveu.
-- [ ] Fim de jogo (`outcome.rs`): vitória pela fileira de fundo e por
+- [x] Fim de jogo (`outcome.rs`): vitória pela fileira de fundo e por
   adversário sem jogada; empate por tripla repetição e por 100 jogadas sem
   captura. Ordem **(revisar com o designer)**: vitória antes de empate, como o
   mate no xadrez vale na 50ª jogada. Se confirmada, vira nota `Detalhe` em
   `regras/seks/05-fim-do-jogo.md`.
-- [ ] Eventos (`event.rs`): `Moved`, `Incremented`, `Captured`, `GameEnded`.
+- [x] Eventos (`event.rs`): `Moved`, `Incremented`, `Captured`, `GameEnded`.
 - [x] `Engine::view(state, side)` devolve o estado inteiro: o Seks não tem
   informação oculta, mas a interface já é a do ADR 0005 do Rio.
 - [ ] Testes de regra do protótipo traduzidos (`test_grid.py` e

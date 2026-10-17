@@ -4,6 +4,7 @@
 use crate::capture::{captures, Captures};
 use crate::command::{distance, Command};
 use crate::die::Die;
+use crate::outcome;
 use crate::state::GameState;
 use crate::zobrist;
 
@@ -16,12 +17,13 @@ pub(crate) struct Applied {
     pub(crate) captured: Captures,
 }
 
-/// Applies `command`, which must be legal (see `command::validate`), and
-/// passes the turn.
+/// Applies `command`, which must be legal (see `command::validate`), passes
+/// the turn and sets the outcome if the game ended.
 pub(crate) fn apply(state: &mut GameState, command: Command) -> Applied {
     let mover = state.to_move;
     let mut hash = state.history.current();
     let mut captured = [None; 4];
+    let mut reached_goal = false;
     let value = match command {
         Command::Move { from, to } => {
             let die = state.board.get(from).expect("a legal move starts on a die");
@@ -30,6 +32,7 @@ pub(crate) fn apply(state: &mut GameState, command: Command) -> Applied {
             hash ^= zobrist::die_key(from, die) ^ zobrist::die_key(to, moved);
             state.board.set(from, None);
             state.board.set(to, Some(moved));
+            reached_goal = to.row() == mover.goal_row();
             captured = captures(&state.board, to, mover);
             for (cell, die) in captured.into_iter().flatten() {
                 hash ^= zobrist::die_key(cell, die);
@@ -56,5 +59,6 @@ pub(crate) fn apply(state: &mut GameState, command: Command) -> Applied {
         state.plies_without_capture += 1;
         state.history.push(hash);
     }
+    state.outcome = outcome::after_play(state, reached_goal);
     Applied { value, captured }
 }

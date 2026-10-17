@@ -17,8 +17,6 @@
 //!   `engine` (`Engine`, the entry points).
 
 #![warn(unreachable_pub)]
-// Removed with the plays, which use the helpers below.
-#![allow(dead_code)]
 
 mod apply;
 mod board;

@@ -2,5 +2,6 @@
 
 mod capture;
 mod commands;
+mod ending;
 mod setup;
 mod turn;

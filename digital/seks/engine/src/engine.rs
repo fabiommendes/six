@@ -45,6 +45,9 @@ impl Engine {
                 .flatten()
                 .map(|(at, die)| GameEvent::Captured { at, die }),
         );
+        if let Some(outcome) = next.outcome {
+            events.push(GameEvent::GameEnded { outcome });
+        }
         Ok(Transition {
             state: next,
             events,

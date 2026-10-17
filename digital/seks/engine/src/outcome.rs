@@ -10,7 +10,10 @@
 //! A win comes before a draw, as checkmate on the 50th move wins in chess.
 //! When both draws happen at once, the reported reason is the repetition.
 
-use crate::die::Side;
+use crate::board::Board;
+use crate::cell::DIRECTIONS;
+use crate::die::{Side, MAX_VALUE};
+use crate::state::GameState;
 
 /// Plays in a row without a capture that draw the game: 50 by each player.
 pub const MAX_PLIES_WITHOUT_CAPTURE: u8 = 100;
@@ -42,4 +45,45 @@ pub enum DrawReason {
 pub enum Outcome {
     Win { winner: Side, reason: WinReason },
     Draw(DrawReason),
+}
+
+/// Whether `side` has any play: a die below 6 can be incremented, and any
+/// die with a free cell around can move to it.
+pub(crate) fn has_play(board: &Board, side: Side) -> bool {
+    board
+        .dice()
+        .filter(|(_, die)| die.side() == side)
+        .any(|(cell, die)| {
+            die.value() < MAX_VALUE
+                || DIRECTIONS.iter().any(|&(columns, rows)| {
+                    cell.offset(columns, rows)
+                        .is_some_and(|next| board.get(next).is_none())
+                })
+        })
+}
+
+/// The outcome of the position `state` reached by a play of the opponent of
+/// `state.to_move()`, which ended on the opponent's back row if
+/// `reached_goal`.
+pub(crate) fn after_play(state: &GameState, reached_goal: bool) -> Option<Outcome> {
+    let mover = state.to_move().opponent();
+    if reached_goal {
+        return Some(Outcome::Win {
+            winner: mover,
+            reason: WinReason::BackRow,
+        });
+    }
+    if !has_play(state.board(), state.to_move()) {
+        return Some(Outcome::Win {
+            winner: mover,
+            reason: WinReason::NoPlay,
+        });
+    }
+    if state.history.current_occurrences() >= REPETITIONS_FOR_DRAW {
+        return Some(Outcome::Draw(DrawReason::Repetition));
+    }
+    if state.plies_without_capture() >= MAX_PLIES_WITHOUT_CAPTURE {
+        return Some(Outcome::Draw(DrawReason::NoCapture));
+    }
+    None
 }
