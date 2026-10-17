@@ -16,6 +16,7 @@ __pycache__/
 .base-ast-cache/
 .serena/
 dev/handoffs/
+dev/esbocos/
 
 # Old checkout of github.com/fabiommendes/seks. Its history now lives in
 # digital/seks/prototipo/; delete this directory when no longer needed.
