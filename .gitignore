@@ -1,0 +1,22 @@
+# Generated output
+build/
+out/
+target/
+dist/
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+
+# Local tool state
+.claude/settings.local.json
+.claude/worktrees/
+.obsidian/
+.base-ast/
+.base-ast-cache/
+.serena/
+dev/handoffs/
+
+# Old checkout of github.com/fabiommendes/seks. Its history now lives in
+# digital/seks/prototipo/; delete this directory when no longer needed.
+/seks/
