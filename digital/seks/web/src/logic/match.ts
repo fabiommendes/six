@@ -19,7 +19,21 @@ export interface BotMode {
   readonly level: BotLevel;
 }
 
-export type Mode = HotseatMode | BotMode;
+/**
+ * One human by correspondence: the other side plays elsewhere and its plays
+ * arrive in a link. Only `human` plays here.
+ */
+export interface CorrespondenceMode {
+  readonly kind: "correspondence";
+  readonly human: Side;
+  /** The id of the game in the link and in the saved list. */
+  readonly id: string;
+}
+
+/** A mode the development server can save in the session (see `session.ts`). */
+export type LocalMode = HotseatMode | BotMode;
+
+export type Mode = LocalMode | CorrespondenceMode;
 
 /** A die that left the board. */
 export interface Captured {
@@ -111,6 +125,8 @@ export class Match {
   /** Bumped to drop a bot answer that is no longer wanted (undo, new game). */
   private epoch = 0;
   private disposed = false;
+  /** The plies up to here cannot be undone (the opponent has them). */
+  private floor = 0;
   private readonly listeners = new Set<(snapshot: MatchSnapshot) => void>();
   /** The position the match started from, to save it. */
   private readonly base: string;
@@ -134,9 +150,21 @@ export class Match {
     return { base: this.base, commands: this.history.map((entry) => entry.command) };
   }
 
-  /** Replays `commands` on the game without animation, as if they were played. Call before `start()`. */
-  resume(commands: readonly Command[]): void {
+  /**
+   * Replays `commands` on the game without animation, as if they were played.
+   * Call before `start()`. The first `locked` of them (all, by default, in a
+   * match by correspondence) cannot be undone.
+   */
+  resume(commands: readonly Command[], locked?: number): void {
     for (const command of commands) this.history.push(this.entry(command, this.game.command(command)));
+    if (locked !== undefined) this.floor = Math.min(locked, this.history.length);
+  }
+
+  /** Locks every play made so far: the opponent has them, so they cannot be undone. */
+  lock(): void {
+    if (this.disposed || this.floor === this.history.length) return;
+    this.floor = this.history.length;
+    this.notify();
   }
 
   /** Puts the position on the stage and, if the bot plays first, asks it. */
@@ -227,6 +255,7 @@ export class Match {
 
   private canUndo(): boolean {
     if (this.busy) return false;
+    if (this.mode.kind === "correspondence") return this.history.length > this.floor;
     if (this.mode.kind === "hotseat") return this.history.length > 0;
     const human = this.mode.human;
     return this.history.some((entry) => entry.side === human);

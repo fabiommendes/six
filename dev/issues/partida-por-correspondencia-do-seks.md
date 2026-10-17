@@ -35,6 +35,12 @@ do RFC.
   sem desfazer em rede). Antes de copiar o link, a jogada pode ser desfeita.
 - R7. Textos com os termos de `regras/seks/GLOSSARY.md`, sem palavras de
   `Não usar:`; testes no `just check`.
+- R8. Desistir (decisão do designer no RFC: é sair da partida, não há regra
+  de resultado). Botão "Desistir", com confirmação; o link enviado marca a
+  desistência. Quem abre o link vê que o outro saiu e escolhe "Continuar
+  contra o bot" (da posição atual, com a mesma cor e o nível escolhido ali) ou
+  "Encerrar". A partida guardada acompanha: sai da lista de quem desistiu e,
+  em quem recebe, sai da lista ao encerrar ou vira partida contra o bot.
 
 ## Out of scope
 
@@ -63,7 +69,7 @@ navegador guarda a cor, o id e as jogadas de cada partida.
   `localStorage` (id, cor, posição, jogadas, quantas o outro já tem), e a
   regra de abrir um link (partida nova, link velho, link que avança, link
   que diverge). Rotas do fragmento (`#v1...` e `#g.<id>`). Testes.
-- [ ] P4. `Match` com o modo por correspondência (só a cor do jogador joga,
+- [x] P4. `Match` com o modo por correspondência (só a cor do jogador joga,
   desfazer até o "piso" travado por copiar ou compartilhar). Testes.
 - [ ] P5. Interface: tela inicial (escolha de cor e lista das partidas
   guardadas), painel de jogo com o link, copiar e compartilhar, aviso de

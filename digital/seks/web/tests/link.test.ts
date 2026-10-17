@@ -39,11 +39,22 @@ describe("link format", () => {
   });
 
   it("reads back what it wrote, with or without the leading #", () => {
-    const link = { id: "g-1_x", start: "XY", commands: ["m3", "m3", "m0", "m9"] };
+    const link = { id: "g-1_x", start: "XY", commands: ["m3", "m3", "m0", "m9"], left: null };
     const text = encodeLink(link, ruleset);
     expect(decodeLink(text, ruleset)).toEqual(link);
     expect(decodeLink(`#${text}`, ruleset)).toEqual(link);
     expect(decodeLink(`  #${text}\n`, ruleset)).toEqual(link);
+  });
+
+  it("marks who left the game in a fifth part", () => {
+    const link = { id: "abc", start: "", commands: ["m0"], left: "b" };
+    const text = encodeLink(link, ruleset);
+    expect(text).toBe("v1.abc..AA.b");
+    expect(decodeLink(text, ruleset)).toEqual(link);
+    expect(decodeLink("v1.abc..AA", ruleset).left).toBeNull();
+    expect(error(() => decodeLink("v1.abc..AA.", ruleset)).code).toBe("format");
+    expect(error(() => decodeLink("v1.abc..AA.b.c", ruleset)).code).toBe("format");
+    expect(error(() => encodeLink({ ...link, left: "" }, ruleset)).code).toBe("format");
   });
 
   it("carries a game with no plays", () => {
@@ -54,7 +65,7 @@ describe("link format", () => {
 
   it("uses two bytes for an index of 128 or more", () => {
     const wide = toy(300, 10);
-    const link = { id: "abc", start: "", commands: ["m0", "m127", "m128", "m299"] };
+    const link = { id: "abc", start: "", commands: ["m0", "m127", "m128", "m299"], left: null };
     const text = encodeLink(link, wide);
     expect(decodeLink(text, wide)).toEqual(link);
     // 1 + 1 + 2 + 2 bytes = 6 bytes = 8 characters.
@@ -82,7 +93,7 @@ describe("link format", () => {
 
 describe("link errors", () => {
   it("text that is not a link is a format error", () => {
-    for (const text of ["", "hello", "v1.abc.", "v1.abc..AAEJ.extra", "x1.abc..AAEJ", "v1.a b..AAEJ", "v1..AAEJ", "v1.abc..AQ=="]) {
+    for (const text of ["", "hello", "v1.abc.", "v1.abc..AAEJ.extra.more", "x1.abc..AAEJ", "v1.a b..AAEJ", "v1..AAEJ", "v1.abc..AQ=="]) {
       expect(error(() => decodeLink(text, ruleset)).code, text).toBe("format");
     }
   });

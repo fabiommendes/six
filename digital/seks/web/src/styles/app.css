@@ -155,3 +155,23 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; }
 }
+
+/* Play by correspondence: the link, the opponent who left, the confirmation, the saved games. */
+[hidden] { display: none !important; }
+.mail, .left, .ask { margin-top: 10px; padding: 10px 12px; border: 2px solid var(--ink); background: #fff; }
+.mail-link { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); font: 500 14px "Alegreya Sans", sans-serif; text-overflow: ellipsis; }
+.mail-buttons, .left-buttons, .ask-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.mail-buttons button, .left-buttons button, .ask-buttons button { flex: 1 1 auto; }
+.mail-status { margin: 6px 0 0; min-height: 1.3em; font-size: 15px; color: var(--muted); }
+.left-level { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.left-level select { font: inherit; padding: 6px 8px; border: 2px solid var(--ink); background: var(--paper); }
+.ask-text { margin: 0; font-size: 15px; line-height: 1.3; }
+.notice { margin: 14px 0 0; padding: 10px 12px; border-left: 4px solid var(--seks); background: #fff; font-size: 15px; line-height: 1.3; }
+.mail-list { margin-top: 22px; }
+.mail-list h2 { margin: 0 0 8px; font: 800 20px "Alegreya", serif; }
+.mail-list ul { list-style: none; margin: 0; padding: 0; }
+.mail-game { display: flex; align-items: center; gap: 12px; padding: 8px 10px; margin-bottom: 8px; border: 2px solid var(--line); background: var(--paper); }
+.mail-game > span { line-height: 0; flex: none; }
+.mail-game-text { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+.mail-game-text .t { font-weight: 800; font-size: 17px; line-height: 1.1; }
+.mail-game-text .d { font-size: 15px; color: var(--muted); }

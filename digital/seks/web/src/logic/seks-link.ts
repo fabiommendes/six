@@ -109,3 +109,6 @@ export function outlook(start: string, commands: readonly string[]): Outlook {
     game.free();
   }
 }
+
+/** The `left` token of a link for the side that left. */
+export const sideToken = (side: Side): string => (side === "white" ? "w" : "b");

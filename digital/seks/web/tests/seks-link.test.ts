@@ -115,7 +115,7 @@ describe("Seks in the link: start positions", () => {
     const commands = playGame(3, 20, SeksGame.fromDiagram(SKETCH_DIAGRAM, "black"));
     expect(commands.length).toBeGreaterThan(5);
     const text = encodeLink({ id: "teste", start, commands }, seksRuleset);
-    expect(decodeLink(text, seksRuleset)).toEqual({ id: "teste", start, commands });
+    expect(decodeLink(text, seksRuleset)).toEqual({ id: "teste", start, commands, left: null });
   });
 
   it("refuses a position in the middle of a game, which has a history", () => {

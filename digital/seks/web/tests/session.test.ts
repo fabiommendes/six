@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BOT_LEVELS } from "../src/bot/levels";
 import { SeksGame, type Command, type Side } from "../src/engine/game";
-import type { Mode } from "../src/logic/match";
+import type { LocalMode as Mode } from "../src/logic/match";
 import { clearSession, loadSession, saveSession, SESSION_KEY, type Session, type SessionStore } from "../src/logic/session";
 import { newMatch, ScriptedBot } from "./fakes";
 

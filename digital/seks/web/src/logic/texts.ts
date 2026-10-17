@@ -1,7 +1,9 @@
 import type { Outcome } from "@wire/Outcome";
 import type { Cell } from "../engine/cells";
 import type { Side, View } from "../engine/game";
+import { LinkError } from "./link";
 import type { LastPlay, MatchSnapshot, Mode } from "./match";
+import { mailStatus, type MailGame } from "./mail-games";
 import { drawStatus } from "./status";
 
 /**
@@ -30,6 +32,9 @@ export const BUTTONS = {
   tiltOn: "Vista inclinada",
   tiltOff: "Vista de cima",
   play: "Jogar",
+  home: "Voltar ao início",
+  resign: "Desistir",
+  cancel: "Cancelar",
 } as const;
 
 export const LEGEND = {
@@ -52,7 +57,66 @@ export const START = {
   sideBlack: "Pretas",
   sideBlackNote: "jogam em segundo",
   levelLegend: "Nível do bot",
+  mail: "Por correspondência",
+  mailNote: "Cada jogada vai num link, pelo meio que você quiser. Sem conta e sem servidor.",
 } as const;
+
+/** Play by correspondence: the saved list on the start screen and the panel with the link. */
+export const MAIL = {
+  listHeading: "Suas partidas por correspondência",
+  you: (side: Side) => `Você joga com as ${SIDE_NAME[side]}`,
+  yours: "Sua vez",
+  waiting: (side: Side) => `Aguardando as ${SIDE_NAME[side]}`,
+  over: "Partida terminada",
+  open: "Continuar",
+  remove: "Remover",
+  linkLabel: "Link da partida",
+  copy: "Copiar link",
+  share: "Compartilhar",
+  copied: "Link copiado. Cole onde o outro jogador vai ver.",
+  sharedDone: "Link compartilhado.",
+  copyFailed: "O navegador não deixou copiar. Selecione o link e copie.",
+  shareTitle: "Seks",
+  shareLeftText: "Saí da nossa partida de Seks. Abra o link para escolher o que fazer com ela.",
+  levelLabel: "Nível do bot",
+  continueWithBot: "Continuar contra o bot",
+  end: "Encerrar",
+  resignAsk: "Desistir da partida? O outro jogador recebe um link avisando e escolhe entre continuar contra o bot e encerrar. A partida sai da sua lista.",
+  resignConfirm: "Desistir",
+  resignedTitle: "Você saiu da partida.",
+  resignedRest: "Mande o link para avisar o outro jogador.",
+  leftTitle: (side: Side) => `As ${SIDE_NAME[side]} saíram da partida.`,
+  leftRest: "Você pode continuar contra o bot, a partir desta posição, ou encerrar a partida.",
+  leftOverRest: "A partida já tinha terminado. Você pode encerrá-la.",
+  shareText: "Minha jogada no Seks. Abra o link para ver a partida e jogar.",
+  stale: "Este link é de uma jogada anterior. Abri a partida guardada, que está mais adiantada.",
+  missing: "Esta partida não está mais guardada neste navegador.",
+  otherGame: "Este link tem o código de uma partida guardada aqui, mas não é a mesma partida. Ele não foi aberto.",
+  diverged: "Este link segue outro caminho que a partida guardada neste navegador. Ele não foi aberto.",
+} as const;
+
+/** The line that says where a saved game by correspondence stands. */
+export function mailGameStatus(game: MailGame): string {
+  if (game.leftBy !== null) return MAIL.leftTitle(game.leftBy);
+  const status = mailStatus(game);
+  if (status === "yours") return MAIL.yours;
+  if (status === "over") return MAIL.over;
+  return MAIL.waiting(game.toMove);
+}
+
+/** The notice for a link that does not open. */
+export function linkErrorText(error: LinkError): string {
+  switch (error.code) {
+    case "version":
+      return "Este link é de uma versão do jogo que esta página não conhece. Atualize a página ou use outro link.";
+    case "start":
+      return "A posição inicial deste link não é válida. Quem o mandou pode gerar outro.";
+    case "move":
+      return `A jogada ${(error.ply ?? 0) + 1} deste link não é permitida pelas regras. Quem o mandou pode gerar outro.`;
+    default:
+      return "Este link está incompleto ou foi alterado. Copie-o de novo ou use outro link.";
+  }
+}
 
 export const COUNTER = {
   label: "jogadas sem captura",
@@ -69,6 +133,7 @@ export function turnTitle(side: Side): string {
 
 export function modeLine(mode: Mode): string {
   if (mode.kind === "hotseat") return "Partida local · Brancas contra Pretas";
+  if (mode.kind === "correspondence") return `Por correspondência · você joga com as ${SIDE_NAME[mode.human]}`;
   return `Contra o bot, nível ${mode.level.label} · você joga com as ${SIDE_NAME[mode.human]}`;
 }
 
@@ -81,14 +146,16 @@ function botsTurn(snapshot: MatchSnapshot): boolean {
 export function turnSubtitle(snapshot: MatchSnapshot): string {
   if (snapshot.view.outcome !== null) return "";
   if (snapshot.thinking || botsTurn(snapshot)) return "O bot está pensando…";
-  if (snapshot.mode.kind === "bot") return "Sua vez: mova ou incremente um dado.";
+  if (snapshot.mode.kind === "correspondence" && !snapshot.humanToMove) return `Aguardando as ${SIDE_NAME[snapshot.view.to_move]}.`;
+  if (snapshot.mode.kind !== "hotseat") return "Sua vez: mova ou incremente um dado.";
   return "Mova ou incremente um dado.";
 }
 
 /** The mark of each side in the list of sides: who plays it against the bot. */
 export function sideTag(mode: Mode, side: Side): string {
   if (mode.kind === "hotseat") return "";
-  return mode.human === side ? "você" : "bot";
+  if (mode.human === side) return "você";
+  return mode.kind === "bot" ? "bot" : "adversário";
 }
 
 export function lastPlayText(last: LastPlay): string {
@@ -115,12 +182,13 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
     return { strong: "O bot não respondeu.", rest: `${snapshot.error}. Desfaça a última jogada ou comece outra partida.` };
   }
   if (snapshot.view.outcome !== null) return { strong: "", rest: "" };
+  if (snapshot.mode.kind === "correspondence" && !snapshot.humanToMove) return waitingHint(snapshot, snapshot.mode.human);
   if (snapshot.thinking || botsTurn(snapshot)) {
     return { strong: "O bot está pensando.", rest: snapshot.canUndo ? "Você pode desfazer a sua última jogada enquanto espera." : "" };
   }
   const selection = snapshot.selection;
   if (selection === null) {
-    const whose = snapshot.mode.kind === "bot" ? "num dos seus dados" : `num dado das ${SIDE_NAME[snapshot.view.to_move]}`;
+    const whose = snapshot.mode.kind !== "hotseat" ? "num dos seus dados" : `num dado das ${SIDE_NAME[snapshot.view.to_move]}`;
     return { strong: "Escolha um dado.", rest: `${Verb} ${whose} para ver aonde ele vai; ${verb} nele de novo para incrementar.` };
   }
   const value = snapshot.view.dice.find((die) => die.cell === selection.at)?.value ?? 0;
@@ -137,6 +205,18 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
     return { strong, rest: `Nenhuma casa ao alcance: o dado está cercado. ${Verb} nele de novo para incrementar.` };
   }
   return { strong, rest: `Este dado não tem jogada: está cercado e um ${value} não pode ser incrementado. ${Verb} nele de novo para tirar a seleção.` };
+}
+
+/** The note while the other player has the turn in a match by correspondence. */
+function waitingHint(snapshot: MatchSnapshot, human: Side): Hint {
+  const other = SIDE_NAME[human === "white" ? "black" : "white"];
+  if (snapshot.last === null) {
+    return { strong: `Convide as ${other}.`, rest: "Mande o link: elas abrem, jogam e mandam outro de volta." };
+  }
+  if (snapshot.canUndo) {
+    return { strong: "Mande o link.", rest: `A jogada só chega às ${other} pelo link. Até copiar ou compartilhar, você pode desfazer.` };
+  }
+  return { strong: `Aguardando as ${other}.`, rest: "Quando elas responderem, abra o link que mandarem." };
 }
 
 /** The warning of a near draw by repetition, or `null`. */

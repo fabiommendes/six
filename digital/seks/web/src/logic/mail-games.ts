@@ -21,6 +21,8 @@ export interface MailGame {
   /** Who is to move, so the list can say it without replaying the game. */
   readonly toMove: Side;
   readonly over: boolean;
+  /** The side that left the game (resigned) and told it in a link; `null` while both are in. */
+  readonly leftBy: Side | null;
   /** When the entry last changed (ms since the epoch), to list the latest first. */
   readonly updated: number;
 }
@@ -38,7 +40,7 @@ const isSide = (value: unknown): value is Side => value === "white" || value ===
 
 /** A new game by correspondence, from the standard position, for `player`. */
 export function newMailGame(player: Side, now: number = Date.now(), id: string = randomGameId()): MailGame {
-  return { id, start: "", player, commands: [], shared: 0, toMove: "white", over: false, updated: now };
+  return { id, start: "", player, commands: [], shared: 0, toMove: "white", over: false, leftBy: null, updated: now };
 }
 
 /** What the player of this entry may do with the game now. */
@@ -81,6 +83,7 @@ function isMailGame(value: unknown): value is MailGame {
     game.shared! <= game.commands.length &&
     isSide(game.toMove) &&
     typeof game.over === "boolean" &&
+    (game.leftBy === null || isSide(game.leftBy)) &&
     typeof game.updated === "number"
   );
 }
@@ -133,40 +136,48 @@ export type Opening =
       /** The link was older than the game kept here, which is more advanced. */
       readonly stale: boolean;
     }
-  /** The link is of a game that has this id here but another start position or other plays. */
-  | { readonly kind: "refused"; readonly reason: "other-game" | "diverged" };
+  /** The link cannot be taken for this game: see the reasons. */
+  | { readonly kind: "refused"; readonly reason: "format" | "other-game" | "diverged" };
 
 const isPrefix = (short: readonly string[], long: readonly string[]) => short.length <= long.length && short.every((command, i) => command === long[i]);
+
+/** The side a `left` token of a link names (`w` or `b`, see `sideToken` in `seks-link.ts`). */
+const sideOfToken = (token: string): Side | null => (token === "w" ? "white" : token === "b" ? "black" : null);
 
 /**
  * Opens a link (already replayed, so every command in it is legal) against
  * the entry with its id, if any.
  *
  * - No entry: a new game; this browser plays the side that the link leaves to
- *   move (or, for a finished game, the side that did not play last).
+ *   move (or, for a finished game, the side that did not play last; for a
+ *   link in which someone left, the other side).
  * - The link goes beyond the entry: the entry takes it, all of it known to the
  *   opponent. The side stays the one the entry had.
- * - The link is the entry or an older state of it: the entry stays.
+ * - The link is the entry or an older state of it: the entry stays (except
+ *   for who left, which a link may tell).
  * - Anything else is refused: it is not the same game.
  */
 export function openLink(link: Link, existing: MailGame | null, ending: LinkOutlook, now: number = Date.now()): Opening {
+  const left = link.left === undefined || link.left === null ? null : sideOfToken(link.left);
+  if (link.left !== undefined && link.left !== null && left === null) return { kind: "refused", reason: "format" };
   if (existing === null) {
-    const player = ending.lastMover === null ? ending.toMove : opposite(ending.lastMover);
+    const player = left !== null ? opposite(left) : ending.lastMover === null ? ending.toMove : opposite(ending.lastMover);
     return {
       kind: "open",
       stale: false,
-      game: { id: link.id, start: link.start, player, commands: link.commands, shared: link.commands.length, toMove: ending.toMove, over: ending.over, updated: now },
+      game: { id: link.id, start: link.start, player, commands: link.commands, shared: link.commands.length, toMove: ending.toMove, over: ending.over, leftBy: left, updated: now },
     };
   }
-  if (existing.start !== link.start) return { kind: "refused", reason: "other-game" };
+  if (existing.start !== link.start || left === existing.player) return { kind: "refused", reason: "other-game" };
   if (isPrefix(link.commands, existing.commands)) {
-    return { kind: "open", stale: link.commands.length < existing.commands.length, game: existing };
+    const game = left === null || left === existing.leftBy ? existing : { ...existing, leftBy: left, updated: now };
+    return { kind: "open", stale: link.commands.length < existing.commands.length, game };
   }
   if (!isPrefix(existing.commands, link.commands)) return { kind: "refused", reason: "diverged" };
   return {
     kind: "open",
     stale: false,
-    game: { ...existing, commands: link.commands, shared: link.commands.length, toMove: ending.toMove, over: ending.over, updated: now },
+    game: { ...existing, commands: link.commands, shared: link.commands.length, toMove: ending.toMove, over: ending.over, leftBy: left ?? existing.leftBy, updated: now },
   };
 }
 

@@ -2,6 +2,8 @@ import { Board3D } from "../board/board3d";
 import { COMPACT_BELOW } from "../board/layout";
 import { adaptWorker, WorkerBot } from "../bot/client";
 import type { BotPlayer } from "../bot/client";
+import { BOT_LEVELS, DEFAULT_BOT_LEVEL } from "../bot/levels";
+import type { BotLevelId } from "../bot/protocol";
 import type { Cell } from "../engine/cells";
 import type { Command, SeksGame, Side } from "../engine/game";
 import { Match, type Mode, type Seed } from "../logic/match";
@@ -12,6 +14,7 @@ import {
   BUTTONS,
   COUNTER,
   LEGEND,
+  MAIL,
   SIDE_NAME,
   boardLabel,
   diceCount,
@@ -28,6 +31,24 @@ import {
 import { esc, need } from "./dom";
 import { flyToPanel } from "./flight";
 import { brandMark, dieIcon, markIcon, motifStrip, tally } from "./svg";
+
+/** What a match by correspondence needs from the page around it (the links and the saved list). */
+export interface MailOptions {
+  /** The URL of the link for these commands; `left` for the link that tells the player resigned. */
+  readonly linkFor: (commands: readonly Command[], left: boolean) => string;
+  /** How many of the plies the opponent already has (they cannot be undone). */
+  readonly shared: number;
+  /** The side that left the game, if the opponent told so in a link. */
+  readonly leftBy: Side | null;
+  /** Called at every change, to keep the game in the saved list. */
+  readonly onChange: (change: { commands: readonly Command[]; shared: number; toMove: Side; over: boolean }) => void;
+  /** The player resigned: the game leaves the saved list (the link to send stays on the screen). */
+  readonly onResign: () => void;
+  /** The opponent left and the player goes on against the bot, from this position. */
+  readonly onContinue: (level: BotLevelId) => void;
+  /** The opponent left and the player ends the game. */
+  readonly onEnd: () => void;
+}
 
 export interface GameScreenOptions {
   readonly mode: Mode;
@@ -49,6 +70,10 @@ export interface GameScreenOptions {
   readonly viewpoint?: Side;
   /** Called with what it takes to open this match again, at every change of it. */
   readonly onSession?: (session: Session) => void;
+  /** A notice to show above the panel (for example, a link older than the game kept here). */
+  readonly notice?: string;
+  /** The match by correspondence; `mode` must be `correspondence`. */
+  readonly mail?: MailOptions;
   /** The player asked for a new game. */
   readonly onNewGame: () => void;
 }
@@ -69,6 +94,26 @@ const SKELETON = `
       <div class="turn desk-turn"></div>
       <p class="note" aria-live="polite"></p>
       <p class="note warn" hidden></p>
+      <p class="notice" hidden></p>
+      <div class="mail" hidden>
+        <input class="mail-link" type="text" readonly aria-label="${MAIL.linkLabel}">
+        <div class="mail-buttons">
+          <button type="button" data-action="copy">${MAIL.copy}</button>
+          <button type="button" data-action="share" hidden>${MAIL.share}</button>
+        </div>
+        <p class="mail-status" aria-live="polite"></p>
+      </div>
+      <div class="left" hidden>
+        <label class="left-level">${MAIL.levelLabel} <select>${BOT_LEVELS.map((level) => `<option value="${level.id}"${level.id === DEFAULT_BOT_LEVEL.id ? " selected" : ""}>${level.label}</option>`).join("")}</select></label>
+        <div class="left-buttons">
+          <button type="button" data-action="continue">${MAIL.continueWithBot}</button>
+          <button type="button" data-action="end">${MAIL.end}</button>
+        </div>
+      </div>
+      <div class="ask" role="alertdialog" aria-live="polite" hidden>
+        <p class="ask-text"></p>
+        <div class="ask-buttons"></div>
+      </div>
       <div class="last"></div>
       <div class="sides"></div>
       <div class="count" hidden></div>
@@ -76,6 +121,7 @@ const SKELETON = `
       <div class="actions">
         <button type="button" data-action="undo">${BUTTONS.undo}</button>
         <button type="button" data-action="tilt" aria-pressed="false">${BUTTONS.tiltOn}</button>
+        <button type="button" data-action="resign" hidden>${BUTTONS.resign}</button>
         <button type="button" data-action="new">${BUTTONS.newGame}</button>
       </div>
     </div>
@@ -93,6 +139,13 @@ export class GameScreen {
   private viewpoint: Side = "white";
   private readonly off: (() => void)[] = [];
   private bandWidth = 0;
+  /** Plies the opponent has, in a match by correspondence. */
+  private shared = 0;
+  /** The URL to send when the player resigned (a match by correspondence); `null` while in. */
+  private resignedLink: string | null = null;
+  /** What the confirmation under the panel asks, if it is open. */
+  private asking: "resign" | null = null;
+  private mailLinkShown = "";
 
   constructor(
     private readonly host: HTMLElement,
@@ -124,7 +177,8 @@ export class GameScreen {
     };
     this.match = new Match(options.game, options.mode, stage, options.bot, options.seed);
     if (board) board.canActivate = (cell) => this.canActivate(cell);
-    if (options.resume) this.match.resume(options.resume);
+    this.shared = options.mail?.shared ?? 0;
+    if (options.resume) this.match.resume(options.resume, options.mail ? this.shared : undefined);
     if (options.tilted) {
       this.tilted = true;
       board?.setTilted(true, true);
@@ -168,12 +222,24 @@ export class GameScreen {
   }
 
   private persist(): void {
-    this.options.onSession?.({ mode: this.options.mode, ...this.match.record(), seed: this.options.seed ?? {}, tilted: this.tilted, viewpoint: this.viewpoint });
+    const mode = this.options.mode;
+    if (mode.kind === "correspondence") {
+      if (this.resignedLink !== null) return;
+      const view = this.match.snapshot().view;
+      this.options.mail?.onChange({ commands: this.match.record().commands, shared: this.shared, toMove: view.to_move, over: view.outcome !== null });
+      return;
+    }
+    this.options.onSession?.({ mode, ...this.match.record(), seed: this.options.seed ?? {}, tilted: this.tilted, viewpoint: this.viewpoint });
+  }
+
+  /** The player cannot move: they resigned, or the opponent left. */
+  private get frozen(): boolean {
+    return this.resignedLink !== null || (this.options.mail?.leftBy ?? null) !== null;
   }
 
   /** The side to see the board from: the human's against the bot; in hotseat the side to move, or the same one when the game is over. */
   private sideToSee(snapshot: ReturnType<Match["snapshot"]>): Side {
-    if (snapshot.mode.kind === "bot") return snapshot.mode.human;
+    if (snapshot.mode.kind !== "hotseat") return snapshot.mode.human;
     return snapshot.view.outcome === null ? snapshot.view.to_move : this.viewpoint;
   }
 
@@ -188,12 +254,13 @@ export class GameScreen {
 
   private canActivate(cell: Cell): boolean {
     const snapshot = this.match.snapshot();
-    if (!snapshot.humanToMove || snapshot.busy || snapshot.thinking) return false;
+    if (this.frozen || !snapshot.humanToMove || snapshot.busy || snapshot.thinking) return false;
     const die = snapshot.view.dice.find((d) => d.cell === cell);
     return (die !== undefined && die.side === snapshot.view.to_move) || (snapshot.selection?.moves.includes(cell) ?? false);
   }
 
   private async onCell(cell: Cell | null): Promise<void> {
+    if (this.frozen) return;
     if (cell === null) this.match.clearSelection();
     else await this.match.click(cell);
   }
@@ -204,6 +271,13 @@ export class GameScreen {
     const action = button.dataset.action;
     if (action === "undo") this.match.undo();
     else if (action === "new") this.options.onNewGame();
+    else if (action === "resign") this.ask("resign");
+    else if (action === "cancel") this.ask(null);
+    else if (action === "confirm-resign") this.resign();
+    else if (action === "copy") void this.copyLink();
+    else if (action === "share") void this.shareLink();
+    else if (action === "continue") this.options.mail?.onContinue(this.chosenLevel());
+    else if (action === "end") this.options.mail?.onEnd();
     else if (action === "tilt") {
       this.tilted = !this.tilted;
       this.board?.setTilted(this.tilted);
@@ -212,6 +286,120 @@ export class GameScreen {
       this.options.onTilt?.(this.tilted);
     }
   };
+
+  private chosenLevel(): BotLevelId {
+    const value = need<HTMLSelectElement>(this.host, ".left-level select").value;
+    return (BOT_LEVELS.find((level) => level.id === value) ?? DEFAULT_BOT_LEVEL).id;
+  }
+
+  private ask(question: "resign" | null): void {
+    this.asking = question;
+    this.render(this.match.snapshot());
+  }
+
+  /** The player leaves the game: it goes out of the list and the link that tells the opponent stays here. */
+  private resign(): void {
+    const mail = this.options.mail;
+    if (!mail || this.resignedLink !== null) return;
+    this.resignedLink = mail.linkFor(this.match.record().commands, true);
+    this.asking = null;
+    mail.onResign();
+    this.render(this.match.snapshot());
+  }
+
+  /** The URL to send now: the plies played, or the notice of the resignation. */
+  private currentLink(): string {
+    return this.resignedLink ?? this.options.mail?.linkFor(this.match.record().commands, false) ?? "";
+  }
+
+  private setMailStatus(text: string): void {
+    need(this.host, ".mail-status").textContent = text;
+  }
+
+  /** The opponent has the plies once the link was copied or shared: from then on they cannot be undone. */
+  private markShared(): void {
+    this.shared = this.match.record().commands.length;
+    this.match.lock();
+  }
+
+  private async copyLink(): Promise<void> {
+    const input = need<HTMLInputElement>(this.host, ".mail-link");
+    const link = this.currentLink();
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(link);
+      copied = true;
+    } catch {
+      input.select();
+      copied = document.execCommand?.("copy") ?? false;
+    }
+    if (!copied) {
+      input.select();
+      this.setMailStatus(MAIL.copyFailed);
+      return;
+    }
+    this.setMailStatus(MAIL.copied);
+    if (this.resignedLink === null) this.markShared();
+  }
+
+  private async shareLink(): Promise<void> {
+    try {
+      await navigator.share({ title: MAIL.shareTitle, text: this.resignedLink === null ? MAIL.shareText : MAIL.shareLeftText, url: this.currentLink() });
+    } catch {
+      // The player closed the sheet: nothing was sent.
+      return;
+    }
+    this.setMailStatus(MAIL.sharedDone);
+    if (this.resignedLink === null) this.markShared();
+  }
+
+  /** Whether a match by correspondence waits for the other player: the link is to be sent. */
+  private mailWaiting(snapshot: ReturnType<Match["snapshot"]>): boolean {
+    if (this.options.mail === undefined || this.options.mail.leftBy !== null) return false;
+    if (snapshot.view.outcome !== null) return snapshot.last !== null && snapshot.mode.kind === "correspondence" && snapshot.last.side === snapshot.mode.human;
+    return !snapshot.humanToMove;
+  }
+
+  /** The parts of the panel that exist only for play by correspondence, and the confirmation. */
+  private renderMail(snapshot: ReturnType<Match["snapshot"]>): void {
+    const host = this.host;
+    const mail = this.options.mail;
+    const showLink = this.resignedLink !== null || this.mailWaiting(snapshot);
+    need(host, ".mail").hidden = !showLink;
+    if (showLink) {
+      const link = this.currentLink();
+      const input = need<HTMLInputElement>(host, ".mail-link");
+      if (link !== this.mailLinkShown) {
+        this.mailLinkShown = link;
+        input.value = link;
+        this.setMailStatus("");
+      }
+      need(host, '[data-action="share"]').hidden = typeof navigator.share !== "function";
+    }
+    const notice = need(host, ".notice");
+    notice.hidden = !this.options.notice;
+    notice.textContent = this.options.notice ?? "";
+    const left = mail?.leftBy ?? null;
+    const showLeft = left !== null && this.resignedLink === null;
+    need(host, ".left").hidden = !showLeft;
+    need(host, '[data-action="continue"]').hidden = snapshot.view.outcome !== null;
+    need(host, ".left-level").hidden = snapshot.view.outcome !== null;
+    need<HTMLButtonElement>(host, '[data-action="resign"]').hidden = !mail || this.frozen || snapshot.view.outcome !== null;
+
+    const ask = need(host, ".ask");
+    ask.hidden = this.asking === null;
+    if (this.asking === "resign") {
+      need(host, ".ask-text").textContent = MAIL.resignAsk;
+      need(host, ".ask-buttons").innerHTML = `<button type="button" data-action="confirm-resign">${MAIL.resignConfirm}</button><button type="button" data-action="cancel">${BUTTONS.cancel}</button>`;
+    }
+
+    // Against the other player's absence the note says what happened.
+    const note = need(host, ".note:not(.warn)");
+    if (this.resignedLink !== null) note.innerHTML = `<b>${esc(MAIL.resignedTitle)}</b> ${esc(MAIL.resignedRest)}`;
+    else if (showLeft && left !== null) note.innerHTML = `<b>${esc(MAIL.leftTitle(left))}</b> ${esc(snapshot.view.outcome === null ? MAIL.leftRest : MAIL.leftOverRest)}`;
+    if (this.frozen) need<HTMLButtonElement>(host, '[data-action="undo"]').disabled = true;
+    need(host, '[data-action="new"]').textContent = mail ? BUTTONS.home : BUTTONS.newGame;
+  }
 
   /** A press outside the board and the buttons clears the selection too. */
   private readonly onOutside = (event: PointerEvent) => {
@@ -289,6 +477,7 @@ export class GameScreen {
     tilt.textContent = this.tilted ? BUTTONS.tiltOff : BUTTONS.tiltOn;
     tilt.setAttribute("aria-pressed", String(this.tilted));
     host.classList.toggle("thinking", snapshot.thinking);
+    this.renderMail(snapshot);
   }
 
   private sideRow(snapshot: ReturnType<Match["snapshot"]>, side: Side): string {

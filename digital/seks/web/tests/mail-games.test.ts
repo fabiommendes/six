@@ -22,7 +22,7 @@ const after = (commands: string[]): LinkOutlook => outlook("", commands);
 describe("saved games", () => {
   it("a new game is the standard position, nothing played, the Whites to move", () => {
     const game = newMailGame("black", 5, "xyz");
-    expect(game).toMatchObject({ id: "xyz", start: "", player: "black", commands: [], shared: 0, toMove: "white", over: false, updated: 5 });
+    expect(game).toMatchObject({ id: "xyz", start: "", player: "black", commands: [], shared: 0, toMove: "white", over: false, leftBy: null, updated: 5 });
     expect(mailStatus(game)).toBe("waiting");
     expect(mailStatus({ ...game, player: "white" })).toBe("yours");
     expect(mailStatus({ ...game, over: true })).toBe("over");
@@ -113,6 +113,24 @@ describe("opening a link", () => {
   it("the same link again keeps the entry as it is", () => {
     const mine: MailGame = { ...newMailGame("black", 1, "abc"), commands: first, shared: 1, toMove: "black" };
     expect(openLink(link(first), mine, after(first))).toEqual({ kind: "open", stale: false, game: mine });
+  });
+
+  it("a link in which the other side left: a new game here plays the other side", () => {
+    const opening = openLink({ ...link(first), left: "w" }, null, after(first));
+    expect(opening).toMatchObject({ kind: "open", game: { player: "black", leftBy: "white" } });
+  });
+
+  it("a link in which the other side left marks the entry, even with no new plays", () => {
+    const mine: MailGame = { ...newMailGame("black", 1, "abc"), commands: first, shared: 1, toMove: "black" };
+    expect(openLink({ ...link(first), left: "w" }, mine, after(first))).toMatchObject({ kind: "open", game: { leftBy: "white", commands: first } });
+    const longer = openLink({ ...link(second), left: "w" }, { ...mine, player: "black", commands: first }, after(second));
+    expect(longer).toMatchObject({ kind: "open", game: { leftBy: "white", commands: second, player: "black" } });
+  });
+
+  it("a link that says the player of this browser left, or a side that does not exist, is refused", () => {
+    const mine: MailGame = { ...newMailGame("black", 1, "abc"), commands: first, shared: 1, toMove: "black" };
+    expect(openLink({ ...link(first), left: "b" }, mine, after(first))).toEqual({ kind: "refused", reason: "other-game" });
+    expect(openLink({ ...link(first), left: "z" }, null, after(first))).toEqual({ kind: "refused", reason: "format" });
   });
 
   it("another game with the same id or a game that went another way is refused", () => {

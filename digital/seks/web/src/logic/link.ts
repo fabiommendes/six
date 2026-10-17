@@ -8,7 +8,7 @@
  *
  * Fragment, version 1:
  *
- *     v1.<id>.<start>.<plays>
+ *     v1.<id>.<start>.<plays>[.<left>]
  *
  * - `id`: names the game, so a returning link finds its entry in the storage;
  * - `start`: the start position as the ruleset words it; empty for the
@@ -16,6 +16,9 @@
  * - `plays`: for each command, its index in `Rules.legalCommands()` at that
  *   point of the game, as a varint (7 bits per byte, low bits first, the high
  *   bit set when more bytes follow), in base64url without padding.
+ *
+ * - `left`: present only when the sender left the game (resigned); an
+ *   opaque token that says which player left, in the words of the ruleset.
  *
  * The index form only works while a ruleset lists its legal commands in a
  * fixed order; a change of that order breaks old links, so each ruleset must
@@ -32,6 +35,8 @@ export interface Link {
   readonly start: string;
   /** The commands played from `start`, in order, in the notation of the ruleset. */
   readonly commands: readonly string[];
+  /** Which player left the game with this link (a token of the ruleset); `null` while the game goes on. */
+  readonly left?: string | null;
 }
 
 /** A game being replayed, which the ruleset owns. */
@@ -95,7 +100,12 @@ export function encodeLink(link: Link, ruleset: Ruleset): string {
   if (!isGameId(link.id)) throw new LinkError("format", `not a game id: ${JSON.stringify(link.id)}`);
   if (!TOKEN.test(link.start)) throw new LinkError("start", "the start position has characters a link cannot carry");
   const indexes = indexesOf(link.commands, link.start, ruleset);
-  return [`v${LINK_VERSION}`, link.id, link.start, toBase64Url(varints(indexes))].join(".");
+  const parts = [`v${LINK_VERSION}`, link.id, link.start, toBase64Url(varints(indexes))];
+  if (link.left !== undefined && link.left !== null) {
+    if (link.left === "" || !TOKEN.test(link.left)) throw new LinkError("format", "the player who left has characters a link cannot carry");
+    parts.push(link.left);
+  }
+  return parts.join(".");
 }
 
 /**
@@ -105,14 +115,14 @@ export function encodeLink(link: Link, ruleset: Ruleset): string {
  */
 export function decodeLink(fragment: string, ruleset: Ruleset): Link {
   const parts = fragment.trim().replace(/^#/, "").split(".");
-  if (parts.length !== 4) throw new LinkError("format", "the link does not have the four parts");
-  const [version, id, start, plays] = parts as [string, string, string, string];
+  if (parts.length !== 4 && parts.length !== 5) throw new LinkError("format", "the link does not have four or five parts");
+  const [version, id, start, plays, left = null] = parts as [string, string, string, string, string?];
   const number = /^v(\d+)$/.exec(version);
   if (number === null) throw new LinkError("format", "the link has no version");
   if (Number(number[1]) !== LINK_VERSION) throw new LinkError("version", `link version ${number[1]} is not known`);
-  if (!isGameId(id) || !TOKEN.test(start) || !TOKEN.test(plays)) throw new LinkError("format", "the link has characters it should not");
+  if (!isGameId(id) || !TOKEN.test(start) || !TOKEN.test(plays) || (left !== null && !/^[A-Za-z0-9_-]+$/.test(left))) throw new LinkError("format", "the link has characters it should not");
   const indexes = readVarints(fromBase64Url(plays));
-  return { id, start, commands: commandsOf(indexes, start, ruleset) };
+  return { id, start, commands: commandsOf(indexes, start, ruleset), left };
 }
 
 function open(start: string, ruleset: Ruleset): Rules {

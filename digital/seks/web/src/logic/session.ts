@@ -1,11 +1,11 @@
 import { BOT_LEVELS } from "../bot/levels";
 import type { Command } from "../engine/game";
 import { SeksGame, type Side } from "../engine/game";
-import type { Captured, LastPlay, Mode, Seed } from "./match";
+import type { Captured, LastPlay, LocalMode, Seed } from "./match";
 
 /** What it takes to open a match again after a reload (see `Match.record()`). */
 export interface Session {
-  readonly mode: Mode;
+  readonly mode: LocalMode;
   /** The `SeksGame.stateJson()` the match started from. */
   readonly base: string;
   /** The commands played since, in order. */
@@ -106,7 +106,7 @@ function parse(text: string): Session | null {
   }
 }
 
-function parseMode(saved: unknown): Mode | null {
+function parseMode(saved: unknown): LocalMode | null {
   const mode = saved as Partial<SavedMode> | null;
   if (mode?.kind === "hotseat") return { kind: "hotseat" };
   if (mode?.kind !== "bot" || !isSide(mode.human)) return null;
