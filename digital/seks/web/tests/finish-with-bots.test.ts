@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_BOT_LEVEL } from "../src/bot/levels";
 import { SeksGame } from "../src/engine/game";
 import { endingFixture } from "../src/logic/fixtures";
-import { Match, type Mode } from "../src/logic/match";
+import { BOTS_MIN_GAP_MS, Match, type Mode } from "../src/logic/match";
 import { endCard, hint, modeLine, sideTag, turnSubtitle } from "../src/logic/texts";
 import { RecordingStage, ScriptedBot } from "./fakes";
 
@@ -11,15 +11,24 @@ const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 function newMatch(game: SeksGame, mode: Mode, bot: ScriptedBot | null = null) {
   const stage = new RecordingStage();
   const pauses: number[] = [];
-  const match = new Match(game, mode, stage, bot, {}, (ms) => {
-    pauses.push(ms);
-    return Promise.resolve();
-  });
-  return { match, stage, pauses };
+  const clock = { time: 1000 };
+  const match = new Match(
+    game,
+    mode,
+    stage,
+    bot,
+    {},
+    (ms) => {
+      pauses.push(ms);
+      return Promise.resolve();
+    },
+    () => clock.time,
+  );
+  return { match, stage, pauses, clock };
 }
 
 describe("Terminar com bots: the bots play both sides to the end", () => {
-  it("from hotseat: plays the rest, with a pause before each play, and ends the game", async () => {
+  it("from hotseat: plays the rest, keeping the least gap between plays, and ends the game", async () => {
     const { match, pauses } = newMatch(SeksGame.create(), { kind: "hotseat" });
     await match.start();
     await match.click("b2");
@@ -30,9 +39,30 @@ describe("Terminar com bots: the bots play both sides to the end", () => {
     await tick();
     expect(match.mode).toEqual({ kind: "bots", level: DEFAULT_BOT_LEVEL, stopped: false });
     expect(match.record().commands).toEqual(["b2-b4", "b10-b8", "b4-b5"]);
-    expect(pauses.length).toBe(3);
+    // The clock stands still, so each play waits the whole gap since the start of the previous one.
+    expect(pauses).toEqual([BOTS_MIN_GAP_MS, BOTS_MIN_GAP_MS]);
     // Both sides were asked, with the level given.
     expect(bot.requests.map((request) => request.level)).toEqual([DEFAULT_BOT_LEVEL, DEFAULT_BOT_LEVEL, DEFAULT_BOT_LEVEL]);
+  });
+
+  it("a bot that answers after the gap plays at once, and a faster one waits only what is left", async () => {
+    const { match, pauses, clock } = newMatch(SeksGame.create(), { kind: "hotseat" });
+    await match.start();
+    await match.click("b2");
+    await match.click("b4");
+    // The human play began at 1000. The bot answers 500 ms later: past the gap, no wait.
+    const bot = new ScriptedBot();
+    void match.finishWithBots(bot, DEFAULT_BOT_LEVEL);
+    await tick();
+    clock.time = 1500;
+    bot.answer("b10-b8");
+    await tick();
+    expect(pauses).toEqual([]);
+    // The next play began at 1500; this answer comes 100 ms later and waits the other 200.
+    clock.time = 1600;
+    bot.answer("b4-b5");
+    await tick();
+    expect(pauses).toEqual([200]);
   });
 
   it("takes no click, no undo and shows no side as the human's", async () => {

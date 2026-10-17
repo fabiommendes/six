@@ -107,8 +107,11 @@ interface HistoryEntry {
   readonly captured: readonly Captured[];
 }
 
-/** How long the bots wait between plays when they play both sides. */
-export const BOTS_PAUSE_MS = 700;
+/**
+ * The least time between the starts of two plays when the bots play both
+ * sides. A bot that thinks longer plays as soon as it answers, with no wait on top.
+ */
+export const BOTS_MIN_GAP_MS = 300;
 
 /** The last play and the dice taken, from the events of a transition. */
 function summarize(events: readonly Event[]): { last: LastPlay; captured: Captured[] } {
@@ -138,6 +141,8 @@ export class Match {
   /** Bumped to drop a bot answer that is no longer wanted (undo, new game). */
   private epoch = 0;
   private disposed = false;
+  /** When the last play began, to space the plays of the bots. */
+  private lastPlayStart: number | null = null;
   /** The plies up to here cannot be undone (the opponent has them). */
   private floor = 0;
   private readonly listeners = new Set<(snapshot: MatchSnapshot) => void>();
@@ -153,8 +158,10 @@ export class Match {
     private readonly stage: Stage,
     bot: BotPlayer | null = null,
     private readonly seed: Seed = {},
-    /** Waits `ms` between the plays of the bots, so the player can follow (the tests give a short one). */
+    /** Waits `ms` so the plays of the bots keep their least gap and the player can follow (the tests give a short one). */
     private readonly pause: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    /** The clock, in ms (the tests give their own). */
+    private readonly now: () => number = () => Date.now(),
   ) {
     this.current = mode;
     this.bot = bot;
@@ -351,6 +358,7 @@ export class Match {
   }
 
   private async play(command: Command): Promise<void> {
+    this.lastPlayStart = this.now();
     const transition = this.game.command(command);
     const entry = this.entry(command, transition);
     this.history.push(entry);
@@ -379,12 +387,6 @@ export class Match {
     const view = this.game.view();
     if (view.outcome !== null || (mode.kind === "bot" && view.to_move === mode.human)) return;
     const token = ++this.epoch;
-    if (mode.kind === "bots") {
-      this.thinking = true;
-      this.notify();
-      await this.pause(BOTS_PAUSE_MS);
-      if (token !== this.epoch || this.disposed) return;
-    }
     this.thinking = true;
     this.error = null;
     this.notify();
@@ -399,6 +401,13 @@ export class Match {
       return;
     }
     if (token !== this.epoch || this.disposed) return;
+    if (mode.kind === "bots" && this.lastPlayStart !== null) {
+      const remaining = this.lastPlayStart + BOTS_MIN_GAP_MS - this.now();
+      if (remaining > 0) {
+        await this.pause(remaining);
+        if (token !== this.epoch || this.disposed) return;
+      }
+    }
     this.thinking = false;
     try {
       await this.play(command);
