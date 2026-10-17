@@ -40,3 +40,35 @@ do RFC.
 
 - Desistência e prazo por jogada: perguntas abertas do RFC.
 - Partida ao vivo: `dev/issues/partida-ao-vivo-do-seks.md`.
+
+## Plano
+
+Desenho: o formato do link é genérico (não importa o motor nem a UI) e fica
+num módulo próprio; um adaptador do Seks liga o formato ao `SeksGame`. O link
+é um fragmento (`#`): `v1.<id>.<posição>.<jogadas>`. A posição vazia é a
+inicial padrão; as jogadas são o índice de cada uma na lista de
+`legalCommands()` (ordem fixa do motor, travada por um vetor de teste), em
+varint de 7 bits e base64url. Quem abre o link joga a cor da vez; o
+navegador guarda a cor, o id e as jogadas de cada partida.
+
+- [ ] P1. Módulo genérico do formato (`src/logic/link.ts`): codifica e
+  decodifica versão, id, posição inicial e jogadas contra um motor
+  abstrato; erros com código (formato, versão, posição, jogada). Testes de
+  ida e volta, de erros e vetor fixo.
+- [ ] P2. Adaptador do Seks (`src/logic/seks-link.ts`): motor do link sobre
+  `SeksGame`, posição inicial padrão vazia e posição de diagrama/fixture
+  compacta. Testes com partidas inteiras (jogadas aleatórias com semente),
+  vetor fixo partida a link, tamanho de 300 jogadas.
+- [ ] P3. Partidas guardadas (`src/logic/mail-games.ts`): lista no
+  `localStorage` (id, cor, posição, jogadas, quantas o outro já tem), e a
+  regra de abrir um link (partida nova, link velho, link que avança, link
+  que diverge). Rotas do fragmento (`#v1...` e `#g.<id>`). Testes.
+- [ ] P4. `Match` com o modo por correspondência (só a cor do jogador joga,
+  desfazer até o "piso" travado por copiar ou compartilhar). Testes.
+- [ ] P5. Interface: tela inicial (escolha de cor e lista das partidas
+  guardadas), painel de jogo com o link, copiar e compartilhar, aviso de
+  link inválido, rota por `hashchange`; textos do glossário e teste de
+  textos.
+- [ ] P6. Verificação no navegador com dois contextos (criar, jogar,
+  copiar, abrir no outro, responder, voltar), tamanho do link de 300
+  jogadas, README da web, `just check`, issue em `in_review`.
