@@ -32,7 +32,8 @@ Não usar: comer, tomar
 
 ## Casa
 
-Um dos 121 quadrados do tabuleiro. Uma casa está vazia ou tem um dado.
+Um dos 121 espaços do tabuleiro, em 11 colunas e 11 fileiras. Uma casa está
+vazia ou tem um dado.
 
 en: cell
 Ver também: Fileira
@@ -40,8 +41,8 @@ Não usar: quadrado, célula
 
 ## Dado
 
-Uma peça do jogo: um dado de seis faces, branco ou preto. O valor na face de
-cima diz até quantas casas ele anda.
+Um dado de seis faces, branco ou preto, e a única coisa que se move no
+tabuleiro. O valor na face de cima diz até quantas casas ele anda.
 
 en: die
 Ver também: Valor
