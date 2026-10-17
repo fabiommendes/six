@@ -53,10 +53,10 @@ Propostas que o designer revisa antes da implementação estão marcadas com
   `digital/seks/engine/`, sem dependências. `cargo fmt --check`,
   `cargo clippy -- -D warnings` e `cargo test` entram no `just check` e no
   `AGENTS.md`.
-- [ ] Coordenadas **(revisar)**: `Cell { column, row }` com a numeração das
+- [x] Coordenadas **(revisar)**: `Cell { column, row }` com a numeração das
   regras, 1 a 11, fileira 1 das Brancas. O índice no vetor do tabuleiro sai de
   um só lugar (`Cell::index`). Documentado no `//!` de `cell.rs`.
-- [ ] Estado (`state.rs`, `board.rs`): `GameState` como valor, com tabuleiro
+- [x] Estado (`state.rs`, `board.rs`): `GameState` como valor, com tabuleiro
   `[Option<Die>; 121]`, jogador da vez, contagem sem captura, hashes e
   resultado. `Die { side, value }`. Posição inicial de
   `regras/seks/02-preparacao.md`.
