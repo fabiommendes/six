@@ -78,8 +78,7 @@ Passos:
 - [x] R3. `wasm-pack build` e teste em Node que joga uma partida inteira
   pelo `Game`; README com pré-requisitos e comandos.
 - [x] R5. Receita `just seks-wasm` e build WASM no `just check`.
-- [ ] R4. (Fora desta rodada: depende da API dos bots.) O `Game` expõe o
-  bot de `seks-bots`.
+- [x] R4. O bot de `seks-bots` está no WASM como a classe `Bot` (plano abaixo).
 
 Plano do R4 (revisa o ponto de extensão acima: sem segundo bloco `impl Game`):
 
@@ -94,9 +93,9 @@ Plano do R4 (revisa o ponto de extensão acima: sem segundo bloco `impl Game`):
   padrão do `AlphaBeta::new`. Nada de `ms` nem de arquivo de pesos (relógio e
   disco não existem no navegador).
 
-- [ ] R4. Crate `seks-wasm` depende de `seks-bots`; módulo `bot` com a classe
+- [x] R4. Crate `seks-wasm` depende de `seks-bots`; módulo `bot` com a classe
   `Bot`; testes nativos (legalidade, semente fixa, `new_game`, erro com a
   partida acabada).
-- [ ] R4. Teste em Node: uma partida curta do bot contra `random` e outra
+- [x] R4. Teste em Node: uma partida curta do bot contra `random` e outra
   contra ele mesmo, sementes fixas e poucos nós.
-- [ ] R4. README do `seks-wasm` e tamanho do `.wasm`.
+- [x] R4. README do `seks-wasm` e tamanho do `.wasm` (245 KB com o bot, em `pkg/seks_wasm_bg.wasm`).

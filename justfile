@@ -67,10 +67,10 @@ seks-types-check:
 seks-wasm:
     cd digital && CARGO_BUILD_JOBS=4 nice -n 19 wasm-pack build seks/wasm --target web --release
 
-# Gera o pacote WebAssembly e joga duas partidas inteiras pelo Game no Node (SEKS_GAMES=N joga N a mais)
+# Gera o pacote WebAssembly e joga partidas inteiras pelo Game e pelo Bot no Node (SEKS_GAMES=N joga N a mais)
 [group('seks')]
 seks-wasm-test: seks-wasm
-    nice -n 19 node --test digital/seks/wasm/tests/game.test.mjs
+    nice -n 19 node --test digital/seks/wasm/tests/game.test.mjs digital/seks/wasm/tests/bot.test.mjs
 
 # --- Interface web do Seks --------------------------------------------------
 

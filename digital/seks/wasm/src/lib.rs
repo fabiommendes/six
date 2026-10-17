@@ -8,19 +8,17 @@
 //! The rules live in the engine: `Game` only keeps a game and its undo
 //! stack, so an interface never decides what is legal.
 //!
-//! # Extension point for the bot (R4 of `dev/issues/seks-wasm.md`)
-//!
-//! A bot module can add methods in a second `#[wasm_bindgen] impl Game`
-//! block, reading the position through [`Game::game_state`]. It runs in a Web
-//! Worker, which rebuilds the game with `Game.fromState` from the `State`
-//! JSON that the main thread gets from `state()`. This crate does not
-//! depend on `seks-bots` yet.
+//! The bot of `seks-bots` is the separate class [`Bot`] (module `bot`): it
+//! reads the position of a `Game` through [`Game::game_state`].
 
 use seks_engine::wire::{self, State};
 use seks_engine::GameState;
 use wasm_bindgen::prelude::*;
 
+mod bot;
 mod session;
+
+pub use bot::Bot;
 
 use session::Session;
 
@@ -35,7 +33,7 @@ pub struct Game {
 }
 
 impl Game {
-    /// The current state of the engine, for Rust code that extends `Game`.
+    /// The current state of the engine, for the bot.
     pub fn game_state(&self) -> &GameState {
         self.session.state()
     }

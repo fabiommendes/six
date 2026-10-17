@@ -84,6 +84,7 @@ dependencies = [
 name = "seks-wasm"
 version = "0.1.0"
 dependencies = [
+ "seks-bots",
  "seks-engine",
  "wasm-bindgen",
 ]
