@@ -11,7 +11,8 @@ O jogo termina assim que um jogador vence, de uma destas formas.
 ## Chegar à fileira de fundo
 
 O jogador vence quando um dado seu **termina um movimento na fileira de fundo
-do adversário**: a fileira 11 para as Brancas, a fileira 1 para as Pretas.
+do adversário**, ou chega a ela depois de um tiro: a fileira 11 para as
+Brancas, a fileira 1 para as Pretas.
 
 > **Detalhe:** a vitória vale com o dado de qualquer valor, e o jogo acaba
 > nesse movimento. As capturas do mesmo movimento não mudam o resultado.
@@ -19,7 +20,8 @@ do adversário**: a fileira 11 para as Brancas, a fileira 1 para as Pretas.
 ## Deixar o adversário sem jogada
 
 O jogador também vence quando, depois da sua jogada, **o adversário não tem
-nenhuma jogada**: perdeu todos os dados, ou só tem 6 cercados nas 8 direções.
+nenhuma jogada**: perdeu todos os dados, ou só tem 6 cercados nas 8 direções
+que não podem atirar.
 
 ## Empate
 
@@ -44,7 +46,7 @@ A posição é a casa, a cor e o valor de cada dado no tabuleiro.
 > e precisa de anotação da partida para provar a repetição ou a contagem. Na
 > versão digital, o empate é automático.
 
-> **Design:** as duas jogadas sempre existem enquanto um jogador tiver um dado
+> **Design:** mover e incrementar sempre existem enquanto um jogador tiver um dado
 > abaixo de 6, então, sem empate, uma partida podia não acabar se os dois
 > jogadores evitassem o risco. Só a captura é irreversível no Seks: avançar e
 > incrementar podem ser desfeitos. Por isso só ela zera a contagem de turnos.

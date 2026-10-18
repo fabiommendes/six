@@ -8,7 +8,8 @@ tags: [seks, regras, componentes]
 
 Do kit físico (ver [../kit.md](../kit.md)), o Seks usa:
 
-- um tabuleiro de 11 colunas por 11 linhas, com 121 casas;
+- um tabuleiro de 11 colunas por 11 linhas, com 121 casas, e a casa central
+  (coluna 6, fileira 6) em vermelho;
 - 32 dados de seis faces: 16 de uma cor, as **Brancas**, e 16 de outra, as
   **Pretas**.
 

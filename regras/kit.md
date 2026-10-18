@@ -19,7 +19,7 @@ O kit precisa cobrir a soma das necessidades de cada jogo, jogado sozinho.
 
 | Jogo | Dados | Outros componentes |
 |---|---|---|
-| Seks | 32: 16 de uma cor e 16 de outra | Tabuleiro de 11 por 11 casas |
+| Seks | 32: 16 de uma cor e 16 de outra | Tabuleiro de 11 por 11 casas, com a casa central em vermelho |
 
 > **Design:** o *SIX D SIX* (Martin Grider, 2011) faz o mesmo com 36 dados em
 > seis cores, 36 dados pretos e um tabuleiro de xadrez. Ver

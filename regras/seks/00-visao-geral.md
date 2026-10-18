@@ -12,7 +12,9 @@ de um dado diz até quantas casas ele anda.
 
 No seu turno, o jogador move um dado ou incrementa um dado. Mover custa valor:
 o dado termina mostrando o número de casas que andou. Incrementar soma 1 ao
-valor, mas gasta o turno.
+valor, mas gasta o turno. Um 6 na casa central, marcada em vermelho, também
+pode atirar: captura o primeiro dado inimigo numa das 8 direções e toma o
+lugar dele.
 
 Um dado inimigo cercado por dois dados do jogador, na mesma linha ou coluna, é
 capturado. Vence quem levar um dado até a fileira de fundo do adversário, ou

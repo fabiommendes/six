@@ -12,6 +12,16 @@ um título `##`, seguido de um parágrafo com a definição. Linhas opcionais:
 - `Não usar:` sinônimos proibidos, separados por vírgula, que nunca devem
   aparecer no manual, no site ou no jogo. Não é publicado.
 
+## Atirar
+
+Jogada de um dado com valor 6 na casa central: captura o primeiro dado numa
+das 8 direções, se for do adversário, e toma a casa dele, sem perder valor.
+Na casa do alvo, o atirador captura por custódia e vence como um dado que
+terminou um movimento.
+
+en: shoot
+Ver também: Captura, Casa central, Jogada
+
 ## Brancas
 
 O jogador que joga primeiro, e os seus dados. Começa com a fileira 1 à sua
@@ -23,11 +33,12 @@ Ver também: Pretas
 ## Captura
 
 Retirada de um dado adversário do tabuleiro, quando um movimento o deixa
-entre o dado que se moveu e outro dado do jogador, na mesma linha ou coluna.
-O dado capturado não volta ao jogo.
+entre o dado que se moveu e outro dado do jogador, na mesma linha ou coluna,
+ou quando um 6 na casa central atira nele. O dado capturado não volta ao
+jogo.
 
 en: capture
-Ver também: Mover
+Ver também: Mover, Atirar
 Não usar: comer, tomar
 
 ## Casa
@@ -38,6 +49,14 @@ vazia ou tem um dado.
 en: cell
 Ver também: Fileira
 Não usar: quadrado, célula
+
+## Casa central
+
+A casa da coluna 6 na fileira 6, marcada em vermelho no tabuleiro. Um dado
+com valor 6 nela pode atirar.
+
+en: center cell
+Ver também: Atirar, Casa
 
 ## Dado
 
@@ -67,8 +86,8 @@ Ver também: Fileira de fundo
 ## Fileira de fundo
 
 A fileira mais perto de cada jogador: a 1 para as Brancas, a 11 para as
-Pretas. Um dado que termina um movimento na fileira de fundo do adversário dá
-a vitória.
+Pretas. Um dado que termina um movimento na fileira de fundo do adversário,
+ou chega a ela depois de um tiro, dá a vitória.
 
 en: back row
 Ver também: Fileira
@@ -84,10 +103,11 @@ Não usar: carregar, aumentar
 
 ## Jogada
 
-O que o jogador faz no seu turno: mover ou incrementar um dos seus dados.
+O que o jogador faz no seu turno: mover, incrementar ou atirar com um dos
+seus dados.
 
 en: play
-Ver também: Incrementar, Mover
+Ver também: Atirar, Incrementar, Mover
 Não usar: lance
 
 ## Mover
