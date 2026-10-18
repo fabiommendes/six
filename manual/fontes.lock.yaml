@@ -4,33 +4,33 @@
 # manual text was last reviewed against it, and the commit of that review.
 capitulos/02-kit.md:
   regras/kit.md:
-    hash: sha256:70b0c0466f16c790
-    commit: 6b85c93b36c9
+    hash: sha256:0b8805c8e0fe37f2
+    commit: a3e6ad9b175c
 capitulos/03-seks.md#captura:
   regras/seks/04-captura.md:
-    hash: sha256:c94ceb0793349fd8
-    commit: 6b85c93b36c9
+    hash: sha256:a9dcacd9b1d5175e
+    commit: a3e6ad9b175c
 capitulos/03-seks.md#componentes:
   regras/seks/01-componentes.md:
-    hash: sha256:1e0350d2cd50d097
-    commit: 6b85c93b36c9
+    hash: sha256:810543eac30399ce
+    commit: a3e6ad9b175c
 capitulos/03-seks.md#fim-do-jogo:
   regras/seks/05-fim-do-jogo.md:
-    hash: sha256:9aac45a1a579eb6b
-    commit: null
+    hash: sha256:64ca8ca93d859679
+    commit: a3e6ad9b175c
 capitulos/03-seks.md#o-turno:
   regras/seks/03-turno.md:
-    hash: sha256:4f404f1cb7a37db2
-    commit: 6b85c93b36c9
+    hash: sha256:3e27645939c0b99a
+    commit: a3e6ad9b175c
 capitulos/03-seks.md#preparacao:
   regras/seks/02-preparacao.md:
     hash: sha256:1764b6387a9d45bf
-    commit: 6b85c93b36c9
+    commit: a3e6ad9b175c
 capitulos/03-seks.md#visao-geral:
   regras/seks/00-visao-geral.md:
-    hash: sha256:ade67f73e84261df
-    commit: 6b85c93b36c9
+    hash: sha256:9b3e37b99e410fd9
+    commit: a3e6ad9b175c
 capitulos/A1-glossario.md:
   regras/seks/GLOSSARY.md:
-    hash: sha256:c20e93c8e623e8f0
-    commit: 6b85c93b36c9
+    hash: sha256:ab6a42bcc48b4a3b
+    commit: a3e6ad9b175c

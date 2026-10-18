@@ -25,6 +25,7 @@ Options:
 
     legenda: text   caption below the figure (markdown is not parsed)
     seta: r,c -> r,c  an arrow between two cells; row and column from 1, top left
+    centro: r,c     the center cell of the Seks board, painted red
     titulo: text    accessible title of the SVG (defaults to the caption)
 
 The dice are drawn with pips, as the physical dice of the kit.
@@ -48,8 +49,9 @@ PIPS = {
     6: [(-1, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (1, 1)],
 }
 TOKEN_RE = re.compile(r"^(?:(?P<empty>\.)|(?P<target>o)|(?P<side>[BP])(?P<value>[1-6])(?P<marks>[*x]*))$")
-OPTION_RE = re.compile(r"^(?P<key>legenda|seta|titulo):\s*(?P<value>.*)$")
+OPTION_RE = re.compile(r"^(?P<key>legenda|seta|titulo|centro):\s*(?P<value>.*)$")
 ARROW_RE = re.compile(r"^(\d+)\s*,\s*(\d+)\s*->\s*(\d+)\s*,\s*(\d+)$")
+CELL_RE = re.compile(r"^(\d+)\s*,\s*(\d+)$")
 
 
 class DiagramError(ValueError):
@@ -71,12 +73,14 @@ class Board:
     caption: str = ""
     title: str = ""
     arrows: list[tuple[int, int, int, int]] = field(default_factory=list)
+    center: tuple[int, int] | None = None
 
 
 def parse(source: str) -> Board:
     rows: list[list[Cell]] = []
     options: dict[str, str] = {}
     arrows = []
+    center = None
     for number, line in enumerate(source.strip().splitlines(), start=1):
         line = line.strip()
         if not line:
@@ -88,6 +92,11 @@ def parse(source: str) -> Board:
                 if not found:
                     raise DiagramError(f"line {number}: arrow must be 'r,c -> r,c', got {option['value']!r}")
                 arrows.append(tuple(int(n) for n in found.groups()))
+            elif option["key"] == "centro":
+                found = CELL_RE.match(option["value"].strip())
+                if not found:
+                    raise DiagramError(f"line {number}: center must be 'r,c', got {option['value']!r}")
+                center = (int(found[1]), int(found[2]))
             else:
                 options[option["key"]] = option["value"].strip()
             continue
@@ -111,8 +120,10 @@ def parse(source: str) -> Board:
         for r, c in ((r1, c1), (r2, c2)):
             if not (1 <= r <= len(rows) and 1 <= c <= width):
                 raise DiagramError(f"arrow cell {r},{c} is outside the board")
+    if center and not (1 <= center[0] <= len(rows) and 1 <= center[1] <= width):
+        raise DiagramError(f"center cell {center[0]},{center[1]} is outside the board")
     caption = options.get("legenda", "")
-    return Board(rows, caption, options.get("titulo", caption), arrows)
+    return Board(rows, caption, options.get("titulo", caption), arrows, center)
 
 
 def _center(row: int, column: int) -> tuple[float, float]:
@@ -175,8 +186,9 @@ def svg(board: Board) -> str:
     for r, row in enumerate(board.rows, start=1):
         for c, cell in enumerate(row, start=1):
             x, y = MARGIN + (c - 1) * CELL, MARGIN + (r - 1) * CELL
+            fill = color("casa-central") if board.center == (r, c) else "none"
             parts.append(
-                f'<rect x="{x}" y="{y}" width="{CELL}" height="{CELL}" fill="none" '
+                f'<rect x="{x}" y="{y}" width="{CELL}" height="{CELL}" fill="{fill}" '
                 f'stroke="{color("tabuleiro-linha")}" stroke-width="1"/>'
             )
             if cell.target or cell.highlight:

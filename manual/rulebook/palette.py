@@ -26,6 +26,7 @@ COLORS = {
     # Board diagrams.
     "tabuleiro": "#ece4d2",
     "tabuleiro-linha": "#b9ad94",
+    "casa-central": "#c62828",
     "dado-branco": "#ffffff",
     "dado-preto": "#2a2723",
 }

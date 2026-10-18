@@ -37,6 +37,8 @@ No seu turno, você faz uma [[Jogada]] com um dos seus dados:
 - **[[Mover]]**: o dado anda em linha reta e passa a mostrar o número de casas
   que andou. Andar pouco custa valor.
 - **[[Incrementar]]**: o dado ganha 1 de valor e fica parado.
+- **[[Atirar]]**: um 6 na [[Casa central]] captura o primeiro dado adversário
+  numa das 8 direções e toma o lugar dele.
 
 Prenda um dado adversário entre dois dados seus para capturá-lo. Vence quem
 levar um dado até a [[Fileira de fundo]] do adversário, ou deixar o adversário
@@ -44,7 +46,7 @@ sem jogada.
 
 ## Componentes
 
-- O tabuleiro de 11 por 11 casas.
+- O tabuleiro de 11 por 11 casas, com a casa central em vermelho.
 - 32 dados: 16 de uma cor, as [[Brancas]], e 16 de outra, as [[Pretas]].
 
 ## Preparação
@@ -60,6 +62,7 @@ Cada jogador arruma os seus dados nas duas fileiras mais perto dele:
 
 ```tabuleiro
 legenda: A posição inicial. As Pretas ficam em cima e as Brancas embaixo.
+centro: 6,6
 P1 . P1 . P1 . P1 . P1 . P1
 P2 P2 P2 P2 P2 . P2 P2 P2 P2 P2
 . . . . . . . . . . .
@@ -126,11 +129,49 @@ legenda: ...e vira um 2.
 Some 1 ao valor de um dos seus dados, sem movê-lo. Um 6 não pode ser
 incrementado.
 
+### Atirar
+
+Um dado seu com valor **6** na **casa central**, a casa vermelha, pode atirar.
+Escolha uma das 8 direções: se o primeiro dado nessa direção for do
+adversário, ele é capturado, e o seu 6 vai para a casa dele, ainda com valor 6.
+A casa central fica vazia. Na casa nova, o seu 6 captura e vence como um dado
+que acabou de se mover.
+
+<div class="diagramas" markdown="1">
+
+```tabuleiro
+legenda: O 6 branco atira na diagonal. O 2 branco bloqueia o tiro no 3 preto.
+centro: 3,4
+seta: 3,4 -> 1,6
+. . . . . P2 .
+. . . . . . .
+. . . B6 B2 . P3
+. . . . . . .
+. . . . . . .
+```
+
+```tabuleiro
+legenda: O 2 preto sai do tabuleiro, e o 6 toma a casa dele.
+centro: 3,4
+. . . . . B6* .
+. . . . . . .
+. . . . B2 . P3
+. . . . . . .
+. . . . . . .
+```
+
+</div>
+
+Nenhum dado chega à casa central com valor 6: ele precisa ser incrementado lá
+antes de atirar, e o adversário tem tempo de reagir.
+
+O tiro é uma regra nova, ainda em teste, e pode mudar.
+
 ## Captura
 
-Depois de mover um dado, olhe as quatro casas vizinhas da casa onde ele parou:
-acima, abaixo, à esquerda e à direita. Um dado adversário numa dessas casas é
-**capturado** quando, logo atrás dele, na mesma direção, há outro dado seu.
+Depois de mover um dado, ou de atirar, olhe as quatro casas vizinhas da casa
+onde ele parou: acima, abaixo, à esquerda e à direita. Um dado adversário numa
+dessas casas é **capturado** quando, logo atrás dele, na mesma direção, há outro dado seu.
 Tire o dado capturado do tabuleiro; ele não volta.
 
 <div class="diagramas" markdown="1">
@@ -162,17 +203,20 @@ legenda: ...vira 2 e captura o 2 preto.
   entre dois dados seus ficam no tabuleiro.
 - As diagonais não contam, e a borda do tabuleiro não faz o papel de um dado
   seu.
-- Só quem move captura. Você pode parar o seu dado entre dois dados
+- Só quem move ou atira captura. Você pode parar o seu dado entre dois dados
   adversários sem perdê-lo.
 - Incrementar nunca captura.
+
+Um 6 na casa central também captura ao [[Atirar|atirar]].
 
 ## Fim do jogo
 
 Você vence assim que:
 
-- um dado seu termina um movimento na **fileira de fundo do adversário**; ou
+- um dado seu termina um movimento, ou chega depois de um tiro, na **fileira
+  de fundo do adversário**; ou
 - depois da sua jogada, o adversário **não tem jogada**: perdeu todos os dados,
-  ou só tem dados com valor 6 cercados nas 8 direções.
+  ou só tem dados com valor 6 cercados nas 8 direções, que não podem atirar.
 
 ### Empate
 
