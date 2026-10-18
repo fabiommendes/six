@@ -26,6 +26,7 @@ fn plays_of(state: &GameState, at: (u8, u8)) -> Vec<Command> {
         .filter(|command| match command {
             Command::Move { from, .. } => *from == at,
             Command::Increment { at: target } => *target == at,
+            Command::Shoot { .. } => at == crate::CENTER,
         })
         .collect()
 }
@@ -187,15 +188,16 @@ fn passing_is_not_allowed() {
 
 #[test]
 fn a_6_with_all_8_directions_blocked_has_no_play() {
-    // Surrounded by dice of both sides.
+    // Surrounded by dice of both sides, away from the center (where it
+    // could shoot; see `tests::shot`).
     let state = sparse(
         Side::White,
         &[
-            "w6@6,6", "w1@5,5", "w1@6,5", "w1@7,5", "b1@5,6", "b1@7,6", "b1@5,7", "b1@6,7",
-            "b1@7,7",
+            "w6@4,4", "w1@3,3", "w1@4,3", "w1@5,3", "b1@3,4", "b1@5,4", "b1@3,5", "b1@4,5",
+            "b1@5,5",
         ],
     );
-    assert_eq!(plays_of(&state, (6, 6)), vec![]);
+    assert_eq!(plays_of(&state, (4, 4)), vec![]);
 }
 
 #[test]

@@ -12,8 +12,9 @@
 //! - State: `state` (`GameState`), `history` and `zobrist` (hashes of the
 //!   positions since the last capture, for the repetition draw), `outcome`
 //!   (how a game ends).
-//! - Plays: `command` (`Command` and the list of legal ones), `apply` (what
-//!   a play changes) and `capture` (custody), `event` (`GameEvent`, `Transition`, `GameError`),
+//! - Plays: `command` (`Command`, the list of legal ones and the shots of
+//!   the center), `apply` (what a play changes) and `capture` (custody),
+//!   `event` (`GameEvent`, `Transition`, `GameError`),
 //!   `engine` (`Engine`, the entry points), `notation` (text of cells and
 //!   commands).
 //! - `wire` (feature `wire`): the JSON adapter and the TypeScript types for
@@ -85,8 +86,8 @@ mod tests;
 
 pub use board::Board;
 pub use capture::captures;
-pub use cell::{Cell, BOARD_SIZE, CELL_COUNT, DIRECTIONS};
-pub use command::{legal_commands, legal_commands_into, Command};
+pub use cell::{Cell, BOARD_SIZE, CELL_COUNT, CENTER, DIRECTIONS};
+pub use command::{legal_commands, legal_commands_into, shots, Command};
 pub use diagram::DiagramError;
 pub use die::{Die, Side, MAX_VALUE};
 pub use engine::Engine;

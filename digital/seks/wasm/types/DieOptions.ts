@@ -10,4 +10,9 @@ export type DieOptions = { at: Cell,
  * order of `legal_commands`). Empty if there is no die of the side to
  * move in `at`.
  */
-moves: Array<Cell>, can_increment: boolean, };
+moves: Array<Cell>, can_increment: boolean, 
+/**
+ * The dice it can shoot, in the order of `legal_commands`: empty unless
+ * it is a 6 of the side to move in the center cell.
+ */
+shots: Array<Cell>, };

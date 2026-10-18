@@ -1,7 +1,8 @@
 //! Tactical facts about a position that every bot needs: whether a side can
-//! win on the back row in one move (`regras/seks/05-fim-do-jogo.md`).
+//! win on the back row in one move or shot (`regras/seks/05-fim-do-jogo.md`,
+//! `regras/seks/03-turno.md#atirar`).
 
-use seks_engine::{Board, Cell, Command, Die, Side, BOARD_SIZE, MAX_VALUE};
+use seks_engine::{shots, Board, Cell, Command, Die, Side, BOARD_SIZE, CENTER, MAX_VALUE};
 
 /// The row offset of a step towards the goal row of `side`.
 pub(crate) const fn forward(side: Side) -> i8 {
@@ -44,9 +45,19 @@ fn goal_move(board: &Board, from: Cell, side: Side, value: u8, columns: i8) -> O
     Some(Command::Move { from, to })
 }
 
-/// A move that wins at once for `side` by reaching the opponent's back row,
-/// if it has one. It does not look at whose turn it is.
+/// The shot of `side` that lands on the opponent's back row, if it has one.
+fn winning_shot(board: &Board, side: Side) -> Option<Command> {
+    shots(board, side)
+        .find(|to| to.row() == side.goal_row())
+        .map(|to| Command::Shoot { to })
+}
+
+/// A move or a shot that wins at once for `side` by reaching the opponent's
+/// back row, if it has one. It does not look at whose turn it is.
 pub fn winning_move(board: &Board, side: Side) -> Option<Command> {
+    if let Some(shot) = winning_shot(board, side) {
+        return Some(shot);
+    }
     // Only dice at most 6 rows from the goal row can reach it.
     let rows = match side {
         Side::White => BOARD_SIZE - MAX_VALUE..=BOARD_SIZE - 1,
@@ -69,41 +80,63 @@ pub fn winning_move(board: &Board, side: Side) -> Option<Command> {
 }
 
 /// Whether `command`, a legal command of `side`, leaves `side` with a move
-/// to the opponent's back row: a threat to win, which the opponent must
-/// answer. Cheaper than applying the command: commands far from the goal
-/// row are ruled out without looking further.
+/// or a shot to the opponent's back row: a threat to win, which the
+/// opponent must answer. Cheaper than applying the command: commands far
+/// from the goal row are ruled out without looking further, unless they
+/// arm or open a shot. It ignores the captures of `command`.
 pub fn creates_threat(board: &Board, command: Command, side: Side) -> bool {
     let near = |cell: Cell| rows_to_goal(cell, side) <= MAX_VALUE;
     let mut after = *board;
     match command {
         Command::Move { from, to } => {
-            if !near(from) && !near(to) {
-                return false;
-            }
             let value = from
                 .column()
                 .abs_diff(to.column())
                 .max(from.row().abs_diff(to.row()));
             after.set(from, None);
             after.set(to, Some(Die::new(side, value)));
+            // A move off a line of the center may open a shot.
+            if !near(from) && !near(to) {
+                return winning_shot(&after, side).is_some();
+            }
         }
         Command::Increment { at } => {
-            if !near(at) {
-                return false;
-            }
             let die = board.get(at).expect("a legal increment is on a die");
             after.set(at, Some(Die::new(side, die.value() + 1)));
+            if !near(at) {
+                return at == CENTER && winning_shot(&after, side).is_some();
+            }
+        }
+        Command::Shoot { to } => {
+            let shooter = board
+                .get(CENTER)
+                .expect("a legal shot starts on the center");
+            after.set(CENTER, None);
+            after.set(to, Some(shooter));
         }
     }
     can_win_now(&after, side)
 }
 
-/// The cells on the clear paths of `side` to the opponent's back row, the
-/// landing cells included, as bits by `Cell::index`. A move of the other
-/// side stops every such threat only if it lands on one of these cells or
-/// captures the threatening die.
-pub fn threat_paths(board: &Board, side: Side) -> u128 {
+/// The threats of `side` to win at once, as bits by `Cell::index`: the
+/// cells on the clear paths of its moves and shots to the opponent's back
+/// row (the landing cells of the moves included), and the targets of its
+/// winning shots. A move of the other side stops every such threat only if
+/// it lands on a path cell, moves a target away, or captures; a shot of the
+/// other side may stop them too.
+pub fn threat_paths(board: &Board, side: Side) -> (u128, u128) {
     let mut paths = 0;
+    let mut targets = 0;
+    for to in shots(board, side).filter(|to| to.row() == side.goal_row()) {
+        targets |= 1u128 << to.index();
+        let columns = (to.column() as i8 - CENTER.column() as i8).signum();
+        let rows = (to.row() as i8 - CENTER.row() as i8).signum();
+        let mut at = CENTER.offset(columns, rows).expect("on the line");
+        while at != to {
+            paths |= 1u128 << at.index();
+            at = at.offset(columns, rows).expect("on the line");
+        }
+    }
     for (from, die) in board.dice().filter(|(_, die)| die.side() == side) {
         for columns in [0, -1, 1] {
             if let Some(Command::Move { from, to }) =
@@ -117,7 +150,7 @@ pub fn threat_paths(board: &Board, side: Side) -> u128 {
             }
         }
     }
-    paths
+    (paths, targets)
 }
 
 /// Whether `side` has a move that reaches the opponent's back row.
@@ -219,6 +252,62 @@ mod tests {
                 state = Engine::step(&state, commands[rng.below(commands.len())]).unwrap();
             }
         }
+    }
+
+    #[test]
+    fn a_shot_to_the_back_row_wins_and_is_a_threat_to_answer() {
+        // The white 6 in f6 shoots b1 in f11 (the first die up the f file).
+        let state = GameState::from_diagram(
+            "
+            .. .. .. .. .. b1 .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. w6 .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            b1 .. .. .. .. .. .. .. .. .. ..
+            ",
+            Side::Black,
+        )
+        .unwrap();
+        let win = winning_move(state.board(), Side::White).unwrap();
+        assert_eq!(win.to_string(), "f6xf11");
+        let (paths, targets) = threat_paths(state.board(), Side::White);
+        assert_eq!(targets, 1u128 << Cell::new(6, 11).index());
+        for row in 7..=10 {
+            assert!(paths & (1u128 << Cell::new(6, row).index()) != 0);
+        }
+        assert!(paths & (1u128 << Cell::new(6, 11).index()) == 0);
+    }
+
+    #[test]
+    fn incrementing_a_5_in_the_center_threatens_a_shot() {
+        let state = GameState::from_diagram(
+            "
+            .. .. .. .. .. .. .. .. .. .. b1
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. b1 b1 .. .. .. .. ..
+            .. .. .. .. .. w5 .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            .. .. .. .. .. .. .. .. .. .. ..
+            b1 .. .. .. .. .. .. .. .. .. ..
+            ",
+            Side::White,
+        )
+        .unwrap();
+        // The 5 cannot reach row 11: e7 and f7 block it, and k11 is taken.
+        // As a 6 it can shoot k11.
+        let center = Command::Increment { at: CENTER };
+        assert!(!can_win_now(state.board(), Side::White));
+        assert!(creates_threat(state.board(), center, Side::White));
     }
 
     #[test]

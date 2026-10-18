@@ -1,7 +1,8 @@
-//! Capture by custody (`regras/seks/04-captura.md`).
+//! Capture by custody (`regras/seks/04-captura.md`). The other capture, the
+//! shot of a 6 in the center cell, is in `command` and `apply`.
 //!
-//! Only the die that just moved can capture, and always as one end of the
-//! custody: after a move, the engine looks at the 4 orthogonal neighbors of
+//! Only the die that just moved, or shot, can capture by custody, and always
+//! as one end of the custody: after a move, the engine looks at the 4 orthogonal neighbors of
 //! the cell where the die stopped. A die of the opponent there is captured if
 //! the next cell in the same direction has a die of the mover. So a die that
 //! was already between two of the mover's dice, and the dice next to a cell
@@ -32,18 +33,22 @@ pub(crate) fn find(board: &Board, to: Cell, mover: Side) -> Captures {
 
 /// How many dice `command` would capture in `state`, without applying it:
 /// the same custody check that `Engine::command` runs, on the board before
-/// the move. 0 for an increment. The answer is only meaningful for a legal
-/// command.
+/// the move, plus the die a shot hits. 0 for an increment. The answer is
+/// only meaningful for a legal command.
 ///
 /// The board before the move is enough because the cell the die leaves can
 /// only matter as the far end of a custody along the path, and the path is
-/// empty.
+/// empty. The same holds for the center cell a shot leaves.
 pub fn captures(state: &GameState, command: Command) -> u8 {
-    match command {
-        Command::Move { to, .. } => find(&state.board, to, state.to_move)
+    let custody = |to| {
+        find(&state.board, to, state.to_move)
             .iter()
             .flatten()
-            .count() as u8,
+            .count() as u8
+    };
+    match command {
+        Command::Move { to, .. } => custody(to),
+        Command::Shoot { to } => 1 + custody(to),
         Command::Increment { .. } => 0,
     }
 }

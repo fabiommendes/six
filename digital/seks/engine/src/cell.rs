@@ -29,6 +29,10 @@ pub const DIRECTIONS: [(i8, i8); 8] = [
     (1, 1),
 ];
 
+/// The center cell, column 6 of row 6: a 6 there may shoot
+/// (`regras/seks/03-turno.md#atirar`).
+pub const CENTER: Cell = Cell::new(6, 6);
+
 /// The 4 directions that may capture: north, west, south, east.
 pub(crate) const ORTHOGONALS: [(i8, i8); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)];
 

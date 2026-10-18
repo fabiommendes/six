@@ -136,7 +136,7 @@ test("the options of a die say where it goes and whether it can be incremented",
   assert.deepEqual([...options.moves].sort(), ["a3", "b1", "b3", "b4", "c3", "d4"]);
   assert.equal(options.can_increment, true);
   const enemy = json(game.options("b10"));
-  assert.deepEqual(enemy, { at: "b10", moves: [], can_increment: false });
+  assert.deepEqual(enemy, { at: "b10", moves: [], can_increment: false, shots: [] });
   game.free();
 });
 

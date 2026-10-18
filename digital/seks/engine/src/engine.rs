@@ -1,6 +1,7 @@
 //! The entry points of the engine.
 
 use crate::apply::apply;
+use crate::cell::CENTER;
 use crate::command::{validate, Command};
 use crate::die::Side;
 use crate::event::{GameError, GameEvent, Transition};
@@ -37,12 +38,17 @@ impl Engine {
                 at,
                 value: applied.value,
             },
+            Command::Shoot { to } => GameEvent::Shot {
+                side: state.to_move,
+                from: CENTER,
+                to,
+            },
         });
         events.extend(
             applied
-                .captured
+                .shot
                 .into_iter()
-                .flatten()
+                .chain(applied.captured.into_iter().flatten())
                 .map(|(at, die)| GameEvent::Captured { at, die }),
         );
         if let Some(outcome) = next.outcome {

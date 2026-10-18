@@ -108,6 +108,10 @@ export function drawBoardTexture(canvas: HTMLCanvasElement, layout: FrameLayout,
   ctx.lineWidth = layout.plateStroke;
   ctx.strokeRect(plateAt, plateAt, plate, plate);
 
+  // The center cell, f6, where a 6 may shoot (`regras/seks/03-turno.md#atirar`). It is the same cell from both sides.
+  ctx.fillStyle = COLORS.seks;
+  ctx.fillRect(gridAt + 5 * cell, gridAt + 5 * cell, cell, cell);
+
   // The grid.
   ctx.strokeStyle = COLORS.line;
   ctx.lineWidth = 1;
@@ -207,20 +211,25 @@ export function drawShadow(px: number, share: number, blur: number): HTMLCanvasE
   return canvas;
 }
 
-export type MarkKind = "ring" | "selected" | "from" | "to" | "decisive";
+export type MarkKind = "ring" | "selected" | "from" | "to" | "decisive" | "target";
 
 /**
  * A mark of play, drawn in one cell (`px` by `px`). Each has its own shape:
- * the colour never carries information alone.
+ * the colour never carries information alone. The red marks have a halo in
+ * the colour of the plate, unseen on the plate and visible on the red center
+ * cell.
  */
 export function drawMark(kind: MarkKind, px: number): HTMLCanvasElement {
   const canvas = makeCanvas(px);
   const ctx = context(canvas);
   const c = px / 2;
   if (kind === "ring") {
+    disc(ctx, c, c, px * 0.14);
+    ctx.strokeStyle = COLORS.wool;
+    ctx.lineWidth = px * 0.11;
+    ctx.stroke();
     ctx.strokeStyle = COLORS.seks;
     ctx.lineWidth = px * 0.05;
-    disc(ctx, c, c, px * 0.14);
     ctx.stroke();
   } else if (kind === "selected") {
     const i = px * 0.04;
@@ -231,13 +240,31 @@ export function drawMark(kind: MarkKind, px: number): HTMLCanvasElement {
     ctx.rect(i, i, px - 2 * i, px - 2 * i);
     ctx.fill();
     ctx.stroke();
+  } else if (kind === "target") {
+    // A die that can be shot: four ticks from the middle of the sides towards the die, outside it.
+    const ticks = () => {
+      ctx.beginPath();
+      for (const [x0, y0, x1, y1] of [[c, 0, c, px * 0.17], [c, px, c, px * 0.83], [0, c, px * 0.17, c], [px, c, px * 0.83, c]] as const) {
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+      }
+    };
+    ticks();
+    ctx.strokeStyle = COLORS.wool;
+    ctx.lineWidth = px * 0.12;
+    ctx.stroke();
+    ctx.strokeStyle = COLORS.seks;
+    ctx.lineWidth = px * 0.06;
+    ctx.stroke();
   } else if (kind === "decisive") {
     // What decided the game: a heavy red frame with a thin one inside, over the whole cell.
-    ctx.strokeStyle = COLORS.seks;
-    ctx.lineWidth = px * 0.08;
-    ctx.strokeRect(px * 0.04, px * 0.04, px * 0.92, px * 0.92);
-    ctx.lineWidth = px * 0.025;
-    ctx.strokeRect(px * 0.14, px * 0.14, px * 0.72, px * 0.72);
+    for (const [color, widen] of [[COLORS.wool, px * 0.05], [COLORS.seks, 0]] as const) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = px * 0.08 + widen;
+      ctx.strokeRect(px * 0.04, px * 0.04, px * 0.92, px * 0.92);
+      ctx.lineWidth = px * 0.025 + widen;
+      ctx.strokeRect(px * 0.14, px * 0.14, px * 0.72, px * 0.72);
+    }
   } else if (kind === "from") {
     const i = px * 0.2;
     const w = px - 2 * i;

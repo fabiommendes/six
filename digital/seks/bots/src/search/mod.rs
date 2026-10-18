@@ -368,17 +368,20 @@ impl Searcher {
     }
 
     /// The legal moves of `state`; when the opponent threatens to win, only
-    /// those that may stop it (see [`threat_paths`]): the others lose on the
-    /// next move. (A move that leaves the opponent with no play would win
+    /// those that may stop it (see [`threat_paths`]), and every shot: the
+    /// others lose on the next move. (A move that leaves the opponent with no play would win
     /// instead; the search ignores that case.)
     fn generate(&self, state: &GameState, threatened: bool, moves: &mut Vec<Command>) {
         legal_commands_into(state, moves);
         if threatened {
-            let paths = threat_paths(state.board(), state.to_move().opponent());
+            let (paths, targets) = threat_paths(state.board(), state.to_move().opponent());
             moves.retain(|&command| match command {
-                Command::Move { to, .. } => {
-                    paths & (1u128 << to.index()) != 0 || captures(state, command) > 0
+                Command::Move { from, to } => {
+                    paths & (1u128 << to.index()) != 0
+                        || targets & (1u128 << from.index()) != 0
+                        || captures(state, command) > 0
                 }
+                Command::Shoot { .. } => true,
                 Command::Increment { .. } => false,
             });
         }

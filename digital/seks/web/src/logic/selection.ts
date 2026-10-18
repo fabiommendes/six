@@ -7,6 +7,8 @@ export interface Selection {
   /** Where it can move, as the engine lists them (the interface never works these out). */
   readonly moves: readonly Cell[];
   readonly canIncrement: boolean;
+  /** The dice it can shoot: only a 6 in the center cell has any. */
+  readonly shots: readonly Cell[];
 }
 
 /** What the selection needs to know about the position. */
@@ -25,7 +27,7 @@ export interface ClickResult {
 
 function select(cell: Cell, board: SelectionBoard): Selection {
   const options = board.options(cell);
-  return { at: cell, moves: options.moves, canIncrement: options.can_increment };
+  return { at: cell, moves: options.moves, canIncrement: options.can_increment, shots: options.shots };
 }
 
 /**
@@ -33,6 +35,7 @@ function select(cell: Cell, board: SelectionBoard): Selection {
  *
  * - on a die of the player, with nothing selected, selects it;
  * - on a marked cell, moves the selected die there;
+ * - on a marked die of the opponent, the selected 6 in the center shoots it;
  * - on the selected die, increments it; a 6 cannot be incremented (and a
  *   die that cannot do anything has nothing to do), so the selection goes away;
  * - on another die of the player, changes the selection;
@@ -45,6 +48,7 @@ export function click(selection: Selection | null, cell: Cell, board: SelectionB
       return { selection: null, command: null };
     }
     if (selection.moves.includes(cell)) return { selection: null, command: `${selection.at}-${cell}` };
+    if (selection.shots.includes(cell)) return { selection: null, command: `${selection.at}x${cell}` };
   }
   if (board.isOwnDie(cell)) return { selection: select(cell, board), command: null };
   return { selection: null, command: null };

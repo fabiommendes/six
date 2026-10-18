@@ -6,6 +6,7 @@
 //!   empty cell of the Whites' front row.
 //! - A move is `from-to`: `b2-b4`.
 //! - An increment is the cell and `+`: `b2+`.
+//! - A shot is the center cell, `x` and the cell of the target: `f6xb10`.
 //!
 //! `Display` writes exactly this, in lowercase, and `FromStr` reads exactly
 //! this and nothing else (no spaces, no capitals, no leading zeros), so the
@@ -15,7 +16,7 @@
 use std::fmt;
 use std::str::FromStr;
 
-use crate::cell::{Cell, BOARD_SIZE};
+use crate::cell::{Cell, BOARD_SIZE, CENTER};
 use crate::command::Command;
 
 /// Text that is not a cell or a command in the notation.
@@ -78,6 +79,7 @@ impl fmt::Display for Command {
         match self {
             Command::Move { from, to } => write!(f, "{from}-{to}"),
             Command::Increment { at } => write!(f, "{at}+"),
+            Command::Shoot { to } => write!(f, "{CENTER}x{to}"),
         }
     }
 }
@@ -86,10 +88,18 @@ impl FromStr for Command {
     type Err = NotationError;
 
     fn from_str(text: &str) -> Result<Command, NotationError> {
-        let error = || NotationError::new(text, "a command like b2-b4 or b2+");
+        let error = || NotationError::new(text, "a command like b2-b4, b2+ or f6xb10");
         if let Some(at) = text.strip_suffix('+') {
             return Ok(Command::Increment {
                 at: at.parse().map_err(|_| error())?,
+            });
+        }
+        if let Some((from, to)) = text.split_once('x') {
+            if from.parse::<Cell>().map_err(|_| error())? != CENTER {
+                return Err(error());
+            }
+            return Ok(Command::Shoot {
+                to: to.parse().map_err(|_| error())?,
             });
         }
         let (from, to) = text.split_once('-').ok_or_else(error)?;

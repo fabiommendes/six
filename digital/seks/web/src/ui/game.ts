@@ -328,7 +328,8 @@ export class GameScreen {
     const snapshot = this.match.snapshot();
     if (this.frozen || !snapshot.humanToMove || snapshot.busy || snapshot.thinking) return false;
     const die = snapshot.view.dice.find((d) => d.cell === cell);
-    return (die !== undefined && die.side === snapshot.view.to_move) || (snapshot.selection?.moves.includes(cell) ?? false);
+    const selection = snapshot.selection;
+    return (die !== undefined && die.side === snapshot.view.to_move) || (selection?.moves.includes(cell) ?? false) || (selection?.shots.includes(cell) ?? false);
   }
 
   private async onCell(cell: Cell | null): Promise<void> {
@@ -456,7 +457,7 @@ export class GameScreen {
 
   private legend(): string {
     const item = (mark: Parameters<typeof markIcon>[0], text: string) => `<span>${markIcon(mark)}${text}</span>`;
-    return item("selected", LEGEND.selected) + item("destination", LEGEND.destination) + item("origin", LEGEND.origin) + item("last", LEGEND.last);
+    return item("selected", LEGEND.selected) + item("destination", LEGEND.destination) + item("target", LEGEND.target) + item("origin", LEGEND.origin) + item("last", LEGEND.last);
   }
 
   /** The strips of motif of the panel, as wide as the panel. */

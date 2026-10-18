@@ -71,7 +71,7 @@ export function motifStrip(kind: MotifKind, width: number, u: number): string {
   return `<svg width="${f(width)}" height="${f(thickness)}" viewBox="0 0 ${f(width)} ${f(thickness)}" fill="${COLORS.seks}" aria-hidden="true">${circles}</svg>`;
 }
 
-export type LegendMark = "selected" | "destination" | "origin" | "last";
+export type LegendMark = "selected" | "destination" | "target" | "origin" | "last";
 
 /** A mark of play, in the shape it has on the board. */
 export function markIcon(kind: LegendMark, size = 22): string {
@@ -79,6 +79,7 @@ export function markIcon(kind: LegendMark, size = 22): string {
   const k = size * 0.28;
   let s = "";
   if (kind === "destination") s = `<circle cx="${c}" cy="${c}" r="${f(size * 0.22)}" fill="none" stroke="${COLORS.seks}" stroke-width="2.5"/>`;
+  if (kind === "target") s = `<path d="M${c} 1V${f(size * 0.3)}M${c} ${size - 1}V${f(size * 0.7)}M1 ${c}H${f(size * 0.3)}M${size - 1} ${c}H${f(size * 0.7)}" fill="none" stroke="${COLORS.seks}" stroke-width="2.5"/>`;
   if (kind === "selected") s = `<rect x="2" y="2" width="${size - 4}" height="${size - 4}" fill="${COLORS.selection}" stroke="${COLORS.seks}" stroke-width="3"/>`;
   if (kind === "origin") s = `<rect x="3" y="3" width="${size - 6}" height="${size - 6}" fill="none" stroke="${COLORS.ink}" stroke-width="1.6" stroke-dasharray="2.3 2.3"/>`;
   if (kind === "last") s = `<path d="M1 ${f(1 + k)}V1H${f(1 + k)}M${f(size - 1 - k)} 1H${size - 1}V${f(1 + k)}M${size - 1} ${f(size - 1 - k)}V${size - 1}H${f(size - 1 - k)}M${f(1 + k)} ${size - 1}H1V${f(size - 1 - k)}" fill="none" stroke="${COLORS.ink}" stroke-width="2.2"/>`;

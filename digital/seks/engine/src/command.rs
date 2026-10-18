@@ -4,8 +4,9 @@
 //! A turn is exactly one play, and passing is not a play, so there is no
 //! command for it.
 
-use crate::cell::{Cell, DIRECTIONS};
-use crate::die::MAX_VALUE;
+use crate::board::Board;
+use crate::cell::{Cell, CENTER, DIRECTIONS};
+use crate::die::{Side, MAX_VALUE};
 use crate::event::GameError;
 use crate::state::GameState;
 
@@ -18,13 +19,19 @@ pub enum Command {
     /// Adds 1 to the value of the die in `at`, which stays there. Never
     /// captures.
     Increment { at: Cell },
+    /// The 6 in the center cell shoots the die of the opponent in `to`, the
+    /// first die in one of the 8 directions: it captures it and takes its
+    /// cell, still showing 6. Then it captures by custody and wins on the
+    /// back row as a die that ended a move.
+    Shoot { to: Cell },
 }
 
 /// Every legal command of the side to move. Empty when the game is over.
 ///
 /// The order is fixed: by cell index of the die; for each die, its moves
 /// direction by direction (north, then counterclockwise: northwest, west, ...,
-/// northeast), nearest cell first, and its increment last.
+/// northeast), nearest cell first, then its shots in the same direction
+/// order, and its increment last.
 pub fn legal_commands(state: &GameState) -> Vec<Command> {
     let mut commands = Vec::with_capacity(128);
     legal_commands_into(state, &mut commands);
@@ -52,10 +59,34 @@ pub fn legal_commands_into(state: &GameState, commands: &mut Vec<Command>) {
                 commands.push(Command::Move { from, to });
             }
         }
+        if from == CENTER {
+            commands.extend(shots(&state.board, state.to_move).map(|to| Command::Shoot { to }));
+        }
         if die.value() < MAX_VALUE {
             commands.push(Command::Increment { at: from });
         }
     }
+}
+
+/// The cells `side` can shoot at: none unless the center cell holds a 6 of
+/// `side`; then, in each of the 8 directions, the first die on the line if
+/// it belongs to the opponent.
+pub fn shots(board: &Board, side: Side) -> impl Iterator<Item = Cell> + '_ {
+    let armed = board
+        .get(CENTER)
+        .is_some_and(|die| die.side() == side && die.value() == MAX_VALUE);
+    DIRECTIONS
+        .into_iter()
+        .filter(move |_| armed)
+        .filter_map(move |(columns, rows)| {
+            let mut at = CENTER;
+            loop {
+                at = at.offset(columns, rows)?;
+                if let Some(die) = board.get(at) {
+                    return (die.side() != side).then_some(at);
+                }
+            }
+        })
 }
 
 /// Whether `command` is in [`legal_commands`], without building the list.
@@ -89,6 +120,13 @@ pub(crate) fn validate(state: &GameState, command: Command) -> Result<(), GameEr
                 }
             }
             Ok(())
+        }
+        Command::Shoot { to } => {
+            if shots(&state.board, state.to_move).any(|target| target == to) {
+                Ok(())
+            } else {
+                Err(GameError::IllegalShot { to })
+            }
         }
     }
 }

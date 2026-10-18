@@ -32,7 +32,7 @@ describe("click: select", () => {
     const game = SeksGame.create();
     const result = click(null, "b2", boardOf(game));
     expect(result.command).toBeNull();
-    expect(result.selection).toEqual({ at: "b2", moves: game.options("b2").moves, canIncrement: true });
+    expect(result.selection).toEqual({ at: "b2", moves: game.options("b2").moves, canIncrement: true, shots: [] });
     expect([...result.selection!.moves].sort()).toEqual(["a3", "b1", "b3", "b4", "c3", "d4"]);
   });
 
@@ -94,6 +94,34 @@ describe("click: increment", () => {
     const selection = selected(game, "a1");
     expect(selection.moves).toEqual([]);
     expect(click(selection, "a1", boardOf(game)).command).toBe("a1+");
+  });
+});
+
+describe("click: shoot", () => {
+  // The white 6 in the center sees b1 up the f file and b2 on the diagonal to b10; the white 1 in g7 hides h8.
+  const center = () => open({ f6: "w6", f9: "b1", b10: "b2", g7: "w1", h8: "b1", a1: "w1" });
+
+  it("marks the dice the 6 in the center can shoot, from the engine", () => {
+    const selection = selected(center(), "f6");
+    expect([...selection.shots].sort()).toEqual(["b10", "f9"]);
+  });
+
+  it("shoots a marked die, with a command the engine accepts", () => {
+    const game = center();
+    const result = click(selected(game, "f6"), "b10", boardOf(game));
+    expect(result).toEqual({ selection: null, command: "f6xb10" });
+    game.command(result.command!);
+    expect(game.view().dice.find((die) => die.cell === "b10")).toEqual({ cell: "b10", side: "white", value: 6 });
+  });
+
+  it("does not shoot a die that a die of the player hides", () => {
+    const game = center();
+    expect(click(selected(game, "f6"), "h8", boardOf(game))).toEqual({ selection: null, command: null });
+  });
+
+  it("only a 6 in the center has shots", () => {
+    expect(selected(open({ f6: "w5", f9: "b1" }), "f6").shots).toEqual([]);
+    expect(selected(open({ e6: "w6", e9: "b1" }), "e6").shots).toEqual([]);
   });
 });
 

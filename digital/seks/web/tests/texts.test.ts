@@ -140,13 +140,28 @@ describe("the note under the title", () => {
   });
 
   it("explains that a 6 cannot be incremented", async () => {
+    const rows = Array.from({ length: 11 }, (_, i) => (i === 5 ? ".. .. .. .. w6 .. .. .. .. .. .." : i === 0 ? ".. .. .. .. .. .. .. .. .. .. b1" : i === 10 ? "w1 .. .. .. .. .. .. .. .. .. .." : ".. ".repeat(10) + ".."));
+    const { match } = newMatch(SeksGame.fromDiagram(rows.join("\n"), "white"), { kind: "hotseat" });
+    await match.start();
+    await match.click("e6");
+    const note = hint(match.snapshot(), "toque");
+    expect(note.strong).toBe("6 em e6 selecionado.");
+    expect(note.rest).toContain("Um 6 não pode ser incrementado; toque nele de novo para tirar a seleção.");
+  });
+
+  it("tells a 6 in the center what it can shoot, and words the shot", async () => {
+    // The 6 in f6 sees b1 in k11 on the diagonal.
     const rows = Array.from({ length: 11 }, (_, i) => (i === 5 ? ".. .. .. .. .. w6 .. .. .. .. .." : i === 0 ? ".. .. .. .. .. .. .. .. .. .. b1" : i === 10 ? "w1 .. .. .. .. .. .. .. .. .. .." : ".. ".repeat(10) + ".."));
     const { match } = newMatch(SeksGame.fromDiagram(rows.join("\n"), "white"), { kind: "hotseat" });
     await match.start();
     await match.click("f6");
-    const note = hint(match.snapshot(), "toque");
+    const note = hint(match.snapshot(), "clique");
     expect(note.strong).toBe("6 em f6 selecionado.");
-    expect(note.rest).toContain("Um 6 não pode ser incrementado; toque nele de novo para tirar a seleção.");
+    expect(note.rest).toBe("Clique num dado marcado para atirar: 1 alvo. Ou clique numa casa marcada para mover.");
+    await match.click("k11");
+    const last = match.snapshot().last!;
+    expect(last).toEqual({ side: "white", from: "f6", to: "k11", value: 6, captures: 1, shot: true });
+    expect(lastPlayText(last)).toBe("Última jogada: Brancas, tiro de f6 em k11, com captura de 1 dado.");
   });
 
   it("says the bot is thinking, and the human's turn against it", async () => {

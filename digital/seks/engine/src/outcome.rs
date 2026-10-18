@@ -2,7 +2,8 @@
 //!
 //! After every play the engine checks, in this order:
 //!
-//! 1. the mover's die ended a move on the opponent's back row: the mover wins;
+//! 1. the mover's die ended a move, or a shot, on the opponent's back row:
+//!    the mover wins;
 //! 2. the opponent has no play: the mover wins;
 //! 3. the position has now occurred 3 times, or 100 plays in a row had no
 //!    capture: draw.
@@ -12,6 +13,7 @@
 
 use crate::board::Board;
 use crate::cell::DIRECTIONS;
+use crate::command::shots;
 use crate::die::{Side, MAX_VALUE};
 use crate::state::GameState;
 
@@ -24,10 +26,10 @@ pub const REPETITIONS_FOR_DRAW: usize = 3;
 /// Why a side won.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum WinReason {
-    /// A die ended a move on the opponent's back row.
+    /// A die ended a move, or a shot, on the opponent's back row.
     BackRow,
     /// The opponent has no play left: no dice, or only 6s with no free
-    /// cell around.
+    /// cell around and no shot.
     NoPlay,
 }
 
@@ -47,19 +49,21 @@ pub enum Outcome {
     Draw(DrawReason),
 }
 
-/// Whether `side` has any play: a die below 6 can be incremented, and any
-/// die with a free cell around can move to it.
+/// Whether `side` has any play: a die below 6 can be incremented, any die
+/// with a free cell around can move to it, and a 6 in the center cell may
+/// have a shot.
 pub(crate) fn has_play(board: &Board, side: Side) -> bool {
-    board
-        .dice()
-        .filter(|(_, die)| die.side() == side)
-        .any(|(cell, die)| {
-            die.value() < MAX_VALUE
-                || DIRECTIONS.iter().any(|&(columns, rows)| {
-                    cell.offset(columns, rows)
-                        .is_some_and(|next| board.get(next).is_none())
-                })
-        })
+    shots(board, side).next().is_some()
+        || board
+            .dice()
+            .filter(|(_, die)| die.side() == side)
+            .any(|(cell, die)| {
+                die.value() < MAX_VALUE
+                    || DIRECTIONS.iter().any(|&(columns, rows)| {
+                        cell.offset(columns, rows)
+                            .is_some_and(|next| board.get(next).is_none())
+                    })
+            })
 }
 
 /// The outcome of the position `state` reached by a play of the opponent of

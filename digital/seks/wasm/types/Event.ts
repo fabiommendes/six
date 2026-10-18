@@ -6,4 +6,4 @@ import type { Side } from "./Side";
 /**
  * One thing that happened in a [`Transition`], in the order it happened.
  */
-export type Event = { "type": "moved", side: Side, from: Cell, to: Cell, value: number, } | { "type": "incremented", side: Side, at: Cell, value: number, } | { "type": "captured", at: Cell, side: Side, value: number, } | { "type": "game_ended", outcome: Outcome, };
+export type Event = { "type": "moved", side: Side, from: Cell, to: Cell, value: number, } | { "type": "incremented", side: Side, at: Cell, value: number, } | { "type": "shot", side: Side, from: Cell, to: Cell, } | { "type": "captured", at: Cell, side: Side, value: number, } | { "type": "game_ended", outcome: Outcome, };

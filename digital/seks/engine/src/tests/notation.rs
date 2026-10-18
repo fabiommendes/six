@@ -73,7 +73,7 @@ fn the_error_says_what_was_expected() {
     let error = "b2".parse::<Command>().unwrap_err();
     assert_eq!(
         error.to_string(),
-        "\"b2\" is not a command like b2-b4 or b2+"
+        "\"b2\" is not a command like b2-b4, b2+ or f6xb10"
     );
 }
 

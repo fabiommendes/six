@@ -6,16 +6,17 @@ use seks_engine::Cell;
 use seks_engine::{Command, CELL_COUNT};
 
 /// A command in 16 bits: `from * 121 + to` for a move, `121 * 121 + at`
-/// for an increment, by `Cell::index`.
+/// for an increment, `121 * 122 + to` for a shot, by `Cell::index`.
 pub(crate) fn code(command: Command) -> u16 {
     match command {
         Command::Move { from, to } => (from.index() * CELL_COUNT + to.index()) as u16,
         Command::Increment { at } => (CELL_COUNT * CELL_COUNT + at.index()) as u16,
+        Command::Shoot { to } => (CELL_COUNT * (CELL_COUNT + 1) + to.index()) as u16,
     }
 }
 
 /// The number of distinct codes.
-pub(crate) const CODES: usize = CELL_COUNT * CELL_COUNT + CELL_COUNT;
+pub(crate) const CODES: usize = CELL_COUNT * CELL_COUNT + 2 * CELL_COUNT;
 
 /// No command.
 pub(crate) const NO_CODE: u16 = u16::MAX;
@@ -24,7 +25,11 @@ pub(crate) const NO_CODE: u16 = u16::MAX;
 #[cfg(test)]
 pub(crate) fn decode(code: u16) -> Command {
     let code = code as usize;
-    if code >= CELL_COUNT * CELL_COUNT {
+    if code >= CELL_COUNT * (CELL_COUNT + 1) {
+        Command::Shoot {
+            to: Cell::from_index(code - CELL_COUNT * (CELL_COUNT + 1)),
+        }
+    } else if code >= CELL_COUNT * CELL_COUNT {
         Command::Increment {
             at: Cell::from_index(code - CELL_COUNT * CELL_COUNT),
         }
@@ -129,6 +134,11 @@ mod tests {
         for command in legal_commands(&GameState::initial()) {
             assert_eq!(decode(code(command)), command);
         }
+        let shot = Command::Shoot {
+            to: Cell::new(11, 11),
+        };
+        assert_eq!(decode(code(shot)), shot);
+        assert_eq!(code(shot) as usize, CODES - 1);
         assert!(CODES < NO_CODE as usize);
     }
 

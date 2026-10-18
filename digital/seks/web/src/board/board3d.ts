@@ -117,6 +117,7 @@ export class Board3D implements Stage {
   private readonly toMark: Mesh;
   private readonly rings: Mesh[] = [];
   private readonly decisiveMarks: Mesh[] = [];
+  private readonly targetMarks: Mesh[] = [];
   private marks: Marks = NO_MARKS;
   /** How far the world is turned, in radians: 0 for the Whites' point of view, a half turn more for each change. */
   private yaw = 0;
@@ -158,9 +159,9 @@ export class Board3D implements Stage {
     this.block.visible = false;
     this.world.add(this.block);
 
-    this.markTextures = { ring: markTexture("ring"), selected: markTexture("selected"), from: markTexture("from"), to: markTexture("to"), decisive: markTexture("decisive") };
+    this.markTextures = { ring: markTexture("ring"), selected: markTexture("selected"), from: markTexture("from"), to: markTexture("to"), decisive: markTexture("decisive"), target: markTexture("target") };
     const markMaterial = (kind: MarkKind) => new MeshBasicMaterial({ map: this.markTextures[kind], transparent: true, depthWrite: false });
-    this.markMaterials = { ring: markMaterial("ring"), selected: markMaterial("selected"), from: markMaterial("from"), to: markMaterial("to"), decisive: markMaterial("decisive") };
+    this.markMaterials = { ring: markMaterial("ring"), selected: markMaterial("selected"), from: markMaterial("from"), to: markMaterial("to"), decisive: markMaterial("decisive"), target: markMaterial("target") };
     this.selectedMark = this.newMark("selected");
     this.fromMark = this.newMark("from");
     this.toMark = this.newMark("to");
@@ -190,6 +191,9 @@ export class Board3D implements Stage {
     this.placeMark(this.toMark, marks.lastTo, 0.001);
     marks.destinations.forEach((cell, i) => this.placeMark(this.ring(i), cell, 0.002));
     for (let i = marks.destinations.length; i < this.rings.length; i++) this.rings[i]!.visible = false;
+    const targets = marks.targets ?? [];
+    while (this.targetMarks.length < targets.length) this.targetMarks.push(this.newMark("target"));
+    this.targetMarks.forEach((mark, i) => this.placeMark(mark, targets[i] ?? null, 0.002));
     const decisive = marks.decisive ?? [];
     while (this.decisiveMarks.length < decisive.length) this.decisiveMarks.push(this.newMark("decisive"));
     this.decisiveMarks.forEach((mark, i) => this.placeMark(mark, decisive[i] ?? null, 0.003));
@@ -199,12 +203,19 @@ export class Board3D implements Stage {
   async animate(events: readonly Event[], view: View, marks: Marks): Promise<void> {
     const motion = !this.options.reducedMotion();
     // The selection goes away at once; the marks of the last play come when the die lands.
-    this.setMarks({ ...this.marks, selected: null, destinations: [] });
+    this.setMarks({ ...this.marks, selected: null, destinations: [], targets: [] });
     const captured: Extract<Event, { type: "captured" }>[] = [];
+    let shotAt: Cell | null = null;
     for (const event of events) {
       if (event.type === "moved") await this.slide(event, motion);
       else if (event.type === "incremented") await this.turnInPlace(event, motion);
-      else if (event.type === "captured") captured.push(event);
+      else if (event.type === "shot") {
+        // The die shot leaves first, then the 6 takes its cell, still a 6.
+        const target = events.find((e): e is Extract<Event, { type: "captured" }> => e.type === "captured" && e.at === event.to);
+        if (target) await this.leave(target, motion);
+        shotAt = event.to;
+        await this.slide({ type: "moved", side: event.side, from: event.from, to: event.to, value: 6 }, motion);
+      } else if (event.type === "captured" && event.at !== shotAt) captured.push(event);
     }
     this.setMarks(marks);
     await Promise.all(captured.map((event) => this.leave(event, motion)));

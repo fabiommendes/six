@@ -7,4 +7,5 @@ mod extras;
 mod notation;
 mod random_games;
 mod setup;
+mod shot;
 mod turn;

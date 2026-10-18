@@ -2,6 +2,7 @@
 //! turn, the counters and the hash history change together.
 
 use crate::capture::{find, Captures};
+use crate::cell::{Cell, CENTER};
 use crate::command::{distance, Command};
 use crate::die::Die;
 use crate::outcome;
@@ -13,7 +14,9 @@ use crate::zobrist;
 pub(crate) struct Applied {
     /// The value the die shows after the play.
     pub(crate) value: u8,
-    /// The dice the play captured; all `None` for an increment.
+    /// The die a shot captured, `None` for a move or an increment.
+    pub(crate) shot: Option<(Cell, Die)>,
+    /// The dice the play captured by custody; all `None` for an increment.
     pub(crate) captured: Captures,
 }
 
@@ -23,6 +26,7 @@ pub(crate) fn apply(state: &mut GameState, command: Command) -> Applied {
     let mover = state.to_move;
     let mut hash = state.history.current();
     let mut captured = [None; 4];
+    let mut shot = None;
     let mut reached_goal = false;
     let value = match command {
         Command::Move { from, to } => {
@@ -48,10 +52,30 @@ pub(crate) fn apply(state: &mut GameState, command: Command) -> Applied {
             state.board.set(at, Some(incremented));
             value
         }
+        Command::Shoot { to } => {
+            let shooter = state
+                .board
+                .get(CENTER)
+                .expect("a legal shot starts on the center");
+            let target = state.board.get(to).expect("a legal shot hits a die");
+            hash ^= zobrist::die_key(CENTER, shooter)
+                ^ zobrist::die_key(to, target)
+                ^ zobrist::die_key(to, shooter);
+            state.board.set(CENTER, None);
+            state.board.set(to, Some(shooter));
+            shot = Some((to, target));
+            reached_goal = to.row() == mover.goal_row();
+            captured = find(&state.board, to, mover);
+            for (cell, die) in captured.into_iter().flatten() {
+                hash ^= zobrist::die_key(cell, die);
+                state.board.set(cell, None);
+            }
+            shooter.value()
+        }
     };
     hash ^= zobrist::turn_key();
     state.to_move = mover.opponent();
-    if captured.iter().any(Option::is_some) {
+    if shot.is_some() || captured.iter().any(Option::is_some) {
         // The only irreversible play: no earlier position can come back.
         state.plies_without_capture = 0;
         state.history.restart(hash);
@@ -60,5 +84,9 @@ pub(crate) fn apply(state: &mut GameState, command: Command) -> Applied {
         state.history.push(hash);
     }
     state.outcome = outcome::after_play(state, reached_goal);
-    Applied { value, captured }
+    Applied {
+        value,
+        shot,
+        captured,
+    }
 }

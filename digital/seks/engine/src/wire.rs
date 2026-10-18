@@ -4,7 +4,7 @@
 //! The domain types keep their storage private and have no serde; the types
 //! here fix what crosses the boundary and generate the TypeScript bindings
 //! (`ts-rs`, see `just seks-types`). Cells and commands cross as the text
-//! notation of the engine (`b2-b4`, `b2+`, see `notation`), sides as
+//! notation of the engine (`b2-b4`, `b2+`, `f6xb10`, see `notation`), sides as
 //! `"white"` and `"black"`.
 //!
 //! - [`State`]: the whole state, to save a game and to rebuild it with
@@ -13,7 +13,8 @@
 //!   does not fit a JSON number in JavaScript.
 //! - [`View`]: what an interface shows, with the counters of the draws.
 //! - [`Transition`], [`Event`]: what a command did, to animate it.
-//! - [`DieOptions`]: where a die can go and whether it can be incremented.
+//! - [`DieOptions`]: where a die can go, whether it can be incremented and
+//!   what it can shoot.
 
 use std::fmt;
 
@@ -43,7 +44,8 @@ impl<'de> Deserialize<'de> for Cell {
     }
 }
 
-/// A command in the text notation: `b2-b4` moves, `b2+` increments.
+/// A command in the text notation: `b2-b4` moves, `b2+` increments,
+/// `f6xb10` shoots.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, TS)]
 #[ts(export, as = "String")]
 pub struct Command(pub engine::Command);
@@ -192,6 +194,9 @@ pub enum Event {
     },
     /// A die was incremented in place and now shows `value`.
     Incremented { side: Side, at: Cell, value: u8 },
+    /// The 6 in `from`, the center cell, shot the die in `to` and took its
+    /// cell, still showing 6. A `captured` event for the die in `to` follows.
+    Shot { side: Side, from: Cell, to: Cell },
     /// A die left the board; `side` and `value` are the ones it had.
     Captured { at: Cell, side: Side, value: u8 },
     /// The game ended.
@@ -216,6 +221,11 @@ impl From<engine::GameEvent> for Event {
                 side: side.into(),
                 at: Cell(at),
                 value,
+            },
+            engine::GameEvent::Shot { side, from, to } => Event::Shot {
+                side: side.into(),
+                from: Cell(from),
+                to: Cell(to),
             },
             engine::GameEvent::Captured { at, die } => Event::Captured {
                 at: Cell(at),
@@ -399,6 +409,9 @@ pub struct DieOptions {
     /// move in `at`.
     pub moves: Vec<Cell>,
     pub can_increment: bool,
+    /// The dice it can shoot, in the order of `legal_commands`: empty unless
+    /// it is a 6 of the side to move in the center cell.
+    pub shots: Vec<Cell>,
 }
 
 impl DieOptions {
@@ -407,11 +420,15 @@ impl DieOptions {
             at: Cell(at),
             moves: Vec::new(),
             can_increment: false,
+            shots: Vec::new(),
         };
         for command in engine::legal_commands(state) {
             match command {
                 engine::Command::Move { from, to } if from == at => options.moves.push(Cell(to)),
                 engine::Command::Increment { at: die } if die == at => options.can_increment = true,
+                engine::Command::Shoot { to } if at == engine::CENTER => {
+                    options.shots.push(Cell(to))
+                }
                 _ => {}
             }
         }

@@ -45,6 +45,7 @@ export const BUTTONS = {
 export const LEGEND = {
   selected: "dado selecionado",
   destination: "casa ao alcance",
+  target: "alvo do tiro",
   origin: "origem",
   last: "destino da última jogada",
 } as const;
@@ -194,7 +195,7 @@ export function sideTag(mode: Mode, side: Side): string {
 
 export function lastPlayText(last: LastPlay): string {
   const who = SIDE_NAME[last.side];
-  const what = last.from === null ? `${last.to} incrementado para ${last.value}` : `de ${last.from} para ${last.to}`;
+  const what = last.from === null ? `${last.to} incrementado para ${last.value}` : last.shot ? `tiro de ${last.from} em ${last.to}` : `de ${last.from} para ${last.to}`;
   const captures = last.captures === 0 ? "" : last.captures === 1 ? ", com captura de 1 dado" : `, com captura de ${last.captures} dados`;
   return `Última jogada: ${who}, ${what}${captures}.`;
 }
@@ -234,6 +235,12 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
   const value = snapshot.view.dice.find((die) => die.cell === selection.at)?.value ?? 0;
   const strong = `${value} em ${selection.at} selecionado.`;
   const near = selection.moves.length;
+  const targets = selection.shots.length;
+  if (targets > 0) {
+    const shoot = `${Verb} num dado marcado para atirar: ${targets === 1 ? "1 alvo" : `${targets} alvos`}.`;
+    const move = near > 0 ? ` Ou ${verb} numa casa marcada para mover.` : "";
+    return { strong, rest: `${shoot}${move}` };
+  }
   if (near > 0) {
     const mark = `${Verb} numa casa marcada para mover: ${moveCount(near)}.`;
     const again = selection.canIncrement

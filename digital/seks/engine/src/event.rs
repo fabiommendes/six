@@ -17,9 +17,9 @@ use crate::state::GameState;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Transition {
     pub state: GameState,
-    /// In the order they happened: the move or increment, then the captures
-    /// (north, west, south, east of the cell where the die stopped), then the
-    /// end of the game.
+    /// In the order they happened: the move, increment or shot, then the
+    /// captures (the die shot, then north, west, south, east of the cell where
+    /// the die stopped), then the end of the game.
     pub events: Vec<GameEvent>,
 }
 
@@ -36,6 +36,10 @@ pub enum GameEvent {
     },
     /// A die of `side` in `at` was incremented and now shows `value`.
     Incremented { side: Side, at: Cell, value: u8 },
+    /// The 6 of `side` in `from`, the center cell, shot the die in `to` and
+    /// took its cell, still showing 6. A `Captured` event for the die in
+    /// `to` follows.
+    Shot { side: Side, from: Cell, to: Cell },
     /// `die` was captured in `at` and left the board.
     Captured { at: Cell, die: Die },
     /// The game ended with `outcome`.
@@ -54,6 +58,9 @@ pub enum GameError {
     IllegalMove { from: Cell, to: Cell },
     /// The die in `at` shows 6, the maximum.
     CannotIncrement { at: Cell },
+    /// The side to move has no 6 in the center cell, or `to` is not the
+    /// first die of the opponent on one of its 8 lines.
+    IllegalShot { to: Cell },
 }
 
 impl fmt::Display for GameError {
@@ -68,6 +75,9 @@ impl fmt::Display for GameError {
             }
             GameError::CannotIncrement { at } => {
                 write!(f, "the die at {at} already shows 6")
+            }
+            GameError::IllegalShot { to } => {
+                write!(f, "no 6 in the center can shoot the die at {to}")
             }
         }
     }
