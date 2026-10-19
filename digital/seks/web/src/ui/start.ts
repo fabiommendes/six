@@ -7,6 +7,13 @@ import { APP, BUTTONS, MAIL, mailGameStatus, START } from "../logic/texts";
 import { esc, need } from "./dom";
 import { brandMark, dieIcon, motifStrip } from "./svg";
 
+/**
+ * The published site puts the game in `seks/` under the rulebook site (`just site`),
+ * so the rules chapter and the landing page of the collection are one level up.
+ */
+const RULES_URL = "../seks.html";
+const COLLECTION_URL = "../";
+
 /** What the player chose on the start screen. */
 export interface StartChoice {
   readonly mode: "hotseat" | "bot" | "mail" | "live";
@@ -86,6 +93,7 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
           </div>
           <button type="submit" class="primary">${BUTTONS.play}</button>
         </form>
+        <nav class="start-links"><a href="${RULES_URL}">${START.rules}</a><a href="${COLLECTION_URL}">${START.collection}</a></nav>
         ${
           extras.games.length === 0
             ? ""

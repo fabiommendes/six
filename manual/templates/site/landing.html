@@ -22,12 +22,13 @@
   <ol class="jogos">
   {% for chapter in games %}
     <li class="jogo">
-      <a href="{{ chapter.slug }}.html">
+      <a class="jogo__ficha" href="{{ chapter.slug }}.html">
         <span class="jogo__num">{{ loop.index }}</span>
         <span class="jogo__nome">{{ chapter.title }}</span>
         {% if chapter.summary %}<span class="jogo__resumo">{{ chapter.summary }}</span>{% endif %}
         {% if chapter.players %}<span class="jogo__jogadores">{{ chapter.players }} jogadores</span>{% endif %}
       </a>
+      {% if chapter.digital %}<a class="botao jogo__jogar" href="{{ chapter.digital }}">Jogar no navegador</a>{% endif %}
     </li>
   {% endfor %}
   {% for number in range(games | length + 1, 7) %}

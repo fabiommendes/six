@@ -12,6 +12,9 @@ Hotseat, jogo contra o bot, partida por correspondência (link) e partida ao viv
 - `just seks-web-install`: instala as dependências (pnpm).
 - `just seks-web-dev`: servidor de desenvolvimento.
 - `just seks-web-check`: tipos, testes e build (`dist/`).
+- `just site`: o site publicado em `out/site`, com o manual na raiz e esta
+  interface em `seks/`. A tela inicial liga para as regras (`../seks.html`) e
+  para a entrada da coleção (`../`), que só existem nesse build.
 
 ## Estrutura
 

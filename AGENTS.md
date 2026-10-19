@@ -40,6 +40,9 @@ Nível 1 do ADR 0002 do tooling-root:
 - Manual: `just manual` (site e PDF), `just manual-serve`, `just manual-check`
   (trechos do manual cujas fontes em `regras/` mudaram). Detalhes em
   `manual/README.md`.
+- Site publicado: `just site` (manual na raiz e a interface do Seks em
+  `seks/`, em `out/site`) e `just site-serve`. Cada push na `main` publica
+  o site no GitHub Pages (`.github/workflows/pages.yml`).
 - Issues, RFCs e ADRs: `r2 issue list`, `r2 rfc list`, `r2 adr list`.
 
 ## Mapa

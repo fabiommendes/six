@@ -131,6 +131,23 @@ seks-bench:
 seks-bots-slow-test:
     cd digital && CARGO_BUILD_JOBS=4 {{seks_limits}} cargo test --release -q -p seks-bots -- --ignored --skip generate_the_suite
 
+# --- Site publicado ---------------------------------------------------------
+
+# Site publicado em out/site: o manual (site e PDF) na raiz e a interface web do Seks em seks/
+[group('site')]
+site: seks-wasm seks-web-install
+    make -C manual build
+    cd digital/seks/web && nice -n 19 pnpm build
+    rm -rf out/site && mkdir -p out
+    cp -r manual/build/site out/site
+    cp -r digital/seks/web/dist out/site/seks
+    touch out/site/.nojekyll
+
+# Gera o site publicado e serve em http://127.0.0.1:PORT
+[group('site')]
+site-serve port="8080": site
+    python3 -m http.server -d out/site -b 127.0.0.1 {{port}}
+
 # --- Verificações -----------------------------------------------------------
 
 # Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motor e bots em Rust (e o build WASM dos bots), interface web do Seks

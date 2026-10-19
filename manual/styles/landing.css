@@ -17,11 +17,12 @@ body { margin: 0; font-size: 17px; }
   gap: 1.2em;
 }
 .jogo { border: 2px solid var(--tinta); border-radius: 6px; background: var(--branco); }
-.jogo a, .jogo--futuro { display: block; padding: 1.2em; color: var(--tinta); text-decoration: none; min-height: 7em; }
+.jogo__ficha, .jogo--futuro { display: block; padding: 1.2em; color: var(--tinta); text-decoration: none; min-height: 7em; }
 .jogo--futuro { border-style: dashed; border-color: var(--linha); background: none; color: var(--tinta-suave); }
 .jogo__num { display: block; font-family: var(--display); font-size: 0.9em; color: var(--destaque); }
 .jogo__nome { display: block; font-family: var(--display); font-size: 1.8em; font-weight: 700; }
 .jogo__resumo { display: block; margin-top: 0.3em; }
+.jogo__jogar { margin: 0 1.2em 1.2em; }
 .jogo__jogadores { display: block; margin-top: 0.5em; font-size: 0.85em; color: var(--tinta-suave); }
 
 .rodape { text-align: center; color: var(--tinta-suave); font-size: 0.85em; padding: 2em; }

@@ -52,6 +52,7 @@ titulo: Seks
 resumo: Uma linha para o sumário e a página de entrada.
 jogo: seks             # o jogo do capítulo: pasta de regras/
 jogadores: "2"         # mostrado na página de entrada
+digital: seks/          # pasta da versão digital no site publicado (`just site`)
 rascunho: true         # fica fora do build publicado
 fonte:                 # fontes do capítulo inteiro...
   - regras/seks/00-visao-geral.md

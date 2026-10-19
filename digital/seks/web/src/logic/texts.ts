@@ -65,6 +65,8 @@ export const START = {
   levelLegend: "Nível do bot",
   mail: "Por correspondência",
   mailNote: "Cada jogada vai num link, pelo meio que você quiser. Sem conta e sem servidor.",
+  rules: "Ler as regras",
+  collection: "Os seis jogos do Six",
   live: "Ao vivo",
   liveNote: "Cada um no seu navegador, ao mesmo tempo. Você manda um link de convite. Sem conta.",
 } as const;

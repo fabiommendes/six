@@ -3,6 +3,7 @@ titulo: Seks
 resumo: Estratégia abstrata em que cada dado anda tantas casas quanto o seu valor.
 jogo: seks
 jogadores: "2"
+digital: seks/
 secoes:
   visao-geral:
     fonte:

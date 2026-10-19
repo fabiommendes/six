@@ -14,6 +14,8 @@ authors write them):
                  {captura: {fonte: [regras/seks/04-captura.md]}}
     rascunho:  true to leave the chapter out of the published build
     resumo:    one-line description for the table of contents (optional)
+    digital:   folder of the digital version in the published site, e.g.
+               "seks/"; the landing page links to it (optional)
 
 Every section must be covered: by `fonte`, or by an entry in `secoes` for
 each `##` section when there is no chapter-level `fonte`.
@@ -28,7 +30,7 @@ from .markdown_sections import sections, split_frontmatter
 from .sources import SourceError, SourceRef
 
 FILENAME_RE = re.compile(r"^(?P<number>\d\d|A\d)-(?P<slug>[a-z0-9-]+)\.md$")
-KNOWN_KEYS = {"titulo", "jogo", "jogadores", "fonte", "secoes", "rascunho", "resumo"}
+KNOWN_KEYS = {"titulo", "jogo", "jogadores", "fonte", "secoes", "rascunho", "resumo", "digital"}
 
 
 @dataclass
@@ -41,6 +43,7 @@ class Chapter:
     summary: str = ""
     game: str | None = None
     players: str = ""
+    digital: str = ""
     draft: bool = False
     sources: list[SourceRef] | None = None
     section_sources: dict[str, list[SourceRef]] = field(default_factory=dict)
@@ -124,6 +127,7 @@ def load(path: Path) -> Chapter:
         summary=meta.get("resumo", ""),
         game=meta.get("jogo"),
         players=str(meta.get("jogadores", "")),
+        digital=meta.get("digital", ""),
         body=body,
         draft=bool(meta.get("rascunho", False)),
         sources=_refs(meta["fonte"], path.name) if "fonte" in meta else None,
