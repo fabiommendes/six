@@ -8,7 +8,7 @@
 //!                        [--judge SPEC] [--margin M]
 //!     seks-bots perft --depth N
 //!     seks-bots bench [--bot SPEC]
-//!     seks-bots selfplay --bot SPEC --openings FILE --games N --out FILE
+//!     seks-bots selfplay --bot SPEC [--openings FILE] --games N --out FILE
 //!                        [--seed S] [--threads N] [--noise E] [--noise-plies P]
 //!                        [--max-plies N]
 //!     seks-bots tune --data FILE [--data FILE]... --init WEIGHTS --out WEIGHTS
@@ -48,7 +48,7 @@ const USAGE: &str = "usage: seks-bots batch --bots A,B --openings FILE [--games 
        seks-bots openings --out FILE [--count N] [--plies K] [--seed S] [--judge SPEC] [--margin M]
        seks-bots perft --depth N
        seks-bots bench [--bot SPEC]
-       seks-bots selfplay --bot SPEC --openings FILE --games N --out FILE [--seed S] [--threads N] \
+       seks-bots selfplay --bot SPEC [--openings FILE] --games N --out FILE [--seed S] [--threads N] \
 [--noise E] [--noise-plies P] [--max-plies N]
        seks-bots tune --data FILE... --init WEIGHTS --out WEIGHTS [--lambda L] [--epochs N] \
 [--lr X] [--l2 X] [--patience N] [--threads N]
@@ -328,6 +328,11 @@ fn selfplay(flags: &[(&str, &str)]) -> Result<(), String> {
         }
     }
     let out = out.ok_or(format!("--out is required\n{USAGE}"))?;
+    // Without openings every game starts from the initial position; the root
+    // noise of the first plies makes them differ.
+    if run.openings.is_empty() {
+        run.openings.push(openings::Opening::initial());
+    }
     let file = std::fs::File::create(out).map_err(|e| format!("{out}: {e}"))?;
     let mut file = std::io::BufWriter::new(file);
     let clock = Instant::now();

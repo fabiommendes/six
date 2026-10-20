@@ -303,3 +303,62 @@ As partidas da posição inicial e a análise por jogada (incrementos, valor
 médio, dados fora, primeira captura, buracos da fileira da frente) usaram
 uma ferramenta descartável, fora do git, guardada em
 `dev/handoffs/abertura-do-seks/`.
+
+## Vantagem de quem joga primeiro (2026-10-19)
+
+O `ab` contra si mesmo, as duas cores por abertura, com os pesos de
+`weights/default.json` e o tiro do 6 na casa central. `p2`: 300 aberturas de
+2 jogadas aleatórias, sem filtro (`openings --plies 2 --margin 1000000
+--seed 7`). `base`: `openings/base.txt`, filtradas pelo juiz para ficarem
+equilibradas. Sem ruído o bot é determinístico e trocar as cores repete a
+partida, então cada abertura conta uma vez. Nas duas, as Brancas jogam
+primeiro depois da abertura.
+
+| Lote | Partidas | Brancas / empates / Pretas | Brancas entre as decididas (IC 95%) | Jogadas |
+|---|---|---|---|---|
+| `p2`, `nodes=2000,noise=30` | 600 | 296 / 3 / 301 | 49,6% [45,6; 53,6] | 44 |
+| `p2`, `nodes=20000,noise=30` | 600 | 285 / 24 / 291 | 49,5% [45,4; 53,6] | 65 |
+| `p2`, `nodes=60000,noise=15` | 600 | 284 / 6 / 310 | 47,8% [43,8; 51,8] | 56 |
+| `base`, `nodes=20000` | 200 | 86 / 25 / 89 | 49,1% [41,8; 56,5] | 94 |
+| `base`, `nodes=60000` | 200 | 106 / 11 / 83 | 56,1% [49,0; 63,0] | 96 |
+
+Leitura: nenhuma vantagem mensurável no nível dos bots de hoje. Só o último
+lote passa de 50%, no limite do intervalo e com 200 partidas; os de 600
+dizem que a vantagem, se existe, é menor que uns 4 pontos. Quase todas as
+partidas acabam na fileira de fundo, então os bots ainda erram muito, e um
+jogo mais preciso pode mostrar uma vantagem que estes não veem.
+
+### Da posição inicial
+
+`seks-bots selfplay` sem `--openings` (todas as partidas da posição inicial),
+`--noise 30 --noise-plies 4`: ruído só nas 4 primeiras jogadas, nenhum
+depois. Contadas só as partidas distintas.
+
+| Bot | Partidas (distintas) | Brancas / empates / Pretas | Brancas entre as decididas (IC 95%) | Jogadas |
+|---|---|---|---|---|
+| `ab:nodes=20000` | 1000 (964) | 469 / 104 / 391 | 54,5% [51,2; 57,8] | 101 |
+| `ab:nodes=60000` | 600 (79) | 38 / 4 / 37 | 50,7% [39,6; 61,7] | 92 |
+
+Com 20000 nós, as Brancas vencem 54,5% das partidas decididas, fora do
+acaso. Com 60000 nós o ruído 30 quase não varia a partida: só 3 primeiras
+jogadas ficam a 30 pontos da melhor, e as 600 partidas se reduzem a 79; a
+medição não vale. Ruído 15 com 20000 nós também repete (44 distintas em 100).
+
+### Variante: o primeiro turno das Brancas é um movimento
+
+Na primeira decisão da partida, a busca só considera movimentos (sem
+incremento); o resto igual ao lote acima. A variante virou regra
+(`regras/seks/02-preparacao.md`, "Jogador inicial"), e a opção
+`--first-move-moves` do `selfplay`, que a media, saiu: o motor já não lista
+incrementos no primeiro turno. Sem a
+variante, o bot abre com incremento em 25% das partidas (20000 nós) e 32%
+(60000 nós).
+
+| Bot | Partidas (distintas) | Brancas / empates / Pretas | Brancas entre as decididas (IC 95%) |
+|---|---|---|---|
+| `ab:nodes=20000` | 1000 (962) | 447 / 89 / 426 | 51,2% [47,9; 54,5] |
+| `ab:nodes=60000` | 600 (422) | 202 / 22 / 198 | 50,5% [45,6; 55,4] |
+
+Com 20000 nós, a variante tira a vantagem medida sem ela (54,5% [51,2;
+57,8]): os intervalos quase não se tocam. Com 60000 nós não há comparação,
+porque o lote sem a variante não variou.
