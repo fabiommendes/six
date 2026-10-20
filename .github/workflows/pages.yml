@@ -1,5 +1,6 @@
-# Builds the published site (`just site`: the rulebook at the root and the Seks
-# web interface in seks/) and deploys it to GitHub Pages on every push to main.
+# Builds the published site (`just site`: the rulebook at the root and the web
+# interfaces of the Seks in seks/ and of the Liu in liu/) and deploys it to
+# GitHub Pages on every push to main.
 name: pages
 
 on:
@@ -50,7 +51,9 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: digital/seks/web/pnpm-lock.yaml
+          cache-dependency-path: |
+            digital/seks/web/pnpm-lock.yaml
+            digital/liu/web/pnpm-lock.yaml
 
       - run: just site
 

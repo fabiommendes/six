@@ -3,6 +3,7 @@ titulo: Liu
 resumo: Dados no estilo do sudoku, sem repetir número numa linha nem numa coluna.
 jogo: liu
 jogadores: "2 a 4"
+digital: liu/
 secoes:
   visao-geral:
     fonte:

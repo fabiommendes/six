@@ -1,0 +1,15 @@
+[package]
+name = "liu-engine"
+version = "0.1.0"
+edition.workspace = true
+description = "Rules engine of the Liu dice game"
+
+[features]
+# JSON adapter and TypeScript types (`src/wire.rs`): serde on the domain
+# types and the `View` an interface shows.
+wire = ["dep:serde", "dep:serde_json", "dep:ts-rs"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
+ts-rs = { version = "10", optional = true }

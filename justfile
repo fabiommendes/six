@@ -131,16 +131,70 @@ seks-bench:
 seks-bots-slow-test:
     cd digital && CARGO_BUILD_JOBS=4 {{seks_limits}} cargo test --release -q -p seks-bots -- --ignored --skip generate_the_suite
 
+# --- Liu ---------------------------------------------------------------------
+
+# Testes do motor do Liu em Rust
+[group('liu')]
+liu-engine-test:
+    cd digital && cargo test -p liu-engine --all-features
+
+# Regenera os tipos TypeScript do motor do Liu em digital/liu/wasm/types (ts-rs)
+[group('liu')]
+liu-types:
+    rm -rf digital/liu/wasm/types
+    cd digital && TS_RS_EXPORT_DIR="$PWD/liu/wasm/types" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p liu-engine --features wire --lib export_bindings
+
+# Falha se digital/liu/wasm/types está desatualizado em relação ao motor do Liu
+[group('liu')]
+liu-types-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    cd digital
+    TS_RS_EXPORT_DIR="$tmp" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p liu-engine --features wire --lib export_bindings
+    diff -r "$tmp" liu/wasm/types || { echo "tipos desatualizados: rode just liu-types" >&2; exit 1; }
+
+# Gera o pacote WebAssembly do motor do Liu em digital/liu/wasm/pkg
+[group('liu')]
+liu-wasm:
+    cd digital && CARGO_BUILD_JOBS=4 nice -n 19 wasm-pack build liu/wasm --target web --release
+
+# Gera o pacote WebAssembly do Liu e joga partidas inteiras pelo Game no Node
+[group('liu')]
+liu-wasm-test: liu-wasm
+    nice -n 19 node --test digital/liu/wasm/tests/game.test.mjs
+
+# Instala as dependências da interface web do Liu (pnpm)
+[group('liu')]
+liu-web-install:
+    cd digital/liu/web && nice -n 19 pnpm install --frozen-lockfile --prefer-offline
+
+# Serve a interface web do Liu em desenvolvimento (pede `just liu-wasm` antes)
+[group('liu')]
+liu-web-dev:
+    cd digital/liu/web && node scripts/check-wasm.mjs --warn && pnpm dev --open
+
+# Tipos, testes e build da interface web do Liu, em digital/liu/web/dist (pede `just liu-wasm` antes)
+[group('liu')]
+liu-web-check: liu-web-install
+    cd digital/liu/web && node scripts/check-wasm.mjs
+    cd digital/liu/web && nice -n 19 pnpm typecheck
+    cd digital/liu/web && nice -n 19 pnpm test
+    cd digital/liu/web && nice -n 19 pnpm build
+
 # --- Site publicado ---------------------------------------------------------
 
-# Site publicado em out/site: o manual (site e PDF) na raiz e a interface web do Seks em seks/
+# Site publicado em out/site: o manual (site e PDF) na raiz e as interfaces web do Seks em seks/ e do Liu em liu/
 [group('site')]
-site: seks-wasm seks-web-install
+site: seks-wasm seks-web-install liu-wasm liu-web-install
     make -C manual build
     cd digital/seks/web && nice -n 19 pnpm build
+    cd digital/liu/web && nice -n 19 pnpm build
     rm -rf out/site && mkdir -p out
     cp -r manual/build/site out/site
     cp -r digital/seks/web/dist out/site/seks
+    cp -r digital/liu/web/dist out/site/liu
     touch out/site/.nojekyll
 
 # Gera o site publicado e serve em http://127.0.0.1:PORT
@@ -150,7 +204,7 @@ site-serve port="8080": site
 
 # --- Verificações -----------------------------------------------------------
 
-# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motor e bots em Rust (e o build WASM dos bots), interface web do Seks
+# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu
 [group('check')]
 check:
     make -C manual build
@@ -163,3 +217,6 @@ check:
     just seks-wasm-test
     just seks-web-check
     cd digital && cargo build -q -p seks-bots --lib --target wasm32-unknown-unknown
+    just liu-types-check
+    just liu-wasm-test
+    just liu-web-check

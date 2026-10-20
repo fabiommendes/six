@@ -23,8 +23,8 @@ Nível 1 do ADR 0002 do tooling-root:
 - Checagem: `just check` (build e lint do manual, sincronia com `regras/`,
   lint e testes do protótipo, `cargo fmt --check`, `cargo clippy` e
   `cargo test` do motor e dos bots em Rust, build WASM dos bots, tipos e teste
-  em Node do `seks-wasm`, tipos, testes e build da interface web do Seks).
-  Define "pronto".
+  em Node do `seks-wasm`, tipos, testes e build da interface web do Seks, e
+  o mesmo para o Liu). Define "pronto".
 - Motor do Seks: `just seks-engine-test`.
 - Motor em WebAssembly: `just seks-wasm` (pacote em `digital/seks/wasm/pkg`),
   `just seks-wasm-test` (partidas inteiras no Node), `just seks-types` (tipos
@@ -37,11 +37,15 @@ Nível 1 do ADR 0002 do tooling-root:
   GRID` (grade de experimentos com resumo curto), `just seks-bench`
   (velocidade nativa e em WASM). Detalhes em `digital/seks/bots/EVALUATOR.md`
   e `dev/notes/bots-do-seks.md`.
+- Liu: `just liu-engine-test` (motor), `just liu-wasm` e `just
+  liu-wasm-test` (pacote WASM e partidas no Node), `just liu-types`, `just
+  liu-web-dev` e `just liu-web-check` (interface web, pede `just liu-wasm`
+  antes). Detalhes em `digital/liu/web/README.md`.
 - Manual: `just manual` (site e PDF), `just manual-serve`, `just manual-check`
   (trechos do manual cujas fontes em `regras/` mudaram). Detalhes em
   `manual/README.md`.
-- Site publicado: `just site` (manual na raiz e a interface do Seks em
-  `seks/`, em `out/site`) e `just site-serve`. Cada push na `main` publica
+- Site publicado: `just site` (manual na raiz e as interfaces do Seks em
+  `seks/` e do Liu em `liu/`, em `out/site`) e `just site-serve`. Cada push na `main` publica
   o site no GitHub Pages (`.github/workflows/pages.yml`).
 - Issues, RFCs e ADRs: `r2 issue list`, `r2 rfc list`, `r2 adr list`.
 
@@ -57,6 +61,9 @@ Nível 1 do ADR 0002 do tooling-root:
 | `digital/seks/web/` | Interface web do Seks (Vite, TypeScript e Three.js): hotseat, jogo contra bot, partida por correspondência (link) e partida ao vivo (P2P), com o motor em WASM |
 | `digital/seks/bots/` | Bots do Seks (`seks-bots`): aleatório, guloso e alfa-beta, lotes e treino |
 | `digital/seks/prototipo/` | Protótipo do Seks em Python e Pyxel, referência de comportamento |
+| `digital/liu/engine/` | Motor do Liu em Rust (`liu-engine`), com o sorteio dos dados no estado |
+| `digital/liu/wasm/` | `liu-wasm`: o motor do Liu em WebAssembly e os tipos TypeScript |
+| `digital/liu/web/` | Interface web do Liu (Vite e TypeScript, SVG): hotseat de 2 a 4 jogadores |
 | `arte/` | Identidade visual (ADR 0005); `esbocos/` guarda as quatro direções esboçadas, como referência |
 | `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` e `esbocos/` (temporários) ficam fora do git |
 
