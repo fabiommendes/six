@@ -29,3 +29,14 @@ mesma coluna, do outro lado.
 ## Jogador inicial
 
 As **Brancas** jogam primeiro. Depois, os jogadores alternam os turnos.
+
+No primeiro turno da partida, as Brancas precisam **mover** um dado: não
+podem incrementar.
+
+> **Proposta:** o primeiro turno com movimento foi aprovado para teste e ainda
+> não foi jogado.
+
+> **Design:** incrementar no primeiro turno dava vantagem às Brancas. Nos
+> bots, da posição inicial, as Brancas venciam 54,5% das partidas decididas;
+> com o primeiro turno obrigado a mover, 51,2% (ver
+> `dev/notes/bots-do-seks.md`, "Vantagem de quem joga primeiro").

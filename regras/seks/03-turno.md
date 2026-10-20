@@ -32,6 +32,9 @@ Depois do movimento, o jogador confere as capturas (ver
 O jogador soma 1 ao valor de um dado seu, que fica na mesma casa. O valor
 máximo é **6**: um 6 não pode ser incrementado.
 
+As Brancas não incrementam no primeiro turno da partida (ver
+[02-preparacao.md](02-preparacao.md#jogador-inicial)).
+
 Incrementar nunca captura.
 
 ## Atirar

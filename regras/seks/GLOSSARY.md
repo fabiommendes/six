@@ -95,7 +95,7 @@ Ver também: Fileira
 ## Incrementar
 
 Jogada que soma 1 ao valor de um dado, sem movê-lo. Um 6 não pode ser
-incrementado.
+incrementado, e as Brancas não incrementam no primeiro turno da partida.
 
 en: increment
 Ver também: Jogada, Valor
