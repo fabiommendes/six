@@ -77,7 +77,8 @@ secoes:                # ...e/ou de cada seção ##
 ## Diagramas de tabuleiro
 
 Um bloco ` ```tabuleiro ` vira uma figura em SVG, com dados de pontos. O
-formato está no topo de `rulebook/diagrams.py`:
+formato está no topo de `rulebook/diagrams.py`. ` ```diagrama ` é o mesmo
+bloco, para jogos cujo glossário proíbe a palavra "tabuleiro", como o Liu:
 
     ```tabuleiro
     legenda: O 3 branco sobe duas casas...
@@ -88,7 +89,9 @@ formato está no topo de `rulebook/diagrams.py`:
     ```
 
 `.` é uma casa vazia, `o` uma casa marcada, `B1` a `B6` e `P1` a `P6` dados
-brancos e pretos; o sufixo `*` destaca o dado, e `x` o mostra capturado. Para
+brancos e pretos, `S1` a `S6` o selo do Liu; o sufixo `*` destaca o dado, e
+`x` o mostra capturado. `moldura: r,c` desenha a moldura do Liu, de 4 por 4
+casas, a partir da casa `r,c`. Para
 pôr figuras lado a lado, envolva os blocos em `<div class="diagramas"
 markdown="1">`; para uma figura grande no PDF, em `<div
 class="diagrama--grande" markdown="1">`.

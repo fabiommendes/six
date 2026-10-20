@@ -1,5 +1,8 @@
 """Board diagrams: ```tabuleiro blocks in the chapters become SVG figures.
 
+```diagrama is the same block, for games whose glossary forbids the word
+"tabuleiro" (the Liu).
+
 A block has option lines, then one line per row of the board, top row
 first, with one token per cell separated by spaces:
 
@@ -18,6 +21,7 @@ Cell tokens:
     o        empty cell, highlighted (a cell a die may reach)
     B1..B6   white die with that value
     P1..P6   black die with that value
+    S1..S6   seal die of the Liu (a die in a player's color) with that value
     suffix * highlighted die (the die that moves)
     suffix x captured die (drawn faded and crossed out)
 
@@ -26,6 +30,7 @@ Options:
     legenda: text   caption below the figure (markdown is not parsed)
     seta: r,c -> r,c  an arrow between two cells; row and column from 1, top left
     centro: r,c     the center cell of the Seks board, painted red
+    moldura: r,c    a Liu frame: a thick outline of 4 by 4 cells from r,c (top left)
     titulo: text    accessible title of the SVG (defaults to the caption)
 
 The dice are drawn with pips, as the physical dice of the kit.
@@ -48,8 +53,8 @@ PIPS = {
     5: [(-1, -1), (1, -1), (0, 0), (-1, 1), (1, 1)],
     6: [(-1, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (1, 1)],
 }
-TOKEN_RE = re.compile(r"^(?:(?P<empty>\.)|(?P<target>o)|(?P<side>[BP])(?P<value>[1-6])(?P<marks>[*x]*))$")
-OPTION_RE = re.compile(r"^(?P<key>legenda|seta|titulo|centro):\s*(?P<value>.*)$")
+TOKEN_RE = re.compile(r"^(?:(?P<empty>\.)|(?P<target>o)|(?P<side>[BPS])(?P<value>[1-6])(?P<marks>[*x]*))$")
+OPTION_RE = re.compile(r"^(?P<key>legenda|seta|titulo|centro|moldura):\s*(?P<value>.*)$")
 ARROW_RE = re.compile(r"^(\d+)\s*,\s*(\d+)\s*->\s*(\d+)\s*,\s*(\d+)$")
 CELL_RE = re.compile(r"^(\d+)\s*,\s*(\d+)$")
 
@@ -60,7 +65,7 @@ class DiagramError(ValueError):
 
 @dataclass
 class Cell:
-    side: str | None = None  # "B" or "P"
+    side: str | None = None  # "B", "P" or "S"
     value: int = 0
     target: bool = False
     highlight: bool = False
@@ -74,6 +79,7 @@ class Board:
     title: str = ""
     arrows: list[tuple[int, int, int, int]] = field(default_factory=list)
     center: tuple[int, int] | None = None
+    frame: tuple[int, int] | None = None
 
 
 def parse(source: str) -> Board:
@@ -81,6 +87,7 @@ def parse(source: str) -> Board:
     options: dict[str, str] = {}
     arrows = []
     center = None
+    frame = None
     for number, line in enumerate(source.strip().splitlines(), start=1):
         line = line.strip()
         if not line:
@@ -97,6 +104,11 @@ def parse(source: str) -> Board:
                 if not found:
                     raise DiagramError(f"line {number}: center must be 'r,c', got {option['value']!r}")
                 center = (int(found[1]), int(found[2]))
+            elif option["key"] == "moldura":
+                found = CELL_RE.match(option["value"].strip())
+                if not found:
+                    raise DiagramError(f"line {number}: frame must be 'r,c', got {option['value']!r}")
+                frame = (int(found[1]), int(found[2]))
             else:
                 options[option["key"]] = option["value"].strip()
             continue
@@ -122,8 +134,10 @@ def parse(source: str) -> Board:
                 raise DiagramError(f"arrow cell {r},{c} is outside the board")
     if center and not (1 <= center[0] <= len(rows) and 1 <= center[1] <= width):
         raise DiagramError(f"center cell {center[0]},{center[1]} is outside the board")
+    if frame and not (1 <= frame[0] <= len(rows) - 3 and 1 <= frame[1] <= width - 3):
+        raise DiagramError(f"frame at {frame[0]},{frame[1]} does not fit on the board")
     caption = options.get("legenda", "")
-    return Board(rows, caption, options.get("titulo", caption), arrows, center)
+    return Board(rows, caption, options.get("titulo", caption), arrows, center, frame)
 
 
 def _center(row: int, column: int) -> tuple[float, float]:
@@ -132,7 +146,11 @@ def _center(row: int, column: int) -> tuple[float, float]:
 
 def _die(cell: Cell, cx: float, cy: float) -> str:
     color = palette.hex_color
-    fill, ink = (color("dado-branco"), color("dado-preto")) if cell.side == "B" else (color("dado-preto"), color("dado-branco"))
+    fill, ink = {
+        "B": (color("dado-branco"), color("dado-preto")),
+        "P": (color("dado-preto"), color("dado-branco")),
+        "S": (color("casa-central"), color("dado-branco")),
+    }[cell.side]
     half = DIE / 2
     step = DIE * 0.27
     faded = ' opacity="0.35"' if cell.captured else ""
@@ -198,6 +216,12 @@ def svg(board: Board) -> str:
                     f'stroke="{color("destaque")}" stroke-width="2.5"'
                     f"{dashed}/>"
                 )
+    if board.frame:
+        r, c = board.frame
+        parts.append(
+            f'<rect x="{MARGIN + (c - 1) * CELL}" y="{MARGIN + (r - 1) * CELL}" width="{4 * CELL}" '
+            f'height="{4 * CELL}" fill="none" stroke="{color("dado-preto")}" stroke-width="4"/>'
+        )
     for r, row in enumerate(board.rows, start=1):
         for c, cell in enumerate(row, start=1):
             if cell.side:

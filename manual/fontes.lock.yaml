@@ -30,7 +30,44 @@ capitulos/03-seks.md#visao-geral:
   regras/seks/00-visao-geral.md:
     hash: sha256:9b3e37b99e410fd9
     commit: e4de82efa29f
+capitulos/04-liu.md#a-janela:
+  regras/liu/04-janela.md:
+    hash: sha256:b6df9a0f77256747
+    commit: 7427d790cbad
+capitulos/04-liu.md#a-rodada:
+  regras/liu/03-rodada.md#mercado:
+    hash: sha256:fda37676e27831ad
+    commit: 7427d790cbad
+  regras/liu/03-rodada.md#ordem:
+    hash: sha256:f73f557c662fb333
+    commit: 7427d790cbad
+capitulos/04-liu.md#componentes:
+  regras/liu/01-componentes.md:
+    hash: sha256:b600481d22f4077f
+    commit: 7427d790cbad
+capitulos/04-liu.md#fim-do-jogo:
+  regras/liu/05-fim-do-jogo.md:
+    hash: sha256:d13ab577e313c808
+    commit: 7427d790cbad
+capitulos/04-liu.md#o-turno:
+  regras/liu/03-rodada.md#mao:
+    hash: sha256:114a0fecc25d760a
+    commit: 7427d790cbad
+  regras/liu/03-rodada.md#turno:
+    hash: sha256:1dbae133ab0e02b4
+    commit: 7427d790cbad
+capitulos/04-liu.md#preparacao:
+  regras/liu/02-preparacao.md:
+    hash: sha256:893ac2f3661b4069
+    commit: 7427d790cbad
+capitulos/04-liu.md#visao-geral:
+  regras/liu/00-visao-geral.md:
+    hash: sha256:673bea90056a1955
+    commit: 7427d790cbad
 capitulos/A1-glossario.md:
+  regras/liu/GLOSSARY.md:
+    hash: sha256:a88a73ad2b7fa8a9
+    commit: 7427d790cbad
   regras/seks/GLOSSARY.md:
     hash: sha256:212c67c58e88e396
-    commit: e4de82efa29f
+    commit: 7427d790cbad

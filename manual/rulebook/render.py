@@ -2,7 +2,7 @@
 
 Steps, in order:
 
-1. ```tabuleiro blocks become SVG figures (see diagrams.py).
+1. ```tabuleiro and ```diagrama blocks become SVG figures (see diagrams.py).
 2. The body is rendered as a Jinja template, so chapters can call helpers
    such as {{ glossario("seks") }}.
 3. [[Termo]], [[Termo|texto]] and [[jogo:Termo]] become links to the
@@ -35,7 +35,7 @@ from .markdown_sections import slugify
 from .symbols import SymbolTable, forbidden_chars
 
 DIAGRAM_RE = re.compile(
-    r"^(?P<indent>[ \t]*)```tabuleiro[ \t]*\n(?P<body>.*?)^(?P=indent)```[ \t]*$",
+    r"^(?P<indent>[ \t]*)```(?:tabuleiro|diagrama)[ \t]*\n(?P<body>.*?)^(?P=indent)```[ \t]*$",
     re.MULTILINE | re.DOTALL,
 )
 TERM_RE = re.compile(r"\[\[([^\]|]+)(?:\|([^\]]+))?\]\]")
