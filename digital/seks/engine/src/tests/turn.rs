@@ -161,6 +161,24 @@ fn a_6_cannot_be_incremented() {
 }
 
 #[test]
+fn the_whites_cannot_increment_on_the_first_turn() {
+    let state = GameState::initial();
+    assert_eq!(
+        Engine::command(&state, inc((1, 1))),
+        Err(GameError::FirstTurnMustMove { at: cell(1, 1) })
+    );
+    assert!(legal_commands(&state)
+        .iter()
+        .all(|command| matches!(command, Command::Move { .. })));
+}
+
+#[test]
+fn the_blacks_can_increment_on_their_first_turn() {
+    let state = after(&GameState::initial(), mv((1, 2), (1, 3)));
+    assert!(legal_commands(&state).contains(&inc((1, 10))));
+}
+
+#[test]
 fn every_die_below_6_can_be_incremented() {
     for value in 1..=5 {
         let dice = [format!("w{value}@6,6"), "b1@1,11".to_string()];
@@ -336,7 +354,13 @@ fn prototype_short_move_lowers_die_value() {
 
 #[test]
 fn prototype_incrementing_raises_the_die_and_passes_turn() {
-    let state = after(&GameState::initial(), inc((2, 2)));
+    // The Whites must move on the first turn, so the increment comes after
+    // a move of each side.
+    let opened = after(
+        &after(&GameState::initial(), mv((1, 2), (1, 3))),
+        mv((1, 10), (1, 9)),
+    );
+    let state = after(&opened, inc((2, 2)));
     assert_eq!(state.die_at(cell(2, 2)), Some(Die::new(Side::White, 3)));
     assert_eq!(state.to_move(), Side::Black);
 }

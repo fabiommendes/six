@@ -106,12 +106,14 @@ fn perft(state: &GameState, depth: u32) -> u64 {
 }
 
 #[test]
-fn perft_of_the_initial_position_matches_the_prototype() {
-    // Counted with an independent move generator written over the prototype's
-    // `Grid` (`digital/seks/prototipo/seks/grid.py`), which also supplied the
-    // captures.
+fn perft_of_the_initial_position() {
+    // An independent move generator written over the prototype's `Grid`
+    // (`digital/seks/prototipo/seks/grid.py`), which also supplied the
+    // captures, counted 98, 9,604 and 949,032, before the Whites had to move
+    // on the first turn. Without the 16 increments of the first turn, the
+    // first two follow: 98 - 16 = 82 and 82 * 98 = 8,036.
     let state = GameState::initial();
-    assert_eq!(perft(&state, 1), 98);
-    assert_eq!(perft(&state, 2), 9_604);
-    assert_eq!(perft(&state, 3), 949_032);
+    assert_eq!(perft(&state, 1), 82);
+    assert_eq!(perft(&state, 2), 8_036);
+    assert_eq!(perft(&state, 3), 792_820);
 }

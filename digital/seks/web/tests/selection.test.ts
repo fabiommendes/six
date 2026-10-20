@@ -32,7 +32,8 @@ describe("click: select", () => {
     const game = SeksGame.create();
     const result = click(null, "b2", boardOf(game));
     expect(result.command).toBeNull();
-    expect(result.selection).toEqual({ at: "b2", moves: game.options("b2").moves, canIncrement: true, shots: [] });
+    // The Whites must move on the first turn.
+    expect(result.selection).toEqual({ at: "b2", moves: game.options("b2").moves, canIncrement: false, shots: [] });
     expect([...result.selection!.moves].sort()).toEqual(["a3", "b1", "b3", "b4", "c3", "d4"]);
   });
 
@@ -76,6 +77,8 @@ describe("click: move", () => {
 describe("click: increment", () => {
   it("increments when the selected die is clicked again", () => {
     const game = SeksGame.create();
+    game.command("k2-k3");
+    game.command("k10-k9");
     const selection = selected(game, "b2");
     const result = click(selection, "b2", boardOf(game));
     expect(result).toEqual({ selection: null, command: "b2+" });

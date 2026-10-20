@@ -128,16 +128,16 @@ describe("Seks in the link: start positions", () => {
   it("refuses texts that are not a position", () => {
     for (const start of ["x", "pw", `pw${"0".repeat(120)}`, `pw${"7".repeat(121)}`, `px${"0".repeat(121)}`]) {
       expect(() => gameFromStart(start), start).toThrow();
-      expect(() => decodeLink(`v1.teste.${start}.`, seksRuleset), start).toThrow(LinkError);
+      expect(() => decodeLink(`v2.teste.${start}.`, seksRuleset), start).toThrow(LinkError);
     }
   });
 });
 
 /** The pinned vector: if the engine changes the order of `legalCommands()`, links already sent would open other games. */
 const PINNED = {
-  initialCount: 98,
-  initialHead: ["a1-b1", "a1+", "c1-b1", "c1-d1", "c1+", "e1-d1", "e1-f1", "e1-f2"],
-  initialTail: ["k2-j3", "k2-i4", "k2-j1", "k2+"],
+  initialCount: 82,
+  initialHead: ["a1-b1", "c1-b1", "c1-d1", "e1-d1", "e1-f1", "e1-f2", "g1-f2", "g1-f1"],
+  initialTail: ["k2-k4", "k2-j3", "k2-i4", "k2-j1"],
   commands: ["c1-d1", "b10-c9", "a2-a4", "d10-d8", "c2-d3", "e10-d11", "g2-e4", "h10-h9", "i2-j3", "j10-j9", "j3-i3", "c11+", "a4-c6", "g11-h11", "c6-d5", "d8-e7", "i1+", "j9-j8", "d2-b4", "a10-b9", "e2-c2", "g10-e10", "h2+", "i10-k8"],
-  link: "v1.teste..AwoRGB8mLTQ7QklQV15lCBEbHyMiMjA_",
+  link: "v2.teste..AgoRGB8mLTQ7QklQV15lCBEbHyMiMjA_",
 };

@@ -355,6 +355,9 @@ pub struct View {
     /// The legal commands of the side to move that draw the game by
     /// repetition: not empty means the next repetition of a position draws.
     pub repetition_draws: Vec<Command>,
+    /// The first turn of the game: the Whites must move, no die can be
+    /// incremented.
+    pub first_turn: bool,
     pub outcome: Option<Outcome>,
 }
 
@@ -377,6 +380,7 @@ impl View {
                 })
                 .map(Command)
                 .collect(),
+            first_turn: state.is_first_turn(),
             outcome: state.outcome().map(Outcome::from),
         }
     }

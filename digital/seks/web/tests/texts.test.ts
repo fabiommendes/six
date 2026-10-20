@@ -119,8 +119,24 @@ describe("the sentences", () => {
 });
 
 describe("the note under the title", () => {
-  it("asks for a die before anything is selected", async () => {
+  it("asks for a die and says that the Whites must move on the first turn", async () => {
     const { match } = newMatch(SeksGame.create(), { kind: "hotseat" });
+    await match.start();
+    expect(hint(match.snapshot(), "toque")).toEqual({
+      strong: "Escolha um dado.",
+      rest: "Toque num dado das Brancas para ver aonde ele vai. No primeiro turno, as Brancas precisam mover.",
+    });
+    await match.click("b2");
+    expect(hint(match.snapshot(), "toque").rest).toBe(
+      "Toque numa casa marcada para mover: 6 casas ao alcance. No primeiro turno, as Brancas não incrementam; toque no dado de novo para tirar a seleção.",
+    );
+  });
+
+  it("asks for a die before anything is selected", async () => {
+    const game = SeksGame.create();
+    game.command("k2-k3");
+    game.command("k10-k9");
+    const { match } = newMatch(game, { kind: "hotseat" });
     await match.start();
     expect(hint(match.snapshot(), "toque")).toEqual({
       strong: "Escolha um dado.",
@@ -130,7 +146,10 @@ describe("the note under the title", () => {
   });
 
   it("counts the cells at reach of the selected die and says how to increment", async () => {
-    const { match } = newMatch(SeksGame.create(), { kind: "hotseat" });
+    const game = SeksGame.create();
+    game.command("k2-k3");
+    game.command("k10-k9");
+    const { match } = newMatch(game, { kind: "hotseat" });
     await match.start();
     await match.click("b2");
     expect(hint(match.snapshot(), "toque")).toEqual({

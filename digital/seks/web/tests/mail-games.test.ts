@@ -204,7 +204,7 @@ describe("the fragment of the page", () => {
     expect(parseRoute("")).toEqual({ kind: "none" });
     expect(parseRoute("#")).toEqual({ kind: "none" });
     expect(parseRoute("#g.abc_-1")).toEqual({ kind: "game", id: "abc_-1" });
-    expect(parseRoute("#v1.abc..AAEJ")).toEqual({ kind: "link", fragment: "v1.abc..AAEJ" });
+    expect(parseRoute("#v2.abc..AAEJ")).toEqual({ kind: "link", fragment: "v2.abc..AAEJ" });
     expect(parseRoute("#lixo")).toEqual({ kind: "link", fragment: "lixo" });
     expect(parseRoute("#g.a b")).toEqual({ kind: "link", fragment: "g.a b" });
   });

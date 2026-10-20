@@ -6,9 +6,9 @@
  * fragment and back, and it asks a `Ruleset` to validate every command. The
  * live P2P match and other games can reuse it with their own `Ruleset`.
  *
- * Fragment, version 1:
+ * Fragment, version 2:
  *
- *     v1.<id>.<start>.<plays>[.<left>]
+ *     v2.<id>.<start>.<plays>[.<left>]
  *
  * - `id`: names the game, so a returning link finds its entry in the storage;
  * - `start`: the start position as the ruleset words it; empty for the
@@ -22,11 +22,12 @@
  *
  * The index form only works while a ruleset lists its legal commands in a
  * fixed order; a change of that order breaks old links, so each ruleset must
- * pin it with a test (see `tests/seks-link.test.ts`).
+ * pin it with a test (see `tests/seks-link.test.ts`). Version 2 came when the
+ * Whites lost the increments of the first turn, which changed the order.
  */
 
 /** The version this module writes and reads. */
-export const LINK_VERSION = 1;
+export const LINK_VERSION = 2;
 
 /** A game as the link carries it. */
 export interface Link {

@@ -31,7 +31,8 @@ pub enum Command {
 /// The order is fixed: by cell index of the die; for each die, its moves
 /// direction by direction (north, then counterclockwise: northwest, west, ...,
 /// northeast), nearest cell first, then its shots in the same direction
-/// order, and its increment last.
+/// order, and its increment last. On the first turn of the game there are
+/// no increments (`regras/seks/02-preparacao.md`).
 pub fn legal_commands(state: &GameState) -> Vec<Command> {
     let mut commands = Vec::with_capacity(128);
     legal_commands_into(state, &mut commands);
@@ -45,6 +46,7 @@ pub fn legal_commands_into(state: &GameState, commands: &mut Vec<Command>) {
     if state.outcome.is_some() {
         return;
     }
+    let first_turn = state.is_first_turn();
     for (from, die) in state.board.dice() {
         if die.side() != state.to_move {
             continue;
@@ -62,7 +64,7 @@ pub fn legal_commands_into(state: &GameState, commands: &mut Vec<Command>) {
         if from == CENTER {
             commands.extend(shots(&state.board, state.to_move).map(|to| Command::Shoot { to }));
         }
-        if die.value() < MAX_VALUE {
+        if die.value() < MAX_VALUE && !first_turn {
             commands.push(Command::Increment { at: from });
         }
     }
@@ -97,7 +99,9 @@ pub(crate) fn validate(state: &GameState, command: Command) -> Result<(), GameEr
     match command {
         Command::Increment { at } => {
             let die = own_die(state, at)?;
-            if die.value() < MAX_VALUE {
+            if state.is_first_turn() {
+                Err(GameError::FirstTurnMustMove { at })
+            } else if die.value() < MAX_VALUE {
                 Ok(())
             } else {
                 Err(GameError::CannotIncrement { at })

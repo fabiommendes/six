@@ -134,9 +134,13 @@ test("the options of a die say where it goes and whether it can be incremented",
   const game = new Game();
   const options = json(game.options("b2"));
   assert.deepEqual([...options.moves].sort(), ["a3", "b1", "b3", "b4", "c3", "d4"]);
-  assert.equal(options.can_increment, true);
-  const enemy = json(game.options("b10"));
-  assert.deepEqual(enemy, { at: "b10", moves: [], can_increment: false, shots: [] });
+  // The Whites must move on the first turn.
+  assert.equal(options.can_increment, false);
+  assert.equal(json(game.options("b10")).can_increment, false);
+  game.command("b2-b4");
+  assert.equal(json(game.options("b10")).can_increment, true);
+  const enemy = json(game.options("b4"));
+  assert.deepEqual(enemy, { at: "b4", moves: [], can_increment: false, shots: [] });
   game.free();
 });
 

@@ -69,6 +69,17 @@ impl GameState {
         self.outcome
     }
 
+    /// Whether this is the first turn of the game, when the Whites must move
+    /// and cannot increment (`regras/seks/02-preparacao.md`): the initial
+    /// position, the Whites to move, no play made. Plays without a capture
+    /// can bring the board back to the initial position, but then the count
+    /// of plies without a capture is not 0.
+    pub fn is_first_turn(&self) -> bool {
+        self.to_move == Side::White
+            && self.plies_without_capture == 0
+            && self.board == Board::initial()
+    }
+
     /// Plays in a row, by both sides, since the last capture. The game is
     /// drawn at 100.
     pub fn plies_without_capture(&self) -> u8 {

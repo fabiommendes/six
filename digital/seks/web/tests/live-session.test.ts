@@ -22,7 +22,7 @@ function play(from: Peer, command: string): void {
 describe("the messages", () => {
   it("round-trip, and anything else is ignored", () => {
     for (const message of [
-      { t: "state", g: "v1.abc..GQ" },
+      { t: "state", g: "v2.abc..GQ" },
       { t: "move", n: 3, c: "b2-b4", h: "00ff00ff00ff00ff" },
       { t: "resign" },
     ] as const) {
@@ -195,7 +195,7 @@ describe("resigning", () => {
   it("ignores texts it cannot read", async () => {
     const { host, guest } = await connected();
     guest.room().send("hello");
-    guest.room().send(JSON.stringify({ t: "state", v: 1, g: "v1.other..GQ" }));
+    guest.room().send(JSON.stringify({ t: "state", v: 1, g: "v2.other..GQ" }));
     expect(host.game.commands()).toEqual([]);
     expect(host.adopted).toBe(0);
   });

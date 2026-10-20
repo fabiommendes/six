@@ -58,6 +58,9 @@ pub enum GameError {
     IllegalMove { from: Cell, to: Cell },
     /// The die in `at` shows 6, the maximum.
     CannotIncrement { at: Cell },
+    /// It is the first turn of the game: the Whites must move, so the die in
+    /// `at` cannot be incremented.
+    FirstTurnMustMove { at: Cell },
     /// The side to move has no 6 in the center cell, or `to` is not the
     /// first die of the opponent on one of its 8 lines.
     IllegalShot { to: Cell },
@@ -75,6 +78,9 @@ impl fmt::Display for GameError {
             }
             GameError::CannotIncrement { at } => {
                 write!(f, "the die at {at} already shows 6")
+            }
+            GameError::FirstTurnMustMove { at } => {
+                write!(f, "the die at {at} cannot be incremented on the first turn")
             }
             GameError::IllegalShot { to } => {
                 write!(f, "no 6 in the center can shoot the die at {to}")

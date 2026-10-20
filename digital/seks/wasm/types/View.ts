@@ -31,4 +31,9 @@ repetitions_for_draw: number,
  * The legal commands of the side to move that draw the game by
  * repetition: not empty means the next repetition of a position draws.
  */
-repetition_draws: Array<Command>, outcome: Outcome | null, };
+repetition_draws: Array<Command>, 
+/**
+ * The first turn of the game: the Whites must move, no die can be
+ * incremented.
+ */
+first_turn: boolean, outcome: Outcome | null, };

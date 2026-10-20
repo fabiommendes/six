@@ -232,6 +232,9 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
   const selection = snapshot.selection;
   if (selection === null) {
     const whose = snapshot.mode.kind !== "hotseat" ? "num dos seus dados" : `num dado das ${SIDE_NAME[snapshot.view.to_move]}`;
+    if (snapshot.view.first_turn) {
+      return { strong: "Escolha um dado.", rest: `${Verb} ${whose} para ver aonde ele vai. No primeiro turno, as Brancas precisam mover.` };
+    }
     return { strong: "Escolha um dado.", rest: `${Verb} ${whose} para ver aonde ele vai; ${verb} nele de novo para incrementar.` };
   }
   const value = snapshot.view.dice.find((die) => die.cell === selection.at)?.value ?? 0;
@@ -247,13 +250,16 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
     const mark = `${Verb} numa casa marcada para mover: ${moveCount(near)}.`;
     const again = selection.canIncrement
       ? `${Verb} no dado de novo para incrementar.`
-      : `Um ${value} não pode ser incrementado; ${verb} nele de novo para tirar a seleção.`;
+      : snapshot.view.first_turn
+        ? `No primeiro turno, as Brancas não incrementam; ${verb} no dado de novo para tirar a seleção.`
+        : `Um ${value} não pode ser incrementado; ${verb} nele de novo para tirar a seleção.`;
     return { strong, rest: `${mark} ${again}` };
   }
   if (selection.canIncrement) {
     return { strong, rest: `Nenhuma casa ao alcance: o dado está cercado. ${Verb} nele de novo para incrementar.` };
   }
-  return { strong, rest: `Este dado não tem jogada: está cercado e um ${value} não pode ser incrementado. ${Verb} nele de novo para tirar a seleção.` };
+  const why = snapshot.view.first_turn ? "as Brancas não incrementam no primeiro turno" : `um ${value} não pode ser incrementado`;
+  return { strong, rest: `Este dado não tem jogada: está cercado e ${why}. ${Verb} nele de novo para tirar a seleção.` };
 }
 
 /** The note while the other player has the turn in a match by correspondence. */

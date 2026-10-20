@@ -222,7 +222,8 @@ mod tests {
     fn options_come_from_the_engine() {
         let session = Session::new();
         let options = session.options("b2").unwrap();
-        assert!(options.can_increment);
+        // The Whites must move on the first turn.
+        assert!(!options.can_increment);
         // b3, b4, a3, c3, d4 and b1.
         assert_eq!(options.moves.len(), 6);
         assert!(session.options("z1").is_err());

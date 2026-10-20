@@ -35,7 +35,7 @@ function error(run: () => unknown): LinkError {
 describe("link format", () => {
   it("writes version, id, start and the index of each play", () => {
     const text = encodeLink({ id: "abc", start: "", commands: ["m0", "m1", "m9"] }, ruleset);
-    expect(text).toBe("v1.abc..AAEJ");
+    expect(text).toBe("v2.abc..AAEJ");
   });
 
   it("reads back what it wrote, with or without the leading #", () => {
@@ -49,17 +49,17 @@ describe("link format", () => {
   it("marks who left the game in a fifth part", () => {
     const link = { id: "abc", start: "", commands: ["m0"], left: "b" };
     const text = encodeLink(link, ruleset);
-    expect(text).toBe("v1.abc..AA.b");
+    expect(text).toBe("v2.abc..AA.b");
     expect(decodeLink(text, ruleset)).toEqual(link);
-    expect(decodeLink("v1.abc..AA", ruleset).left).toBeNull();
-    expect(error(() => decodeLink("v1.abc..AA.", ruleset)).code).toBe("format");
-    expect(error(() => decodeLink("v1.abc..AA.b.c", ruleset)).code).toBe("format");
+    expect(decodeLink("v2.abc..AA", ruleset).left).toBeNull();
+    expect(error(() => decodeLink("v2.abc..AA.", ruleset)).code).toBe("format");
+    expect(error(() => decodeLink("v2.abc..AA.b.c", ruleset)).code).toBe("format");
     expect(error(() => encodeLink({ ...link, left: "" }, ruleset)).code).toBe("format");
   });
 
   it("carries a game with no plays", () => {
     const text = encodeLink({ id: "abc", start: "", commands: [] }, ruleset);
-    expect(text).toBe("v1.abc..");
+    expect(text).toBe("v2.abc..");
     expect(decodeLink(text, ruleset).commands).toEqual([]);
   });
 
@@ -76,7 +76,7 @@ describe("link format", () => {
     const wide = toy(300, 300);
     const commands = Array.from({ length: 300 }, (_, i) => `m${(i * 37) % 300}`);
     const text = encodeLink({ id: randomGameId(), start: "", commands }, wide);
-    expect(text).toMatch(/^v1\.[A-Za-z0-9_-]+\.\.[A-Za-z0-9_-]+$/);
+    expect(text).toMatch(/^v2\.[A-Za-z0-9_-]+\.\.[A-Za-z0-9_-]+$/);
     expect(decodeLink(text, wide).commands).toEqual(commands);
   });
 
@@ -93,41 +93,43 @@ describe("link format", () => {
 
 describe("link errors", () => {
   it("text that is not a link is a format error", () => {
-    for (const text of ["", "hello", "v1.abc.", "v1.abc..AAEJ.extra.more", "x1.abc..AAEJ", "v1.a b..AAEJ", "v1..AAEJ", "v1.abc..AQ=="]) {
+    for (const text of ["", "hello", "v2.abc.", "v2.abc..AAEJ.extra.more", "x1.abc..AAEJ", "v2.a b..AAEJ", "v2..AAEJ", "v2.abc..AQ=="]) {
       expect(error(() => decodeLink(text, ruleset)).code, text).toBe("format");
     }
   });
 
   it("an unknown version is a version error", () => {
-    expect(error(() => decodeLink("v2.abc..AAEJ", ruleset)).code).toBe("version");
+    expect(error(() => decodeLink("v3.abc..AAEJ", ruleset)).code).toBe("version");
     expect(error(() => decodeLink("v0.abc..AAEJ", ruleset)).code).toBe("version");
+    // The version before this one.
+    expect(error(() => decodeLink("v1.abc..AAEJ", ruleset)).code).toBe("version");
   });
 
   it("an index with no legal command is a move error that says where", () => {
     // The bytes 1, 10, 9: index 10 does not exist (only 0 to 9).
-    const failure = error(() => decodeLink("v1.abc..AQoJ", ruleset));
+    const failure = error(() => decodeLink("v2.abc..AQoJ", ruleset));
     expect(failure).toMatchObject({ code: "move", ply: 1 });
   });
 
   it("plays after the end of the game are a move error", () => {
     const short = toy(10, 2);
-    expect(error(() => decodeLink("v1.abc..AAAA", short))).toMatchObject({ code: "move", ply: 2 });
+    expect(error(() => decodeLink("v2.abc..AAAA", short))).toMatchObject({ code: "move", ply: 2 });
   });
 
   it("a start position the ruleset refuses is a start error", () => {
-    expect(error(() => decodeLink("v1.abc.bad.", ruleset)).code).toBe("start");
+    expect(error(() => decodeLink("v2.abc.bad.", ruleset)).code).toBe("start");
     expect(error(() => encodeLink({ id: "abc", start: "bad", commands: [] }, ruleset)).code).toBe("start");
   });
 
   it("only one form per game: padding bits and long varints are refused", () => {
     // 'AR' decodes to the byte 0x01 with spare bits set: not what the encoder writes.
-    expect(error(() => decodeLink("v1.abc..AR", ruleset)).code).toBe("format");
+    expect(error(() => decodeLink("v2.abc..AR", ruleset)).code).toBe("format");
     // 0x80 0x00 is a long form of 0.
-    expect(error(() => decodeLink("v1.abc..gAA", ruleset)).code).toBe("format");
+    expect(error(() => decodeLink("v2.abc..gAA", ruleset)).code).toBe("format");
     // A varint cut short (0x80 alone).
-    expect(error(() => decodeLink("v1.abc..gA", ruleset)).code).toBe("format");
+    expect(error(() => decodeLink("v2.abc..gA", ruleset)).code).toBe("format");
     // A length that no byte count produces.
-    expect(error(() => decodeLink("v1.abc..A", ruleset)).code).toBe("format");
+    expect(error(() => decodeLink("v2.abc..A", ruleset)).code).toBe("format");
   });
 });
 

@@ -43,7 +43,11 @@ describe("Match in hotseat: the clicks of R2", () => {
   });
 
   it("increments with a second click on the selected die", async () => {
-    const { match, stage } = newMatch(SeksGame.create(), hotseat);
+    // The Whites must move on the first turn: open with a move of each side.
+    const game = SeksGame.create();
+    game.command("k2-k3");
+    game.command("k10-k9");
+    const { match, stage } = newMatch(game, hotseat);
     await match.start();
     await match.click("b2");
     await match.click("b2");

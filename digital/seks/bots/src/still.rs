@@ -104,7 +104,8 @@ mod tests {
         for ply in 0..8 {
             let command = if state.to_move() == Side::White {
                 let command = bot.choose(&state, ply).command;
-                if ply < 6 {
+                // The Whites must move on the first turn.
+                if (1..6).contains(&ply) {
                     assert!(is_increment(command), "ply {ply}: {command}");
                 }
                 command

@@ -112,7 +112,7 @@ cria escolhe a cor, joga e manda o link; quem abre vê a posição, joga se for 
 vez da sua cor e manda outro link de volta. Não há identidade: quem abre joga a
 cor da vez.
 
-O link é um fragmento (`#`, que não vai ao servidor): `v1.<id>.<posição>.<jogadas>`
+O link é um fragmento (`#`, que não vai ao servidor): `v2.<id>.<posição>.<jogadas>`
 com uma quinta parte opcional que diz quem desistiu.
 
 - `id`: 8 caracteres aleatórios; identifica a partida, para o link que volta

@@ -24,10 +24,12 @@ describe("SeksGame", () => {
   it("gives the options of a die and plays commands, with undo", () => {
     const game = SeksGame.create();
     expect(game.options("b2").moves).toContain("b4");
-    expect(game.options("b2").can_increment).toBe(true);
+    // The Whites must move on the first turn.
+    expect(game.options("b2").can_increment).toBe(false);
     const transition = game.command("b2-b4");
     expect(transition.events[0]).toMatchObject({ type: "moved", from: "b2", to: "b4", value: 2 });
     expect(transition.view.to_move).toBe("black");
+    expect(game.options("b10").can_increment).toBe(true);
     expect(game.canUndo()).toBe(true);
     expect(game.undo().to_move).toBe("white");
     expect(game.legalCommands()).toContain("b2-b4");

@@ -22,7 +22,7 @@ describe("the invite", () => {
   });
 
   it("reads nothing from what is not an invite", () => {
-    for (const text of ["", "i1", "i1.abc", "i1.abc.x", "i1..w", "i2.abc.w", "I1.abc.w", "v1.abc..AAEJ", "i1.abc.w.extra", "i1.a b.w"]) {
+    for (const text of ["", "i1", "i1.abc", "i1.abc.x", "i1..w", "i2.abc.w", "I1.abc.w", "v2.abc..AAEJ", "i1.abc.w.extra", "i1.a b.w"]) {
       expect(decodeInvite(text), text).toBeNull();
     }
   });
