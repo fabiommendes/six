@@ -13,6 +13,15 @@ número.
 en: seal bonus
 Ver também: Mão, Selo
 
+## Código
+
+Quatro números diferentes que o jogador escolhe no fim da partida. Cada
+linha ou coluna completa com exatamente esses números vale 1 ponto a mais.
+
+en: code
+Ver também: Sequência
+Não usar: quadra, senha, rima
+
 ## Janela
 
 Os dados que um jogador pôs na mesa, a partir do selo, em linhas e colunas
@@ -57,15 +66,6 @@ partida, e cada jogador tem um diferente.
 en: seal number
 Ver também: Selo
 
-## Rima
-
-Quatro números diferentes que o jogador escolhe no fim da partida. Cada
-linha ou coluna completa com exatamente esses números vale 1 ponto a mais.
-
-en: rhyme
-Ver também: Sequência
-Não usar: quadra, senha
-
 ## Rodada
 
 A compra do mercado seguida de um turno de cada jogador.
@@ -97,4 +97,4 @@ Quatro números seguidos, em qualquer ordem: 1 2 3 4, 2 3 4 5 ou 3 4 5 6. Uma
 linha ou coluna completa que forma uma sequência vale 1 ponto a mais.
 
 en: run
-Ver também: Rima
+Ver também: Código

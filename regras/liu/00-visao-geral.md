@@ -18,7 +18,8 @@ depois.
 
 O jogo acaba quando alguém completa a janela, quando o saco esvazia ou
 quando uma rodada passa sem que ninguém ponha dado. Linhas e colunas
-completas valem pontos, mais ainda se formam uma sequência ou uma rima.
+completas valem pontos, e mais ainda se formam uma sequência ou o código do
+jogador.
 
 > **Proposta:** o jogo inteiro foi aprovado para teste e ainda não foi
 > jogado.
