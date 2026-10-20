@@ -4,8 +4,8 @@
 # manual text was last reviewed against it, and the commit of that review.
 capitulos/02-kit.md:
   regras/kit.md:
-    hash: sha256:0b8805c8e0fe37f2
-    commit: a3e6ad9b175c
+    hash: sha256:c458d11b5c4149dc
+    commit: 22a93da32555
 capitulos/03-seks.md#captura:
   regras/seks/04-captura.md:
     hash: sha256:a9dcacd9b1d5175e
