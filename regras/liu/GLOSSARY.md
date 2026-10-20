@@ -52,7 +52,7 @@ Não usar: feira
 
 ## Moldura
 
-O quadro vazado de 4 por 4 casas que marca a região da janela na mesa. O
+A grade vazada de 4 por 4 casas que marca a região da janela na mesa. O
 jogador pode arrastá-la enquanto todos os dados da janela continuam dentro.
 
 en: frame
