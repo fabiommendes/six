@@ -20,6 +20,14 @@ eliminar ambiguidade, incluindo casos de borda que o manual não vai mencionar.
   - `05-fim-do-jogo.md`: vitória e empate.
   - `GLOSSARY.md`: os termos do Seks e os termos em inglês. Faz parte das
     regras.
+- `liu/`: o Liu, jogo de dados no estilo do sudoku, para 2 a 4 jogadores.
+  - `00-visao-geral.md`: o jogo em poucas linhas e o nome.
+  - `01-componentes.md`: o que o Liu usa do kit.
+  - `02-preparacao.md`: os selos, o saco e a mão.
+  - `03-rodada.md`: o mercado, a ordem e o turno.
+  - `04-janela.md`: onde um dado pode ser posto.
+  - `05-fim-do-jogo.md`: fim e pontuação.
+  - `GLOSSARY.md`: os termos do Liu e os termos em inglês.
 
 Cada jogo novo ganha uma pasta com o mesmo esquema: arquivos `NN-tema.md` e um
 `GLOSSARY.md`.
