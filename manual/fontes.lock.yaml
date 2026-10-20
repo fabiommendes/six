@@ -9,28 +9,28 @@ capitulos/02-kit.md:
 capitulos/03-seks.md#captura:
   regras/seks/04-captura.md:
     hash: sha256:a9dcacd9b1d5175e
-    commit: a3e6ad9b175c
+    commit: e4de82efa29f
 capitulos/03-seks.md#componentes:
   regras/seks/01-componentes.md:
     hash: sha256:810543eac30399ce
-    commit: a3e6ad9b175c
+    commit: e4de82efa29f
 capitulos/03-seks.md#fim-do-jogo:
   regras/seks/05-fim-do-jogo.md:
     hash: sha256:64ca8ca93d859679
-    commit: a3e6ad9b175c
+    commit: e4de82efa29f
 capitulos/03-seks.md#o-turno:
   regras/seks/03-turno.md:
-    hash: sha256:3e27645939c0b99a
-    commit: a3e6ad9b175c
+    hash: sha256:bf1d112caa33388d
+    commit: e4de82efa29f
 capitulos/03-seks.md#preparacao:
   regras/seks/02-preparacao.md:
-    hash: sha256:1764b6387a9d45bf
-    commit: a3e6ad9b175c
+    hash: sha256:b3d00fa75d8bd92d
+    commit: e4de82efa29f
 capitulos/03-seks.md#visao-geral:
   regras/seks/00-visao-geral.md:
     hash: sha256:9b3e37b99e410fd9
-    commit: a3e6ad9b175c
+    commit: e4de82efa29f
 capitulos/A1-glossario.md:
   regras/seks/GLOSSARY.md:
-    hash: sha256:ab6a42bcc48b4a3b
-    commit: a3e6ad9b175c
+    hash: sha256:212c67c58e88e396
+    commit: e4de82efa29f

@@ -79,7 +79,8 @@ B1 . B1 . B1 . B1 . B1 . B1
 
 </div>
 
-As Brancas jogam primeiro. Depois, os jogadores alternam os turnos.
+As Brancas jogam primeiro. Depois, os jogadores alternam os turnos. No
+primeiro turno da partida, as Brancas precisam mover um dado.
 
 ## O turno
 
@@ -128,7 +129,7 @@ legenda: ...e vira um 2.
 ### Incrementar
 
 Some 1 ao valor de um dos seus dados, sem movê-lo. Um 6 não pode ser
-incrementado.
+incrementado, e as Brancas não incrementam no primeiro turno.
 
 ### Atirar
 
