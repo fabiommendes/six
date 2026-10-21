@@ -201,6 +201,44 @@ liu-web-check: liu-web-install
 sia-engine-test:
     cd digital && cargo test -p sia-engine --all-features
 
+# Lote entre dois bots do Sia, cada abertura nos dois assentos (ex.: just sia-batch pimc greedy --games 200)
+[group('sia')]
+sia-batch a b *flags:
+    cd digital && CARGO_BUILD_JOBS=4 cargo build --release -q -p sia-bots
+    cd digital && {{seks_limits}} ./target/release/sia-bots batch --bots {{a}},{{b}} {{flags}}
+
+# Calibra os pesos do avaliador do Sia com CMA-ES a partir de uma configuração; retoma se parou
+[group('sia')]
+sia-tune config:
+    {{seks_limits}} uv run digital/sia/bots/tune/tune.py {{config}}
+
+# Regenera os tipos TypeScript do motor do Sia em digital/sia/wasm/types (ts-rs)
+[group('sia')]
+sia-types:
+    rm -rf digital/sia/wasm/types
+    cd digital && TS_RS_EXPORT_DIR="$PWD/sia/wasm/types" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p sia-engine --features wire --lib export_bindings
+
+# Falha se digital/sia/wasm/types está desatualizado em relação ao motor do Sia
+[group('sia')]
+sia-types-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    cd digital
+    TS_RS_EXPORT_DIR="$tmp" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p sia-engine --features wire --lib export_bindings
+    diff -r "$tmp" sia/wasm/types || { echo "tipos desatualizados: rode just sia-types" >&2; exit 1; }
+
+# Gera o pacote WebAssembly do motor do Sia em digital/sia/wasm/pkg
+[group('sia')]
+sia-wasm:
+    cd digital && CARGO_BUILD_JOBS=4 nice -n 19 wasm-pack build sia/wasm --target web --release
+
+# Gera o pacote WebAssembly do Sia e joga partidas inteiras pelo Game e pelo Bot no Node (SIA_BENCH=N mede N decisões do pimc)
+[group('sia')]
+sia-wasm-test: sia-wasm
+    nice -n 19 node --test digital/sia/wasm/tests/game.test.mjs digital/sia/wasm/tests/bot.test.mjs
+
 # --- Site publicado ---------------------------------------------------------
 
 # Site publicado em out/site: o manual (site e PDF) na raiz e as interfaces web do Seks em seks/ e do Liu em liu/
@@ -222,7 +260,7 @@ site-serve port="8080": site
 
 # --- Verificações -----------------------------------------------------------
 
-# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu
+# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu, e motor, bots e WASM do Sia
 [group('check')]
 check:
     make -C manual build
@@ -238,3 +276,6 @@ check:
     just liu-types-check
     just liu-wasm-test
     just liu-web-check
+    just sia-types-check
+    just sia-wasm-test
+    cd digital && cargo build -q -p sia-bots --lib --target wasm32-unknown-unknown
