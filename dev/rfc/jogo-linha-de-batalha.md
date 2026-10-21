@@ -46,9 +46,9 @@ por naipe. O kit final sai depois de o jogo ser validado.
 
 1. **Rolar de novo** (opcional): o jogador escolhe uma mão, a sua ou a do
    adversário, e rola de novo quantos dados dela quiser. O custo é perder um
-   dado da própria mão, escolhido por ele e devolvido à caixa: daí em
-   diante, a mão dele tem um dado a menos. Quem tem só um dado na mão não
-   pode rolar de novo.
+   dado da própria mão, escolhido por ele antes de rolar e devolvido à
+   caixa: daí em diante, a mão dele tem um dado a menos. Quem tem só um
+   dado na mão não pode rolar de novo.
 2. **Reivindicar** (opcional): o jogador toma os marcos que pode provar seus
    (abaixo).
 3. **Pôr um dado**: o jogador põe um dado da mão do seu lado de um marco
@@ -143,18 +143,28 @@ que faltam.
   lados completos. É mais simples de ensinar, mas tira o ritmo do jogo e o
   peso de completar primeiro.
 
+## Decisions
+
+Do designer, em 2026-10-21:
+
+- Um naipe vira os marcos; o saco tem os outros 4. O marco entra na
+  formação, e o seu naipe vale como qualquer naipe.
+- Rolar de novo custa um dado da mão para sempre, e a mão começa com 7.
+  Pode-se rolar a própria mão ou a do adversário; com um dado só na mão,
+  não.
+- Rolar de novo vem antes de pôr o dado, no mesmo turno, e não o
+  substitui.
+- Quem rola escolhe quais dados da mão rolar, inclusive na do adversário.
+- O nome é *Sia*.
+
 ## Open questions
 
-- Rolar de novo vem antes de pôr o dado, no mesmo turno (proposta), ou
-  ocupa o turno inteiro?
-- Rolar a mão do adversário: o jogador escolhe quais dados (proposta) ou
-  rola a mão inteira?
 - A ordem das formações se mantém no jogo de verdade? Com seleção, a chance
   de cada formação muda, e só um lote de bots ou partidas na mesa dizem.
   Sequência e naipe estão perto, e dois pares e trinca também.
 - O desempate do fim, se os dois tiverem o mesmo número de marcos.
-- Nome: *Sia* (gaélico escocês), porque o *Schotten Totten* é, pelo nome,
-  um jogo de clãs escoceses. Falta conferir no BoardGameGeek. O risco é a
-  cantora Sia, e quem fala inglês pode ler "sai-a".
+- O nome *Sia* (gaélico escocês; o *Schotten Totten* é, pelo nome, um jogo
+  de clãs escoceses) ainda precisa ser conferido no BoardGameGeek. O risco
+  é a cantora Sia, e quem fala inglês pode ler "sai-a".
 
 ## Outcome
