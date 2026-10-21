@@ -239,18 +239,38 @@ sia-wasm:
 sia-wasm-test: sia-wasm
     nice -n 19 node --test digital/sia/wasm/tests/game.test.mjs digital/sia/wasm/tests/bot.test.mjs
 
+# Instala as dependências da interface web do Sia (pnpm)
+[group('sia')]
+sia-web-install:
+    cd digital/sia/web && nice -n 19 pnpm install --frozen-lockfile --prefer-offline
+
+# Serve a interface web do Sia em desenvolvimento (pede `just sia-wasm` antes)
+[group('sia')]
+sia-web-dev:
+    cd digital/sia/web && node scripts/check-wasm.mjs --warn && pnpm dev --open
+
+# Tipos, testes e build da interface web do Sia, em digital/sia/web/dist (pede `just sia-wasm` antes)
+[group('sia')]
+sia-web-check: sia-web-install
+    cd digital/sia/web && node scripts/check-wasm.mjs
+    cd digital/sia/web && nice -n 19 pnpm typecheck
+    cd digital/sia/web && nice -n 19 pnpm test
+    cd digital/sia/web && nice -n 19 pnpm build
+
 # --- Site publicado ---------------------------------------------------------
 
-# Site publicado em out/site: o manual (site e PDF) na raiz e as interfaces web do Seks em seks/ e do Liu em liu/
+# Site publicado em out/site: o manual (site e PDF) na raiz e as interfaces web do Seks em seks/, do Liu em liu/ e do Sia em sia/
 [group('site')]
-site: seks-wasm seks-web-install liu-wasm liu-web-install
+site: seks-wasm seks-web-install liu-wasm liu-web-install sia-wasm sia-web-install
     make -C manual build
     cd digital/seks/web && nice -n 19 pnpm build
     cd digital/liu/web && nice -n 19 pnpm build
+    cd digital/sia/web && nice -n 19 pnpm build
     rm -rf out/site && mkdir -p out
     cp -r manual/build/site out/site
     cp -r digital/seks/web/dist out/site/seks
     cp -r digital/liu/web/dist out/site/liu
+    cp -r digital/sia/web/dist out/site/sia
     touch out/site/.nojekyll
 
 # Gera o site publicado e serve em http://127.0.0.1:PORT
@@ -260,7 +280,7 @@ site-serve port="8080": site
 
 # --- Verificações -----------------------------------------------------------
 
-# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu, e motor, bots e WASM do Sia
+# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu, e motor, bots, WASM e interface web do Sia
 [group('check')]
 check:
     make -C manual build
@@ -278,4 +298,5 @@ check:
     just liu-web-check
     just sia-types-check
     just sia-wasm-test
+    just sia-web-check
     cd digital && cargo build -q -p sia-bots --lib --target wasm32-unknown-unknown

@@ -24,7 +24,7 @@ Nível 1 do ADR 0002 do tooling-root:
   lint e testes do protótipo, `cargo fmt --check`, `cargo clippy` e
   `cargo test` do motor e dos bots em Rust, build WASM dos bots, tipos e teste
   em Node do `seks-wasm`, tipos, testes e build da interface web do Seks, e
-  o mesmo para o Liu, e motor, bots e WASM do Sia). Define "pronto".
+  o mesmo para o Liu, e motor, bots, WASM e interface web do Sia). Define "pronto".
 - Motor do Seks: `just seks-engine-test`.
 - Motor em WebAssembly: `just seks-wasm` (pacote em `digital/seks/wasm/pkg`),
   `just seks-wasm-test` (partidas inteiras no Node), `just seks-types` (tipos
@@ -46,7 +46,9 @@ Nível 1 do ADR 0002 do tooling-root:
   `digital/liu/bots/README.md` e `dev/notes/bots-do-liu.md`.
 - Sia: `just sia-engine-test` (motor), `just sia-wasm` e `just
   sia-wasm-test` (pacote WASM e partidas no Node, com o bot e o tempo do
-  pimc), `just sia-types`. Detalhes em `digital/sia/wasm/README.md`.
+  pimc), `just sia-types`, `just sia-web-dev` e `just sia-web-check`
+  (interface web, pede `just sia-wasm` antes). Detalhes em
+  `digital/sia/wasm/README.md` e `digital/sia/web/README.md`.
 - Bots do Sia: `just sia-batch A B` (lote entre dois bots, com resumo de
   fim, duração, formações e rolagens) e `just sia-tune CONFIG` (calibração
   por CMA-ES). Detalhes em `digital/sia/bots/README.md` e
@@ -55,7 +57,7 @@ Nível 1 do ADR 0002 do tooling-root:
   (trechos do manual cujas fontes em `regras/` mudaram). Detalhes em
   `manual/README.md`.
 - Site publicado: `just site` (manual na raiz e as interfaces do Seks em
-  `seks/` e do Liu em `liu/`, em `out/site`) e `just site-serve`. Cada push na `main` publica
+  `seks/`, do Liu em `liu/` e do Sia em `sia/`, em `out/site`) e `just site-serve`. Cada push na `main` publica
   o site no GitHub Pages (`.github/workflows/pages.yml`).
 - Issues, RFCs e ADRs: `r2 issue list`, `r2 rfc list`, `r2 adr list`.
 
@@ -78,6 +80,7 @@ Nível 1 do ADR 0002 do tooling-root:
 | `digital/sia/engine/` | Motor do Sia em Rust (`sia-engine`), com os dados no estado e a prova de reivindicação |
 | `digital/sia/bots/` | Bots do Sia (`sia-bots`): aleatório, guloso e PIMC, lotes e calibração |
 | `digital/sia/wasm/` | `sia-wasm`: o motor (`Game`) e o bot (`Bot`) do Sia em WebAssembly e os tipos TypeScript |
+| `digital/sia/web/` | Interface web do Sia (Vite, TypeScript e Three.js): mesa em 3D sobre o tabuleiro do Seks, dois jogadores no mesmo aparelho, contra bot ou bot contra bot |
 | `arte/` | Identidade visual (ADR 0005); `esbocos/` guarda as quatro direções esboçadas, como referência |
 | `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` e `esbocos/` (temporários) ficam fora do git |
 

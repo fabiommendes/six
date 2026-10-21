@@ -1,0 +1,5 @@
+/* Alegreya Sans: Huerta Tipográfica, SIL Open Font License 1.1. The files are those of the Seks interface (digital/seks/web/public/fonts, with the licenses). */
+@font-face { font-family: "Alegreya Sans"; src: url("../../../../seks/web/public/fonts/AlegreyaSans-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Alegreya Sans"; src: url("../../../../seks/web/public/fonts/AlegreyaSans-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Alegreya Sans"; src: url("../../../../seks/web/public/fonts/AlegreyaSans-ExtraBold.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "Alegreya Sans SC"; src: url("../../../../seks/web/public/fonts/AlegreyaSansSC-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
