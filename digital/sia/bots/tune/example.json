@@ -1,0 +1,18 @@
+{
+  "bot": "greedy:cands=4,rerolls=2",
+  "weights": {
+    "prob": {"init": 1.6, "min": 0.0, "max": 4.0},
+    "lost": {"init": -0.15, "min": -3.0, "max": 0.0}
+  },
+  "fixed": {"owned": 1.0},
+  "opponent": "greedy:cands=4,rerolls=2",
+  "seeds": 150,
+  "population": 12,
+  "generations": 40,
+  "seed": 100000,
+  "sigma": 0.25,
+  "threads": 6,
+  "hand_size": 7,
+  "binary": "digital/sia/bots/tune/runs/sia-bots",
+  "out": "digital/sia/bots/tune/runs/fase-1"
+}

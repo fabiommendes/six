@@ -530,6 +530,20 @@ impl GameState {
     /// only the first of each is used, and the rerolls list one choice of
     /// the dice per multiset.
     pub fn legal_commands(&self) -> Vec<Command> {
+        let mut commands = self.legal_actions();
+        if self.step == Step::Reroll
+            && !self.is_over()
+            && self.players[self.to_move].hand.len() >= 2
+        {
+            self.push_rerolls(&mut commands);
+        }
+        commands
+    }
+
+    /// The legal commands that are not rerolls: the claims, the placings
+    /// and the pass. A reroll has hundreds of variants, and the bots choose
+    /// a few of their own.
+    pub fn legal_actions(&self) -> Vec<Command> {
         let mut commands = Vec::new();
         if self.is_over() {
             return commands;
@@ -549,9 +563,6 @@ impl GameState {
             for &stone in &open {
                 commands.push(Command::Place { die, stone });
             }
-        }
-        if self.step == Step::Reroll && hand.len() >= 2 {
-            self.push_rerolls(&mut commands);
         }
         commands
     }

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["seks/engine", "seks/bots", "seks/wasm", "liu/engine", "liu/bots", "liu/wasm", "sia/engine"]
+members = ["seks/engine", "seks/bots", "seks/wasm", "liu/engine", "liu/bots", "liu/wasm", "sia/engine", "sia/bots"]
 
 [workspace.package]
 edition = "2021"

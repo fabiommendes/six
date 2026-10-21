@@ -104,13 +104,14 @@ pub fn best_completion(stone: u8, dice: &[Die]) -> Formation {
     let suit = dice.first().map_or(0, |d| d.suit);
     let same_suit = dice.iter().all(|d| d.suit == suit);
     let fill = if same_suit { suit } else { 0 };
+    let mut full = [Die::new(1, fill); 3];
+    full[..dice.len()].copy_from_slice(dice);
     let mut best = None;
     let combos = 6usize.pow(missing as u32);
     for code in 0..combos {
-        let mut full: Vec<Die> = dice.to_vec();
         let mut rest = code;
-        for _ in 0..missing {
-            full.push(Die::new((rest % 6) as u8 + 1, fill));
+        for slot in &mut full[dice.len()..] {
+            *slot = Die::new((rest % 6) as u8 + 1, fill);
             rest /= 6;
         }
         let f = formation(stone, &full);

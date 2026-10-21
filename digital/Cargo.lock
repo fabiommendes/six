@@ -160,6 +160,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "sia-bots"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sia-engine",
+]
+
+[[package]]
 name = "sia-engine"
 version = "0.1.0"
 dependencies = [
