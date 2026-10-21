@@ -1,4 +1,3 @@
-import type { PlayerView, Pos } from "../engine/game";
 import { PIPS } from "./pips";
 
 /** Palette of the collection (arte/esbocos/c-motivos-por-lingua/LEIAME.md). */
@@ -88,68 +87,4 @@ export function latticeBand(width: number, u = 3, color: string = COLORS.liu): s
     s += `<polyline points="${hook.map(([gx, gy]) => `${x(gx, i)},${y(gy)}`).join(" ")}" ${stroke}/>`;
   }
   return `<svg width="${f(width)}" height="${height}" viewBox="0 0 ${f(width)} ${height}" aria-hidden="true">${s}</svg>`;
-}
-
-/** Side of a cell of the window drawing, in SVG units. */
-export const CELL = 56;
-/** Every position a window may ever use, from -3 to 3 around the seal. */
-const REACH = 3;
-const SPAN = 2 * REACH + 1;
-const PAD = 8;
-export const WINDOW_SIZE = SPAN * CELL + 2 * PAD;
-
-const cellX = (col: number) => PAD + (col + REACH) * CELL;
-const cellY = (row: number) => PAD + (row + REACH) * CELL;
-
-export interface WindowMarks {
-  /** The seat of the player, for the seal color. */
-  readonly player: number;
-  /** Cells to ring: where the selected die may go. */
-  readonly targets?: readonly Pos[];
-  /** A die about to be put (the hand die waiting for a market die). */
-  readonly pending?: { readonly at: Pos; readonly value: number };
-  /** The die put last, marked with corners. */
-  readonly last?: Pos | null;
-}
-
-/**
- * A window: the cells it may still use, its dice and the marks of the
- * turn. The seal stays at the centre, so a die never moves on screen. Each
- * usable empty cell carries `data-row` and `data-col` for clicks.
- */
-export function windowSvg(player: PlayerView, marks: WindowMarks): string {
-  const { top, bottom, left, right } = player.bounds;
-  let s = `<svg class="window-svg" viewBox="0 0 ${WINDOW_SIZE} ${WINDOW_SIZE}" role="img">`;
-  for (let row = Math.max(top, -REACH); row <= Math.min(bottom, REACH); row++) {
-    for (let col = Math.max(left, -REACH); col <= Math.min(right, REACH); col++) {
-      s += `<rect class="cell" data-row="${row}" data-col="${col}" x="${cellX(col)}" y="${cellY(row)}" width="${CELL}" height="${CELL}" fill="${COLORS.wool}" stroke="${COLORS.line}" stroke-width="1"/>`;
-    }
-  }
-  if (bottom - top === 3 && right - left === 3) {
-    // The window is pinned to its 4 by 4 region: draw the frame.
-    const x = cellX(left);
-    const y = cellY(top);
-    s += `<rect x="${x - 3}" y="${y - 3}" width="${4 * CELL + 6}" height="${4 * CELL + 6}" fill="none" stroke="${COLORS.ink}" stroke-width="4" pointer-events="none"/>`;
-  }
-  for (const die of player.window) {
-    const seal = die.at.row === 0 && die.at.col === 0;
-    s += dieMarkup(cellX(die.at.col) + CELL / 2, cellY(die.at.row) + CELL / 2, CELL * 0.8, die.value, seal ? sealColor(marks.player) : null);
-  }
-  if (marks.last) {
-    const x = cellX(marks.last.col);
-    const y = cellY(marks.last.row);
-    const k = CELL * 0.22;
-    const e = 3;
-    const corner = (cx: number, cy: number, dx: number, dy: number) =>
-      `<polyline points="${cx + dx * k},${cy} ${cx},${cy} ${cx},${cy + dy * k}" fill="none" stroke="${COLORS.liu}" stroke-width="3.5" pointer-events="none"/>`;
-    s += corner(x + e, y + e, 1, 1) + corner(x + CELL - e, y + e, -1, 1) + corner(x + e, y + CELL - e, 1, -1) + corner(x + CELL - e, y + CELL - e, -1, -1);
-  }
-  if (marks.pending) {
-    const { at, value } = marks.pending;
-    s += dieMarkup(cellX(at.col) + CELL / 2, cellY(at.row) + CELL / 2, CELL * 0.8, value, null, 0.55);
-  }
-  for (const at of marks.targets ?? []) {
-    s += `<circle class="target" cx="${cellX(at.col) + CELL / 2}" cy="${cellY(at.row) + CELL / 2}" r="${CELL * 0.3}" fill="none" stroke="${COLORS.liu}" stroke-width="4" pointer-events="none"/>`;
-  }
-  return s + "</svg>";
 }

@@ -68,7 +68,7 @@ export function showStart(host: HTMLElement, options: StartOptions): void {
         const options = [`<option value="">Pessoa</option>`]
           .concat(BOT_LEVELS.map((l) => `<option value="${l.id}"${bots[i] === l.id ? " selected" : ""}>Bot ${l.label.toLowerCase()}</option>`))
           .join("");
-        return `<div class="name-row">${dieIcon(0, 26, sealColor(i))}<input name="p${i}" maxlength="20" placeholder="${esc(fallback)}" value="${esc(value)}" autocomplete="off" aria-label="Nome do jogador ${i + 1}" /><select name="b${i}" aria-label="Quem joga no lugar ${i + 1}">${options}</select></div>`;
+        return `<div class="name-row" style="--seat:${sealColor(i)}">${dieIcon(0, 26, sealColor(i))}<input name="p${i}" maxlength="20" placeholder="${esc(fallback)}" value="${esc(value)}" autocomplete="off" aria-label="Nome do jogador ${i + 1}" /><select name="b${i}" aria-label="Quem joga no lugar ${i + 1}">${options}</select></div>`;
       })
       .join("");
     const counts = [2, 3, 4]
@@ -77,11 +77,11 @@ export function showStart(host: HTMLElement, options: StartOptions): void {
     const resume = options.saved
       ? `<button type="button" class="resume" data-resume>${ACTIONS.resume}<span>${esc(options.saved.join(", "))}</span></button>`
       : "";
-    host.innerHTML = `<div class="start">
+    host.innerHTML = `<div class="start-wrap"><div class="start">
       <div class="brand">${brandMark(26)}<span>SIX</span></div>
       <h1>Liu</h1>
-      <p class="sub">Dados no estilo do sudoku, de 2 a 4 jogadores, no mesmo aparelho e contra bots.</p>
-      <div class="band">${latticeBand(320)}</div>
+      <p class="sub">Monte a sua janela de dados sem repetir número numa linha nem numa coluna. De 2 a 4 jogadores, no mesmo aparelho e contra bots.</p>
+      <div class="band">${latticeBand(386)}</div>
       ${resume}
       <form class="new-game">
         <fieldset><legend>Quantos jogam</legend><div class="counts">${counts}</div></fieldset>
@@ -89,7 +89,7 @@ export function showStart(host: HTMLElement, options: StartOptions): void {
         <button type="submit" class="primary">${ACTIONS.start}</button>
       </form>
       <p class="rules"><a href="../liu.html">Regras do Liu</a></p>
-    </div>`;
+    </div></div>`;
   };
   render();
   host.onchange = (event) => {

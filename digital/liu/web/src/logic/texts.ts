@@ -116,3 +116,46 @@ export function winnersText(winners: readonly number[], names: readonly string[]
   const who = winners.map((i) => names[i]!);
   return `${who.slice(0, -1).join(", ")} e ${who.at(-1)} dividem a vitória.`;
 }
+
+export const TOOLS = {
+  recenter: "Centralizar a mesa",
+  closer: "Aproximar",
+  farther: "Afastar",
+  soundOn: "Som ligado",
+  soundOff: "Som desligado",
+  history: "Histórico",
+  rules: "Regras",
+  leave: "Sair",
+  confirmLeave: "Sair e abandonar a partida?",
+  stay: "Continuar jogando",
+  seeTable: "Ver a mesa",
+  results: "Resultado",
+} as const;
+
+/** The big line of the dock: whose turn it is, said to that player when a person plays. */
+export function turnTitle(view: View, names: readonly string[], bot: boolean, people: number): string {
+  if (view.end !== null) return "Fim do jogo";
+  const name = names[view.toMove] ?? "";
+  if (bot) return `Vez de ${name}`;
+  return people > 1 ? `Sua vez, ${name}` : "Sua vez";
+}
+
+/** The banner of a new round: its number and who begins it. */
+export function roundBanner(round: number, first: number, seal: number, names: readonly string[]): { title: string; detail: string } {
+  return { title: `Rodada ${round}`, detail: `Começa ${names[first]}: o ${seal} tem a maioria no mercado.` };
+}
+
+/** "2 no mercado", how many dice of the market show a seal number. */
+export function inMarket(count: number): string {
+  return count === 1 ? "1 no mercado" : `${count} no mercado`;
+}
+
+/** "9 dados" in the window. */
+export function diceCount(n: number): string {
+  return n === 1 ? "1 dado" : `${n} dados`;
+}
+
+/** "28 no saco" */
+export function bagText(n: number): string {
+  return n === 1 ? "1 dado no saco" : `${n} dados no saco`;
+}

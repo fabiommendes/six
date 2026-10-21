@@ -67,7 +67,7 @@ Nível 1 do ADR 0002 do tooling-root:
 | `digital/liu/engine/` | Motor do Liu em Rust (`liu-engine`), com o sorteio dos dados no estado |
 | `digital/liu/bots/` | Bots do Liu (`liu-bots`): aleatório, guloso e PIMC, lotes e calibração |
 | `digital/liu/wasm/` | `liu-wasm`: o motor (`Game`) e o bot (`Bot`) do Liu em WebAssembly e os tipos TypeScript |
-| `digital/liu/web/` | Interface web do Liu (Vite e TypeScript, SVG): 2 a 4 jogadores no mesmo aparelho, pessoas ou bots |
+| `digital/liu/web/` | Interface web do Liu (Vite, TypeScript e Three.js): mesa em 3D, 2 a 4 jogadores no mesmo aparelho, pessoas ou bots |
 | `arte/` | Identidade visual (ADR 0005); `esbocos/` guarda as quatro direções esboçadas, como referência |
 | `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` e `esbocos/` (temporários) ficam fora do git |
 

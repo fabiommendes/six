@@ -16,6 +16,6 @@ export default defineConfig({
   },
   // The fonts come from the Seks interface (src/styles/fonts.css), two levels up.
   server: { fs: { allow: ["../.."] } },
-  build: { target: "es2022" },
+  build: { target: "es2022", chunkSizeWarningLimit: 700 },
   test: { include: ["tests/**/*.test.ts"], setupFiles: ["tests/setup.ts"] },
 });
