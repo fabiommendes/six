@@ -17,9 +17,10 @@ describe("save", () => {
     const store = memory();
     const game = LiuGame.create(2, 5n);
     game.command({ kind: "pass" });
-    save(store, { names: ["Ana", "Bia"], state: game.state() });
+    save(store, { names: ["Ana", "Bia"], bots: [null, "hard"], state: game.state() });
     const saved = load(store)!;
     expect(saved.names).toEqual(["Ana", "Bia"]);
+    expect(saved.bots).toEqual([null, "hard"]);
     expect(LiuGame.fromState(saved.state).view()).toEqual(game.view());
     clear(store);
     expect(load(store)).toBeNull();
@@ -31,5 +32,13 @@ describe("save", () => {
     expect(load(store)).toBeNull();
     store.setItem("liu.partida.v1", JSON.stringify({ names: [1], state: {} }));
     expect(load(store)).toBeNull();
+    store.setItem("liu.partida.v1", JSON.stringify({ names: ["A", "B"], bots: [null, "genius"], state: {} }));
+    expect(load(store)).toBeNull();
+  });
+
+  it("reads a save from before the bots as people only", () => {
+    const store = memory();
+    store.setItem("liu.partida.v1", JSON.stringify({ names: ["A", "B"], state: LiuGame.create(2, 3n).state() }));
+    expect(load(store)!.bots).toEqual([null, null]);
   });
 });

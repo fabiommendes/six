@@ -8,6 +8,11 @@ import type { Selection } from "./selection";
 
 export const DEFAULT_NAMES = ["Jogador 1", "Jogador 2", "Jogador 3", "Jogador 4"] as const;
 
+/** The default name of a bot at seat `i` (from 0). */
+export function botName(i: number): string {
+  return `Bot ${i + 1}`;
+}
+
 export const ACTIONS = {
   keep: "Guardar na mão",
   reroll: "Rolar de novo",
@@ -60,9 +65,10 @@ export function eventText(event: Event, names: readonly string[]): string | null
   }
 }
 
-/** What the player to move can do now, given what is selected. */
-export function hint(view: View, selection: Selection, names: readonly string[]): string {
+/** What the player to move can do now, given what is selected; for a bot, that it is thinking. */
+export function hint(view: View, selection: Selection, names: readonly string[], bot = false): string {
   if (view.end !== null) return endText(view.end, names);
+  if (bot) return `${names[view.toMove]} está pensando…`;
   const me = view.players[view.toMove]!;
   switch (selection.kind) {
     case "market": {

@@ -1,4 +1,4 @@
-import { Game } from "@liu-wasm";
+import { Bot, Game } from "@liu-wasm";
 import type { Command } from "@wire/Command";
 import type { Event } from "@wire/Event";
 import type { State } from "@wire/State";
@@ -23,7 +23,7 @@ export function randomSeed(): bigint {
  * nothing.
  */
 export class LiuGame {
-  private constructor(private readonly game: Game) {}
+  private constructor(readonly wasm: Game) {}
 
   static create(players: number, seed: bigint = randomSeed()): LiuGame {
     return new LiuGame(new Game(players, seed));
@@ -35,34 +35,53 @@ export class LiuGame {
   }
 
   openingEvents(): Event[] {
-    return JSON.parse(this.game.openingEvents()) as Event[];
+    return JSON.parse(this.wasm.openingEvents()) as Event[];
   }
 
   state(): State {
-    return JSON.parse(this.game.state()) as State;
+    return JSON.parse(this.wasm.state()) as State;
   }
 
   view(): View {
-    return JSON.parse(this.game.view()) as View;
+    return JSON.parse(this.wasm.view()) as View;
   }
 
   legalCommands(): Command[] {
-    return JSON.parse(this.game.legalCommands()) as Command[];
+    return JSON.parse(this.wasm.legalCommands()) as Command[];
   }
 
   command(command: Command): Transition {
-    return JSON.parse(this.game.command(JSON.stringify(command))) as Transition;
+    return JSON.parse(this.wasm.command(JSON.stringify(command))) as Transition;
   }
 
   canUndo(): boolean {
-    return this.game.canUndo();
+    return this.wasm.canUndo();
   }
 
   undo(): View {
-    return JSON.parse(this.game.undo()) as View;
+    return JSON.parse(this.wasm.undo()) as View;
   }
 
   free(): void {
-    this.game.free();
+    this.wasm.free();
+  }
+}
+
+/** A bot of `liu-bots` in WebAssembly, built from its spec (`"greedy"`, `"pimc"`). */
+export class LiuBot {
+  private readonly bot: Bot;
+
+  /** Throws on a spec the bots do not read. */
+  constructor(spec: string) {
+    this.bot = new Bot(spec);
+  }
+
+  /** The command to play on `game`; the same `seed` gives the same command. Throws if the game is over. */
+  choose(game: LiuGame, seed: number): Command {
+    return JSON.parse(this.bot.choose(game.wasm, seed >>> 0)) as Command;
+  }
+
+  free(): void {
+    this.bot.free();
   }
 }

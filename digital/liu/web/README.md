@@ -1,7 +1,8 @@
 # Interface web do Liu
 
-Hotseat de 2 a 4 jogadores no mesmo aparelho, em Vite e TypeScript, com o
-motor do Liu em WebAssembly (`digital/liu/wasm`). A tela é desenhada em SVG,
+Partidas de 2 a 4 jogadores no mesmo aparelho, cada lugar com uma pessoa
+ou um bot, em Vite e TypeScript, com o motor e os bots do Liu em
+WebAssembly (`digital/liu/wasm`). A tela é desenhada em SVG,
 sem Three.js. Segue a identidade visual do ADR 0005: verde jade nas marcas,
 treliça de janela na faixa do painel, seleção por quadrado grosso, destino
 por anel e a última jogada por cantos.
@@ -18,10 +19,11 @@ por anel e a última jogada por cantos.
 
 | Caminho | Conteúdo |
 |---|---|
-| `src/engine/` | `LiuGame`, o `Game` do WASM com JSON tipado, e o carregamento do módulo |
+| `src/engine/` | `LiuGame` e `LiuBot`, o `Game` e o `Bot` do WASM com JSON tipado, e o carregamento do módulo |
+| `src/bot/` | Os níveis (especificações de `liu-bots`), o Web Worker do bot e o cliente que fala com ele |
 | `src/logic/selection.ts` | Cliques em comandos: dado do mercado e casa, ou dado da mão, casa e dado do mercado |
 | `src/logic/texts.ts` | Todo texto mostrado ao jogador, com os termos de `regras/liu/GLOSSARY.md` |
-| `src/logic/save.ts` | A partida salva no `localStorage`, para continuar depois |
+| `src/logic/save.ts` | A partida salva no `localStorage` (nomes, quem é bot e o estado), para continuar depois |
 | `src/ui/` | Tela inicial, tela do jogo e desenho em SVG dos dados e das janelas |
 
 As fontes vêm de `digital/seks/web/public/fonts` (com as licenças), pelo CSS
@@ -33,6 +35,11 @@ em `src/styles/fonts.css`.
   jogador (`regras/liu/01-componentes.md`).
 - O código de cada jogador é escolhido pelo jogo, o que faz mais pontos: o
   conjunto de números mais comum entre as linhas e colunas completas.
+- Na vez de um bot, a jogada sai de um Web Worker e aparece depois de pelo
+  menos 0,6 s; os cliques no jogo ficam parados até lá. Desfazer volta até a
+  última vez de uma pessoa, passando pelas jogadas dos bots.
+- O bot recebe o estado inteiro, com o gerador de dados, mas joga sobre
+  cópias com outra semente: não sabe o que o saco e as rolagens vão dar.
 - Os pontos mostrados durante a partida são os que o jogador faria se o jogo
   acabasse naquele momento.
 - A janela fica sempre com o selo no centro de uma grade de 7 por 7; as casas

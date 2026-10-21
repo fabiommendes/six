@@ -1,4 +1,7 @@
+import { BotCancelled, type BotPlayer } from "../bot/client";
+import { botLevel } from "../bot/levels";
 import type { Command, Event, LiuGame, Pos, View } from "../engine/game";
+import type { SeatBot } from "../logic/save";
 import { click, keepCommand, NONE, selectedValue, targetsOf, type Click, type Selection } from "../logic/selection";
 import { ACTIONS, eventText, hint, points, scoreText, winnersText } from "../logic/texts";
 import { esc } from "./dom";
@@ -9,6 +12,10 @@ const LOG_LINES = 6;
 
 export interface GameScreenOptions {
   readonly names: readonly string[];
+  /** Who plays each seat: a person (null) or a bot level. */
+  readonly bots: readonly SeatBot[];
+  /** Plays for the bot seats; disposed when the screen is left. */
+  readonly botPlayer: BotPlayer;
   /** Called after every change, to save the game. */
   readonly onChange: () => void;
   /** Leaves the game for the start screen. */
@@ -16,9 +23,10 @@ export interface GameScreenOptions {
 }
 
 /**
- * The hotseat game screen: the panel with the market and the actions, and
- * the windows of every player. The engine decides what is legal; the
- * screen only turns clicks into commands (`logic/selection`).
+ * The game screen: the panel with the market and the actions, and the
+ * windows of every player. The engine decides what is legal; the screen
+ * only turns clicks into commands (`logic/selection`). On a bot's turn it
+ * asks the bot player and ignores the clicks on the game until it answers.
  */
 export class GameScreen {
   private view: View;
@@ -28,6 +36,8 @@ export class GameScreen {
   private last: { player: number; at: Pos } | null = null;
   private error: string | null = null;
   private confirmingLeave = false;
+  /** A bot is choosing a command. */
+  private thinking = false;
 
   constructor(
     private readonly host: HTMLElement,
@@ -48,6 +58,39 @@ export class GameScreen {
 
   private get names(): readonly string[] {
     return this.options.names;
+  }
+
+  private isBot(player: number): boolean {
+    return this.options.bots[player] != null;
+  }
+
+  /** Whether the player to move is a bot, in a game not over. */
+  private get botToMove(): boolean {
+    return this.view.end === null && this.isBot(this.view.toMove);
+  }
+
+  /** Asks the bot to move, when it is a bot's turn and none is thinking. */
+  private runBot(): void {
+    const level = this.options.bots[this.view.toMove];
+    if (!this.botToMove || this.thinking || !level) return;
+    this.thinking = true;
+    this.options.botPlayer.choose(JSON.stringify(this.game.state()), botLevel(level).spec).then(
+      (command) => {
+        this.thinking = false;
+        this.play(command);
+      },
+      (e: unknown) => {
+        this.thinking = false;
+        if (e instanceof BotCancelled) return;
+        this.error = `O bot não conseguiu jogar: ${(e as Error).message}`;
+        this.render();
+      },
+    );
+  }
+
+  /** Whether undo can go back to a turn of a person. */
+  private canUndo(): boolean {
+    return this.game.canUndo() && this.options.bots.some((b) => b == null);
   }
 
   private record(events: readonly Event[]): void {
@@ -81,6 +124,7 @@ export class GameScreen {
       this.confirmingLeave = false;
       this.render();
     }
+    if (this.botToMove) return;
     let input: Click | null = null;
     const market = target.closest<HTMLElement>("[data-market]");
     if (market) input = { kind: "market", die: Number(market.dataset.market) };
@@ -97,6 +141,7 @@ export class GameScreen {
   }
 
   private onAction(action: string): void {
+    if (this.botToMove && action !== "undo" && action !== "leave") return;
     switch (action) {
       case "keep": {
         const command = keepCommand(this.view, this.selection);
@@ -108,8 +153,12 @@ export class GameScreen {
       case "pass":
         return this.play({ kind: "pass" });
       case "undo":
-        if (!this.game.canUndo()) return;
+        if (!this.canUndo()) return;
+        // Back to the last command of a person, over the bots' commands.
+        this.options.botPlayer.cancel();
+        this.thinking = false;
         this.view = this.game.undo();
+        while (this.botToMove && this.game.canUndo()) this.view = this.game.undo();
         this.selection = NONE;
         this.last = null;
         this.log.push("Jogada desfeita.");
@@ -123,6 +172,7 @@ export class GameScreen {
         }
         this.host.onclick = null;
         document.onkeydown = null;
+        this.options.botPlayer.dispose();
         return this.options.onLeave();
     }
   }
@@ -131,20 +181,22 @@ export class GameScreen {
     const view = this.view;
     const over = view.end !== null;
     const me = view.toMove;
+    const waiting = this.botToMove;
     const marketDice = view.market
       .map((value, i) => {
         const selected = this.selection.kind === "market" && this.selection.die === i;
-        return `<button type="button" class="die" data-market="${i}" aria-pressed="${selected}" aria-label="Dado ${value} do mercado" ${over ? "disabled" : ""}>${dieIcon(value, 40)}</button>`;
+        return `<button type="button" class="die" data-market="${i}" aria-pressed="${selected}" aria-label="Dado ${value} do mercado" ${over || waiting ? "disabled" : ""}>${dieIcon(value, 40)}</button>`;
       })
       .join("");
-    const keepable = keepCommand(view, this.selection) !== null;
+    const keepable = !waiting && keepCommand(view, this.selection) !== null;
+    const can = (allowed: boolean) => (allowed && !waiting ? "" : "disabled");
     const actions = over
       ? ""
       : `<div class="actions">
           <button type="button" data-action="keep" ${keepable ? "" : "disabled"}>${ACTIONS.keep}</button>
-          <button type="button" data-action="reroll" ${view.canReroll ? "" : "disabled"}>${ACTIONS.reroll}</button>
-          <button type="button" data-action="pass" ${view.canPass ? "" : "disabled"}>${ACTIONS.pass}</button>
-          <button type="button" data-action="undo" ${this.game.canUndo() ? "" : "disabled"}>${ACTIONS.undo}</button>
+          <button type="button" data-action="reroll" ${can(view.canReroll)}>${ACTIONS.reroll}</button>
+          <button type="button" data-action="pass" ${can(view.canPass)}>${ACTIONS.pass}</button>
+          <button type="button" data-action="undo" ${this.canUndo() ? "" : "disabled"}>${ACTIONS.undo}</button>
         </div>`;
     const turn = over
       ? `<div class="turn"><div><div class="who">Fim do jogo</div><div class="what">${esc(winnersText(view.winners ?? [], this.names))}</div></div></div>`
@@ -157,7 +209,7 @@ export class GameScreen {
         <h1>Liu</h1>
         <div class="band">${latticeBand(296)}</div>
         ${turn}
-        <p class="note${over ? " result" : ""}">${esc(hint(view, this.selection, this.names))}</p>
+        <p class="note${over ? " result" : ""}">${esc(hint(view, this.selection, this.names, waiting))}</p>
         ${this.error ? `<p class="note warn">${esc(this.error)}</p>` : ""}
         ${results}
         <section class="market"><h2>Mercado</h2><div class="market-dice">${marketDice || '<span class="empty">vazio</span>'}</div></section>
@@ -167,6 +219,7 @@ export class GameScreen {
       </aside>
       <main class="windows count-${view.players.length}">${view.players.map((_, i) => this.playerHtml(i)).join("")}</main>
     </div>`;
+    this.runBot();
   }
 
   private resultsHtml(): string {
@@ -187,25 +240,27 @@ export class GameScreen {
     const view = this.view;
     const player = view.players[i]!;
     const active = view.end === null && view.toMove === i;
-    const selection = active ? this.selection : NONE;
+    const human = !this.isBot(i);
+    const selection = active && human ? this.selection : NONE;
     const value = active ? selectedValue(view, selection) : null;
     const handSelected = selection.kind === "hand" || selection.kind === "handAt";
     const hand =
       player.hand === null
         ? emptySlot(40)
-        : active
+        : active && human
           ? `<button type="button" class="die" data-hand aria-pressed="${handSelected}" aria-label="Dado ${player.hand} da mão" ${view.canPlaceFromHand ? "" : "disabled"}>${dieIcon(player.hand, 40)}</button>`
           : dieIcon(player.hand, 40);
     const svg = windowSvg(player, {
       player: i,
-      targets: active ? targetsOf(view, selection) : [],
+      targets: active && human ? targetsOf(view, selection) : [],
       pending: selection.kind === "handAt" && value !== null ? { at: selection.at, value } : undefined,
       last: this.last?.player === i ? this.last.at : null,
     });
     const now = active ? '<span class="now">VEZ</span>' : "";
+    const bot = human ? "" : '<span class="bot">BOT</span>';
     const won = view.winners?.includes(i) ? '<span class="now">VENCEU</span>' : "";
     return `<section class="player${active ? " active" : ""}" style="--seal:${sealColor(i)}">
-      <header>${dieIcon(player.seal, 26, sealColor(i))}<span class="name">${esc(this.names[i]!)}</span>${now}${won}<span class="pts">${points(player.score.points)}</span></header>
+      <header>${dieIcon(player.seal, 26, sealColor(i))}<span class="name">${esc(this.names[i]!)}</span>${bot}${now}${won}<span class="pts">${points(player.score.points)}</span></header>
       <div class="board">${svg}<div class="hand"><span>Mão</span>${hand}</div></div>
     </section>`;
   }

@@ -11,7 +11,7 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Alegreya Sans", sans-serif; -webkit-text-size-adjust: 100%; }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 
 .brand { display: flex; align-items: center; gap: 10px; font-family: "Alegreya Sans SC", sans-serif; font-weight: 700; letter-spacing: 0.14em; font-size: 15px; }
 h1 { font-weight: 800; font-size: 54px; line-height: 0.9; margin: 12px 0 4px; letter-spacing: -0.01em; }
@@ -22,7 +22,7 @@ h2 { font-family: "Alegreya Sans SC", sans-serif; font-weight: 700; font-size: 1
 button { font: 700 15px "Alegreya Sans", sans-serif; color: var(--ink); background: var(--wool); border: 2px solid var(--ink); border-radius: 3px; padding: 9px 10px; cursor: pointer; box-shadow: 0 2px 0 var(--ink); min-height: 44px; touch-action: manipulation; }
 button:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
 button:disabled { color: var(--muted); border-color: var(--line); box-shadow: 0 2px 0 var(--line); cursor: default; }
-button:focus-visible, input:focus-visible { outline: 3px solid var(--liu); outline-offset: 2px; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--liu); outline-offset: 2px; }
 button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 button.primary { background: var(--ink); color: var(--wool); width: 100%; margin-top: 8px; }
 button.danger { background: var(--ink); color: var(--wool); }
@@ -96,3 +96,7 @@ button.danger { background: var(--ink); color: var(--wool); }
   /* The window of the player to move comes first, right below the market. */
   .player.active { order: -1; }
 }
+
+.name-row select { flex: none; width: 7.2em; min-height: 40px; padding: 6px 8px; border: 2px solid var(--ink); border-radius: 3px; background: var(--wool); font: inherit; }
+.name-row input { min-width: 0; }
+.player .bot { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); }
