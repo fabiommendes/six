@@ -1,0 +1,18 @@
+{
+  "bot": "greedy",
+  "weights": {
+    "points": 1.0,
+    "dice": 2.361,
+    "line3": 1.6442,
+    "line2": 0.5689,
+    "dead": -1.1641,
+    "run3": 0.713,
+    "run2": 0.5931,
+    "code3": 0.2356,
+    "hand": 1.4814,
+    "fit_values": 0.098,
+    "seal_cells": 0.0377,
+    "line3_late": -1.7247,
+    "line2_late": -0.8773
+  }
+}

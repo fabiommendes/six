@@ -1,0 +1,25 @@
+== greedy:noise=1 vs random
+1000 games, 2 players; 11.3 rounds, 24.1 commands; ends: window 373, no placement 627
+greedy:noise=1: 1000 seats, wins 858.0 (85.8% [83.5, 87.8]), 8.16 points, 11.58 dice, 0.19 ms per decision (max 2.1)
+random: 1000 seats, wins 142.0 (14.2% [12.2, 16.5]), 4.21 points, 10.56 dice, 0.01 ms per decision (max 0.3)
+greedy:noise=1 vs random: +738 =240 -22, Elo +312 [+291, +336]
+== greedy:noise=1 vs greedy
+1000 games, 2 players; 14.9 rounds, 31.3 commands; ends: window 849, no placement 151
+greedy:noise=1: 1000 seats, wins 323.5 (32.4% [29.6, 35.4]), 11.55 points, 15.16 dice, 0.18 ms per decision (max 2.3)
+greedy: 1000 seats, wins 676.5 (67.7% [64.7, 70.5]), 14.93 points, 15.40 dice, 0.20 ms per decision (max 1.9)
+greedy:noise=1 vs greedy: +320 =7 -673, Elo -128 [-152, -106]
+== greedy vs @liu/bots/tune/runs/fase2.json
+1000 games, 2 players; 15.0 rounds, 32.6 commands; ends: window 883, no placement 117
+greedy: 1000 seats, wins 545.5 (54.5% [51.5, 57.7]), 15.02 points, 15.39 dice, 0.23 ms per decision (max 5.3)
+@liu/bots/tune/runs/fase2.json: 1000 seats, wins 454.5 (45.5% [42.4, 48.6]), 14.96 points, 15.14 dice, 0.14 ms per decision (max 3.1)
+greedy vs @liu/bots/tune/runs/fase2.json: +540 =11 -449, Elo +32 [+10, +53]
+== pimc vs greedy
+600 games, 2 players; 14.7 rounds, 30.7 commands; ends: window 513, no placement 87
+pimc: 600 seats, wins 455.5 (75.9% [72.4, 79.2]), 14.82 points, 15.28 dice, 150.20 ms per decision (max 568.8)
+greedy: 600 seats, wins 144.5 (24.1% [20.9, 27.7]), 12.14 points, 14.72 dice, 0.16 ms per decision (max 2.4)
+pimc vs greedy: +442 =27 -131, Elo +199 [+169, +233]
+== pimc vs @liu/bots/tune/runs/fase2-pimc.json
+600 games, 2 players; 15.1 rounds, 32.5 commands; ends: window 522, no placement 78
+pimc: 600 seats, wins 328.5 (54.8% [50.8, 58.8]), 13.63 points, 15.33 dice, 151.00 ms per decision (max 826.0)
+@liu/bots/tune/runs/fase2-pimc.json: 600 seats, wins 271.5 (45.2% [41.4, 49.3]), 13.83 points, 15.06 dice, 126.60 ms per decision (max 863.3)
+pimc vs @liu/bots/tune/runs/fase2-pimc.json: +327 =3 -270, Elo +33 [+5, +61]

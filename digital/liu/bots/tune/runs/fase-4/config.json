@@ -1,0 +1,78 @@
+{
+  "bot": "greedy",
+  "weights": {
+    "dice": {
+      "init": 2.361,
+      "min": 0,
+      "max": 4.0
+    },
+    "line3": {
+      "init": 1.6442,
+      "min": 0,
+      "max": 3.0
+    },
+    "line2": {
+      "init": 0.5689,
+      "min": 0,
+      "max": 1
+    },
+    "dead": {
+      "init": -1.1641,
+      "min": -2.5,
+      "max": 0
+    },
+    "run3": {
+      "init": 0.713,
+      "min": 0,
+      "max": 1.5
+    },
+    "run2": {
+      "init": 0.5931,
+      "min": 0,
+      "max": 0.6
+    },
+    "code3": {
+      "init": 0.2356,
+      "min": 0,
+      "max": 1.5
+    },
+    "hand": {
+      "init": 1.4814,
+      "min": 0,
+      "max": 3.0
+    },
+    "fit_values": {
+      "init": 0.098,
+      "min": 0,
+      "max": 0.5
+    },
+    "seal_cells": {
+      "init": 0.0377,
+      "min": 0,
+      "max": 0.2
+    },
+    "line3_late": {
+      "init": -1.7247,
+      "min": -3.0,
+      "max": 1.5
+    },
+    "line2_late": {
+      "init": -0.8773,
+      "min": -1.0,
+      "max": 1.0
+    }
+  },
+  "fixed": {
+    "points": 1.0
+  },
+  "opponent": "@digital/liu/bots/tune/runs/fase-3/best.json",
+  "players": 2,
+  "seeds": 500,
+  "population": 12,
+  "generations": 40,
+  "seed": 400000,
+  "sigma": 0.15,
+  "threads": 6,
+  "binary": "digital/liu/bots/tune/runs/liu-bots",
+  "out": "digital/liu/bots/tune/runs/fase-4"
+}

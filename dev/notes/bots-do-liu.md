@@ -30,13 +30,14 @@ Partidas de `greedy` contra ele mesmo: 12,6 rodadas e 29 comandos; 90%
 acabam com o saco vazio, 6,5% com uma janela completa e 3,5% numa rodada
 sem dado posto.
 
-Os números desta nota, a linha de base e a calibração abaixo são da regra
-anterior a 2026-10-21, em que o saco vazio acabava o jogo e o saco tinha 15
+A linha de base, as fases 1 e 2 da calibração e os parâmetros do PIMC são da
+regra anterior a 2026-10-21, em que o saco vazio acabava o jogo e o saco tinha 15
 dados por jogador. Com a regra nova (16 por jogador; sem saco, o mercado é
 rolado de novo até haver maioria), 200 sementes de `greedy` contra ele mesmo
 dão, com 2 jogadores, 14,9 rodadas e 34 comandos, 80% das partidas acabando
 com uma janela completa e 20% numa rodada sem dado posto; com 4 jogadores,
-15 rodadas e 99% com janela completa. Os pesos não foram calibrados de novo.
+15 rodadas e 99% com janela completa. A fase 3 da calibração e os níveis da
+web são da regra nova.
 
 ## Calibração dos pesos (CMA-ES sobre o guloso)
 
@@ -48,6 +49,8 @@ sementes que a busca não usou (900000).
 |---|---|---|---|---|
 | 1 | `greedy` com os pesos à mão | 11 | +12 [+2, +21] | o mesmo |
 | 2 | `best.json` da fase 1 | 13 (com `line3_late` e `line2_late`) | +30 [+21, +40] | +40 [+30, +49] |
+| 3 (regra nova) | `greedy` com os pesos da fase 2 | 13 | +29 [+18, +40] | |
+| 4 (regra nova) | `best.json` da fase 3 | 13, faixas mais largas | -4 [-14, +7] | |
 
 - A fase 1 mostrou que os pesos à mão já estavam perto do melhor que esses
   11 features dão ao guloso: a média de cada geração ficou abaixo de 50%
@@ -57,9 +60,18 @@ sementes que a busca não usou (900000).
   incompleta vale menos, porque faltam turnos para completá-la. `dice`
   sobe de 0,15 para 1,25, `dead` de -0,6 para -1,28 e `run3` de 0,3 para
   0,97. Nenhum peso encostou no limite da faixa.
-- Os pesos da fase 2 são o padrão (`weights/default.json`).
 - No PIMC, os pesos da fase 2 não mudam a força: +5 [-21, +31] em 600
   partidas contra o PIMC com os pesos à mão. Os rollouts dominam.
+- A fase 3 recalibra para a regra nova, partindo dos pesos da fase 2.
+  Sem o fim pelo saco vazio, a partida dura mais e guardar compensa:
+  `hand` sobe de 0,23 para 1,48, `dice` de 1,25 para 2,36, `line3` de
+  0,84 para 1,64 e `line3_late` de -1,22 para -1,72. A validação é em
+  4000 partidas.
+- `dice` e `hand` pararam perto do limite da faixa (2,5 e 1,5), e a fase 4
+  abriu as faixas. A média de cada geração ficou abaixo de 50% e o
+  resultado empata com a fase 3: o máximo é plano nessa direção.
+- Os pesos da fase 3 são o padrão (`weights/default.json`). No PIMC, eles
+  ganham do PIMC com os pesos da fase 2 por +33 [+5, +61] em 600 partidas.
 
 ## Parâmetros do PIMC
 
@@ -99,29 +111,38 @@ Leitura:
 
 ## Níveis da web
 
-Pesos padrão (fase 2), 500 distribuições (1000 partidas) por linha, o
-difícil com 300 (600 partidas), sementes 930000. Tempo no WASM pelo Node
-(`Bot` do `liu-wasm`, 6 partidas, load 9,6).
+Regra nova e pesos da fase 3, 500 distribuições (1000 partidas) por
+linha, o difícil com 300 (600 partidas), sementes 930000. Tempo no WASM
+pelo Node (`Bot` do `liu-wasm`, 6 partidas, load 14,6). Saídas em
+`tune/runs/niveis-2/`.
 
 | Nível | Espec. | Resultado | Elo | WASM: média (máx.) |
 |---|---|---|---|---|
-| Fácil | `greedy:noise=1` | contra `random`: +727 =249 -24 | +303 [+283, +326] | 0,1 ms (0,5) |
-| Fácil | | contra o médio: +151 =88 -761 | -246 [-273, -222] | |
-| Médio | `greedy` | contra os pesos à mão: +450 =170 -380 | +24 [+5, +44] | 0,2 ms (0,9) |
-| Difícil | `pimc` | contra o médio: +402 =97 -101 | +192 [+164, +221] | 127 ms (296) |
+| Fácil | `greedy:noise=1` | contra `random`: +738 =240 -22 | +312 [+291, +336] | |
+| Fácil | | contra o médio: +320 =7 -673 | -128 [-152, -106] | |
+| Médio | `greedy` | contra os pesos da fase 2: +540 =11 -449 | +32 [+10, +53] | |
+| Difícil | `pimc` | contra o médio: +442 =27 -131 | +199 [+169, +233] | 234 ms (480) |
+
+Com a regra anterior e os pesos da fase 2, o fácil ficava a -246 [-273,
+-222] do médio, o difícil a +192 [+164, +221], e o difícil levava 127 ms
+(máx. 296) no WASM com load 9,6. Na regra nova a partida é mais longa e
+o ruído do fácil custa menos: ele fica uns 120 Elo mais perto do médio.
+Os empates quase somem (7 em 1000), porque a maioria das partidas acaba
+com uma janela completa.
 
 O fácil começou com `noise=1.5` (+265 [+245, +286] contra `random`, -349
 [-382, -320] contra o médio); o designer pediu um fácil mais perto do
 médio, e `noise=1` fecha uns 100 Elo da distância.
 
 O R7 da issue passa: o difícil vence o médio com o intervalo inteiro acima
-de 50% (75,1% [71,5; 78,4]) e fica bem abaixo de 0,5 s por decisão no
-WASM. A web mostra a jogada do bot depois de pelo menos 0,6 s.
+de 50% (75,9% [72,4; 79,2]) e fica abaixo de 0,5 s por decisão no WASM,
+mas o máximo (480 ms com load 14,6) já chega perto. A web mostra a jogada
+do bot depois de pelo menos 0,6 s.
 
 ## 3 e 4 jogadores
 
-Um `pimc` contra `greedy` nos outros lugares, 100 distribuições em todas
-as ordens de assento (sementes 940000):
+Regra anterior e pesos da fase 2. Um `pimc` contra `greedy` nos outros
+lugares, 100 distribuições em todas as ordens de assento (sementes 940000):
 
 | Jogadores | Vitórias do `pimc` | Parte justa | ms por decisão (máx.) |
 |---|---|---|---|
