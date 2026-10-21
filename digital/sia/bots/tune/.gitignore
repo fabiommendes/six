@@ -1,4 +1,4 @@
-runs/sia-bots
+runs/sia-bots*
 runs/*/work/
 runs/*/state.pkl
 runs/*/*.log

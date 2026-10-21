@@ -1,15 +1,16 @@
 {
   "owned": 1.0,
-  "adjacent": 0.3,
-  "prob": 1.6,
-  "sure": 0.3,
-  "neighbors": 1.0,
-  "placed": 0.05,
-  "lost": -0.15,
-  "hand": 0.3,
-  "opp_hand": -0.2,
+  "adjacent": 0.2119,
+  "prob": 1.4729,
+  "sure": 0.0784,
+  "neighbors": 0.8052,
+  "placed": -0.3011,
+  "lost": -0.5305,
+  "hand": 0.4238,
+  "opp_hand": -1.4348,
   "meta": {
-    "source": "by hand, before calibration",
+    "source": "CMA-ES phase 1 (digital/sia/bots/tune/fase1.json), 30 generations x 12 candidates x 300 games, hand of 7, mean of the last generation",
+    "validation": "4000 games on seeds 500000.., +96 Elo [+85, +107] over the hand-made weights",
     "date": "2026-10-21"
   }
 }
