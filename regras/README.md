@@ -28,6 +28,14 @@ eliminar ambiguidade, incluindo casos de borda que o manual não vai mencionar.
   - `04-janela.md`: onde um dado pode ser posto.
   - `05-fim-do-jogo.md`: fim e pontuação.
   - `GLOSSARY.md`: os termos do Liu e os termos em inglês.
+- `sia/`: o Sia, duelo de dados para 2 jogadores, no estilo do *Battle Line*.
+  - `00-visao-geral.md`: o jogo em poucas linhas e o nome.
+  - `01-componentes.md`: os marcos, o saco e o tabuleiro.
+  - `02-preparacao.md`: os marcos, a mão e quem começa.
+  - `03-turno.md`: rolar de novo, reivindicar, pôr um dado e repor.
+  - `04-formacoes.md`: formações, ordem, desempate e a prova de reivindicação.
+  - `05-fim-do-jogo.md`: vitória por marcos e falta de lugar.
+  - `GLOSSARY.md`: os termos do Sia e os termos em inglês.
 
 Cada jogo novo ganha uma pasta com o mesmo esquema: arquivos `NN-tema.md` e um
 `GLOSSARY.md`.
