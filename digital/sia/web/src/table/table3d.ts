@@ -462,7 +462,13 @@ export class Table3D {
     this.box.position.set(box.x, 0, box.z);
     this.boxLabel.position.set(box.x, 1.2, box.z);
     this.cameraKey = "";
-    if (this.view) this.syncHands(this.view);
+    // The dice of the hands move to the spots of the new arrangement, wherever the animations left them.
+    this.hands.forEach((dice, seat) => {
+      dice.forEach((die, i) => {
+        const p = this.handPoint(seat, i);
+        die.root.position.set(p.x, p.y, p.z);
+      });
+    });
     this.dirty = true;
   }
 
