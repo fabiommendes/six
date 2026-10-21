@@ -1,0 +1,40 @@
+== pimc
+pimc: 600 seats, wins 437.0 (72.8% [69.1, 76.2]), 10.49 points, 12.80 dice, 114.89 ms per decision (max 480.8)
+greedy: 600 seats, wins 163.0 (27.2% [23.8, 30.9]), 9.13 points, 12.57 dice, 0.13 ms per decision (max 2.1)
+pimc vs greedy: +381 =112 -107, Elo +171 [+145, +200]
+== pimc:samples=8
+pimc:samples=8: 600 seats, wins 393.5 (65.6% [61.8, 69.4]), 10.16 points, 12.87 dice, 55.75 ms per decision (max 209.8)
+greedy: 600 seats, wins 206.5 (34.4% [30.8, 38.4]), 9.38 points, 12.74 dice, 0.13 ms per decision (max 1.1)
+pimc:samples=8 vs greedy: +333 =121 -146, Elo +112 [+87, +138]
+== pimc:samples=32
+pimc:samples=32: 600 seats, wins 457.5 (76.2% [72.8, 79.6]), 10.88 points, 12.94 dice, 251.31 ms per decision (max 1026.9)
+greedy: 600 seats, wins 142.5 (23.8% [20.6, 27.4]), 9.24 points, 12.68 dice, 0.15 ms per decision (max 3.2)
+pimc:samples=32 vs greedy: +405 =105 -90, Elo +203 [+175, +232]
+== pimc:top=3
+pimc:top=3: 600 seats, wins 402.5 (67.1% [63.3, 70.8]), 10.75 points, 13.25 dice, 64.73 ms per decision (max 240.7)
+greedy: 600 seats, wins 197.5 (32.9% [29.4, 36.9]), 9.67 points, 13.04 dice, 0.15 ms per decision (max 4.3)
+pimc:top=3 vs greedy: +358 =89 -153, Elo +124 [+97, +151]
+== pimc:top=10
+pimc:top=10: 600 seats, wins 423.0 (70.5% [66.7, 74.0]), 9.64 points, 12.12 dice, 226.25 ms per decision (max 747.4)
+greedy: 600 seats, wins 177.0 (29.5% [26.0, 33.3]), 8.48 points, 11.90 dice, 0.15 ms per decision (max 3.2)
+pimc:top=10 vs greedy: +356 =134 -110, Elo +151 [+126, +178]
+== pimc:turns=4
+pimc:turns=4: 600 seats, wins 426.0 (71.0% [67.2, 74.5]), 9.92 points, 12.42 dice, 42.24 ms per decision (max 172.9)
+greedy: 600 seats, wins 174.0 (29.0% [25.5, 32.8]), 8.90 points, 12.33 dice, 0.16 ms per decision (max 4.4)
+pimc:turns=4 vs greedy: +371 =110 -119, Elo +156 [+129, +184]
+== pimc:turns=8
+pimc:turns=8: 600 seats, wins 437.0 (72.8% [69.1, 76.2]), 10.27 points, 12.51 dice, 75.41 ms per decision (max 270.7)
+greedy: 600 seats, wins 163.0 (27.2% [23.8, 30.9]), 8.80 points, 12.28 dice, 0.15 ms per decision (max 2.3)
+pimc:turns=8 vs greedy: +382 =110 -108, Elo +171 [+145, +200]
+== pimc:turns=8,temp=1
+liu-bots: unknown bot "temp=1"
+== pimc:turns=8,temp=4
+liu-bots: unknown bot "temp=4"
+== pimc:rerolls=1
+pimc:rerolls=1: 600 seats, wins 422.5 (70.4% [66.7, 74.0]), 10.35 points, 12.82 dice, 105.68 ms per decision (max 384.9)
+greedy: 600 seats, wins 177.5 (29.6% [26.2, 33.4]), 9.10 points, 12.59 dice, 0.16 ms per decision (max 2.5)
+pimc:rerolls=1 vs greedy: +378 =89 -133, Elo +151 [+124, +179]
+== pimc:rerolls=4
+pimc:rerolls=4: 600 seats, wins 429.5 (71.6% [67.9, 75.1]), 10.50 points, 12.96 dice, 197.45 ms per decision (max 752.8)
+greedy: 600 seats, wins 170.5 (28.4% [25.0, 32.2]), 9.30 points, 12.72 dice, 0.16 ms per decision (max 3.5)
+pimc:rerolls=4 vs greedy: +380 =99 -121, Elo +160 [+134, +189]

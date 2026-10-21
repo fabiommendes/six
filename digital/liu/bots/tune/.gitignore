@@ -1,0 +1,5 @@
+runs/liu-bots
+runs/*/work/
+runs/*/state.pkl
+runs/*/*.log
+runs/*.jsonl

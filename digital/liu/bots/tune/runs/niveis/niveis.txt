@@ -1,0 +1,9 @@
+== greedy:noise=1.5 vs random
+greedy:noise=1.5 vs random: +689 =264 -47, Elo +265 [+245, +286]
+== greedy:noise=1.5 vs greedy
+greedy:noise=1.5 vs greedy: +90 =57 -853, Elo -349 [-382, -320]
+== greedy vs @hand.json
+greedy vs @hand.json: +450 =170 -380, Elo +24 [+5, +44]
+== pimc:samples=32,turns=8 vs greedy
+greedy: 600 seats, wins 149.5 (24.9% [21.7, 28.6]), 9.26 points, 12.49 dice, 0.11 ms per decision (max 2.7)
+pimc:samples=32,turns=8 vs greedy: +402 =97 -101, Elo +192 [+164, +221]

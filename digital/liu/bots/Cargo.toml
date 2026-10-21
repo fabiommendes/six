@@ -1,0 +1,10 @@
+[package]
+name = "liu-bots"
+version = "0.1.0"
+edition.workspace = true
+description = "Bots of the Liu dice game, bot-versus-bot batches and calibration"
+
+[dependencies]
+liu-engine = { path = "../engine" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

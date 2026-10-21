@@ -1,0 +1,6 @@
+300 games, 3 players; 13.9 rounds, 48.1 commands; ends: window 56, bag 241, no placement 3
+pimc: 300 seats, wins 145.0 (48.3% [42.7, 54.0]), 13.58 points, 14.51 dice, 152.60 ms per decision (max 689.5)
+greedy: 600 seats, wins 155.0 (25.8% [22.5, 29.5]), 12.89 points, 14.48 dice, 0.15 ms per decision (max 0.9)
+400 games, 4 players; 13.9 rounds, 64.3 commands; ends: window 54, bag 345, no placement 1
+pimc: 400 seats, wins 132.2 (33.1% [28.6, 37.8]), 14.36 points, 14.56 dice, 208.26 ms per decision (max 617.9)
+greedy: 1200 seats, wins 267.8 (22.3% [20.1, 24.8]), 13.89 points, 14.63 dice, 0.21 ms per decision (max 5.4)

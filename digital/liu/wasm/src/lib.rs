@@ -6,11 +6,16 @@
 //! nothing.
 //!
 //! The rules live in the engine: `Game` only keeps a game and its undo
-//! stack, so an interface never decides what is legal.
+//! stack, so an interface never decides what is legal. `Bot` is a bot of
+//! `liu-bots` that reads the position of a `Game`.
 
 use liu_engine::wire::{self, Transition, View};
 use liu_engine::{GameState, MAX_PLAYERS, MIN_PLAYERS};
 use wasm_bindgen::prelude::*;
+
+mod bot;
+
+pub use bot::Bot;
 
 fn error(message: impl ToString) -> JsError {
     JsError::new(&message.to_string())
@@ -22,6 +27,13 @@ pub struct Game {
     state: GameState,
     undo: Vec<GameState>,
     opening: String,
+}
+
+impl Game {
+    /// The position, for the bots.
+    pub fn game_state(&self) -> &GameState {
+        &self.state
+    }
 }
 
 #[wasm_bindgen]

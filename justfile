@@ -138,6 +138,17 @@ seks-bots-slow-test:
 liu-engine-test:
     cd digital && cargo test -p liu-engine --all-features
 
+# Lote entre dois bots do Liu, cada distribuição em todas as ordens de assento (ex.: just liu-batch pimc greedy --games 200)
+[group('liu')]
+liu-batch a b *flags:
+    cd digital && CARGO_BUILD_JOBS=4 cargo build --release -q -p liu-bots
+    cd digital && {{seks_limits}} ./target/release/liu-bots batch --bots {{a}},{{b}} {{flags}}
+
+# Calibra os pesos do avaliador do Liu com CMA-ES a partir de uma configuração; retoma se parou
+[group('liu')]
+liu-tune config:
+    {{seks_limits}} uv run digital/liu/bots/tune/tune.py {{config}}
+
 # Regenera os tipos TypeScript do motor do Liu em digital/liu/wasm/types (ts-rs)
 [group('liu')]
 liu-types:
@@ -160,10 +171,10 @@ liu-types-check:
 liu-wasm:
     cd digital && CARGO_BUILD_JOBS=4 nice -n 19 wasm-pack build liu/wasm --target web --release
 
-# Gera o pacote WebAssembly do Liu e joga partidas inteiras pelo Game no Node
+# Gera o pacote WebAssembly do Liu e joga partidas inteiras pelo Game e pelo Bot no Node
 [group('liu')]
 liu-wasm-test: liu-wasm
-    nice -n 19 node --test digital/liu/wasm/tests/game.test.mjs
+    nice -n 19 node --test digital/liu/wasm/tests/game.test.mjs digital/liu/wasm/tests/bot.test.mjs
 
 # Instala as dependências da interface web do Liu (pnpm)
 [group('liu')]

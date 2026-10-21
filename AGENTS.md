@@ -38,9 +38,12 @@ Nível 1 do ADR 0002 do tooling-root:
   (velocidade nativa e em WASM). Detalhes em `digital/seks/bots/EVALUATOR.md`
   e `dev/notes/bots-do-seks.md`.
 - Liu: `just liu-engine-test` (motor), `just liu-wasm` e `just
-  liu-wasm-test` (pacote WASM e partidas no Node), `just liu-types`, `just
-  liu-web-dev` e `just liu-web-check` (interface web, pede `just liu-wasm`
-  antes). Detalhes em `digital/liu/web/README.md`.
+  liu-wasm-test` (pacote WASM e partidas no Node, com o bot), `just
+  liu-types`, `just liu-web-dev` e `just liu-web-check` (interface web, pede
+  `just liu-wasm` antes). Detalhes em `digital/liu/web/README.md`.
+- Bots do Liu: `just liu-batch A B` (lote entre dois bots) e `just liu-tune
+  CONFIG` (calibração por CMA-ES, retoma se parou). Detalhes em
+  `digital/liu/bots/README.md` e `dev/notes/bots-do-liu.md`.
 - Manual: `just manual` (site e PDF), `just manual-serve`, `just manual-check`
   (trechos do manual cujas fontes em `regras/` mudaram). Detalhes em
   `manual/README.md`.
@@ -62,8 +65,9 @@ Nível 1 do ADR 0002 do tooling-root:
 | `digital/seks/bots/` | Bots do Seks (`seks-bots`): aleatório, guloso e alfa-beta, lotes e treino |
 | `digital/seks/prototipo/` | Protótipo do Seks em Python e Pyxel, referência de comportamento |
 | `digital/liu/engine/` | Motor do Liu em Rust (`liu-engine`), com o sorteio dos dados no estado |
-| `digital/liu/wasm/` | `liu-wasm`: o motor do Liu em WebAssembly e os tipos TypeScript |
-| `digital/liu/web/` | Interface web do Liu (Vite e TypeScript, SVG): hotseat de 2 a 4 jogadores |
+| `digital/liu/bots/` | Bots do Liu (`liu-bots`): aleatório, guloso e PIMC, lotes e calibração |
+| `digital/liu/wasm/` | `liu-wasm`: o motor (`Game`) e o bot (`Bot`) do Liu em WebAssembly e os tipos TypeScript |
+| `digital/liu/web/` | Interface web do Liu (Vite e TypeScript, SVG): 2 a 4 jogadores no mesmo aparelho, pessoas ou bots |
 | `arte/` | Identidade visual (ADR 0005); `esbocos/` guarda as quatro direções esboçadas, como referência |
 | `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` e `esbocos/` (temporários) ficam fora do git |
 

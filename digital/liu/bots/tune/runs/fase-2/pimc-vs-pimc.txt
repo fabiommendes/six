@@ -1,0 +1,4 @@
+600 games, 2 players; 12.9 rounds, 29.1 commands; ends: window 48, bag 523, no placement 29
+@fase-2/pimc.json: 600 seats, wins 304.5 (50.8% [46.8, 54.8]), 10.18 points, 13.37 dice, 104.50 ms per decision (max 508.5)
+pimc: 600 seats, wins 295.5 (49.2% [45.3, 53.3]), 10.17 points, 13.44 dice, 106.10 ms per decision (max 435.6)
+@fase-2/pimc.json vs pimc: +267 =75 -258, Elo +5 [-21, +31]

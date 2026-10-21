@@ -1,0 +1,4 @@
+600 games, 2 players; 12.8 rounds, 29.0 commands; ends: window 55, bag 497, no placement 48
+pimc:samples=32,turns=8: 600 seats, wins 330.5 (55.1% [51.2, 59.1]), 10.16 points, 13.32 dice, 94.59 ms per decision (max 443.4)
+pimc: 600 seats, wins 269.5 (44.9% [41.1, 49.0]), 9.80 points, 13.28 dice, 89.10 ms per decision (max 357.7)
+pimc:samples=32,turns=8 vs pimc: +294 =73 -233, Elo +35 [+9, +62]

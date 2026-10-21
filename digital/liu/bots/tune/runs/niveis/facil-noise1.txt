@@ -1,0 +1,4 @@
+== greedy:noise=1 vs random
+greedy:noise=1 vs random: +727 =249 -24, Elo +303 [+283, +326]
+== greedy:noise=1 vs greedy
+greedy:noise=1 vs greedy: +151 =88 -761, Elo -246 [-273, -222]
