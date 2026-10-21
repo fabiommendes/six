@@ -1033,6 +1033,39 @@ mod tests {
     }
 
     #[test]
+    fn the_proof_wins_a_tie_in_kind_and_sum_but_not_a_higher_sum() {
+        // Stone 6, a run 3 4 5 6 (sum 18). The other side has 4 and 5 in two
+        // suits: its only run is 3 4 5 6, the same sum, which loses the tie.
+        let mut tie = game([6; 9], 0);
+        put(&mut tie, 0, 0, &[d(3, 0), d(4, 1), d(5, 2)]);
+        put(&mut tie, 1, 0, &[d(4, 0), d(5, 1)]);
+        assert_eq!(tie.claim_kind(0, 0), Some(true));
+        // Stone 3, a run 1 2 3 4 (sum 10). The other side has 2 and 4: it can
+        // make the same run, but also 2 3 4 5 (sum 14).
+        let mut higher = game([3; 9], 0);
+        put(&mut higher, 0, 0, &[d(1, 0), d(2, 1), d(4, 2)]);
+        put(&mut higher, 1, 0, &[d(2, 0), d(4, 1)]);
+        assert_eq!(higher.formation_of(0, 0).unwrap().kind, FormationKind::Run);
+        assert_eq!(higher.claim_kind(0, 0), None);
+        // Once that side is complete with the same run, it is a duel and the
+        // side completed first wins.
+        put(&mut higher, 1, 0, &[d(1, 2)]);
+        assert_eq!(higher.claim_kind(0, 0), Some(false));
+        assert_eq!(higher.claim_kind(1, 0), None);
+    }
+
+    #[test]
+    fn a_claim_needs_the_own_side_complete() {
+        let mut state = game([6; 9], 0);
+        put(&mut state, 0, 0, &[d(3, 1), d(4, 1)]);
+        assert_eq!(state.claim_kind(0, 0), None);
+        assert!(!state
+            .legal_commands()
+            .iter()
+            .any(|c| matches!(c, Command::Claim { .. })));
+    }
+
+    #[test]
     fn a_taken_stone_cannot_be_claimed_again() {
         let mut state = game([6; 9], 0);
         put(&mut state, 0, 0, &[d(3, 1), d(4, 1), d(5, 1)]);
