@@ -174,6 +174,17 @@ impl GameState {
         self.end.is_some()
     }
 
+    /// The same game with the dice generator restarted from `seed`. The
+    /// numbers the bag and the rerolls will give are the only thing a
+    /// player cannot see, so a bot plays on reseeded copies and never on
+    /// the true rolls.
+    pub fn reseeded(&self, seed: u64) -> GameState {
+        GameState {
+            rng: Rng::new(seed),
+            ..self.clone()
+        }
+    }
+
     /// The player whose turn it is.
     pub fn to_move(&self) -> usize {
         (self.first + self.turns) % self.players.len()
