@@ -20,7 +20,7 @@ const SUMS: usize = 21;
 const RANKS: usize = 8 * SUMS;
 
 fn rank(f: Formation) -> usize {
-    f.kind.index() * SUMS + (f.sum as usize - 4)
+    f.kind.strength() * SUMS + (f.sum as usize - 4)
 }
 
 /// The distribution of the final formation of a side.

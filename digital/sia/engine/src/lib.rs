@@ -30,6 +30,7 @@
 
 mod command;
 mod die;
+pub mod experiment;
 mod formation;
 mod rng;
 mod state;

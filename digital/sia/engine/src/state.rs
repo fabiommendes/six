@@ -78,6 +78,10 @@ pub struct GameState {
     pub(crate) sides: [[Side; STONES]; PLAYERS],
     pub(crate) players: [Player; PLAYERS],
     pub(crate) hand_size: u8,
+    /// Extra dice in the hand of each player (experiments only, see
+    /// [`crate::experiment`]; not on the wire).
+    #[cfg_attr(feature = "wire", serde(skip), ts(skip))]
+    pub(crate) hand_bonus: [u8; PLAYERS],
     pub(crate) to_move: usize,
     pub(crate) step: Step,
     /// The turn, from 1.
@@ -111,6 +115,7 @@ impl GameState {
             sides: std::array::from_fn(|_| std::array::from_fn(|_| Side::default())),
             players: [Player::default(), Player::default()],
             hand_size,
+            hand_bonus: [0; PLAYERS],
             to_move: 0,
             step: Step::Reroll,
             turn: 1,
@@ -125,6 +130,15 @@ impl GameState {
             state.refill(player, &mut events);
         }
         state.to_move = usize::from(state.rng.coin());
+        let experiment = crate::experiment::variant();
+        if experiment.second_bonus > 0 {
+            let second = 1 - state.to_move;
+            state.hand_bonus[second] = experiment.second_bonus;
+            state.refill(second, &mut events);
+        }
+        if experiment.first_turn_without_reroll {
+            state.step = Step::Claim;
+        }
         events.push(Event::TurnStarted {
             player: state.to_move,
             turn: 1,
@@ -147,11 +161,11 @@ impl GameState {
             if player.lost >= self.hand_size {
                 return Err(format!("player {p} lost every die"));
             }
-            if player.hand.len() != (self.hand_size - player.lost) as usize {
+            if player.hand.len() != self.hand_target(p) {
                 return Err(format!(
                     "player {p} has {} dice in the hand, not {}",
                     player.hand.len(),
-                    self.hand_size - player.lost
+                    self.hand_target(p)
                 ));
             }
             if player.hand.iter().any(|d| !d.is_valid()) {
@@ -332,10 +346,15 @@ impl GameState {
         Die::new(self.rng.roll(), suit)
     }
 
+    /// The dice `player` has in hand after drawing.
+    fn hand_target(&self, player: usize) -> usize {
+        (self.hand_size + self.hand_bonus[player] - self.players[player].lost) as usize
+    }
+
     /// Draws for `player` until the hand has `hand_size` minus the dice
     /// lost.
     fn refill(&mut self, player: usize, events: &mut Vec<Event>) {
-        let target = (self.hand_size - self.players[player].lost) as usize;
+        let target = self.hand_target(player);
         let mut dice = Vec::new();
         while self.players[player].hand.len() < target {
             let die = self.draw_die();

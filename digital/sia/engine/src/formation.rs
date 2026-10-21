@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::die::Die;
 
 /// The kinds of formation, from the weakest to the strongest.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "wire", derive(Serialize, Deserialize, ts_rs::TS))]
 #[cfg_attr(feature = "wire", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "wire", ts(export))]
@@ -39,6 +39,33 @@ impl FormationKind {
     pub fn index(self) -> usize {
         self as usize
     }
+
+    /// The position in the order of strength: the index, unless an
+    /// experiment variant moves the four of a kind (see
+    /// [`crate::experiment`]).
+    pub fn strength(self) -> usize {
+        if crate::experiment::four_below_run() {
+            match self {
+                FormationKind::FourOfAKind => return 4,
+                FormationKind::Flush => return 5,
+                FormationKind::Run => return 6,
+                _ => {}
+            }
+        }
+        self as usize
+    }
+}
+
+impl PartialOrd for FormationKind {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for FormationKind {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.strength().cmp(&other.strength())
+    }
 }
 
 /// A formation: its kind, then the sum of the four numbers, which breaks
@@ -60,7 +87,12 @@ pub fn formation(stone: u8, dice: &[Die]) -> Formation {
     assert_eq!(dice.len(), 3, "a formation has 3 dice and the stone");
     let numbers = [stone, dice[0].value, dice[1].value, dice[2].value];
     let mut counts = [0u8; 7];
-    for n in numbers {
+    let counted = if crate::experiment::stone_only_for_sequences() {
+        &numbers[1..]
+    } else {
+        &numbers[..]
+    };
+    for &n in counted {
         counts[n as usize] += 1;
     }
     let most = *counts.iter().max().expect("counts is not empty");
@@ -74,7 +106,12 @@ pub fn formation(stone: u8, dice: &[Die]) -> Formation {
     };
     let low = *numbers.iter().min().expect("4 numbers");
     let high = *numbers.iter().max().expect("4 numbers");
-    let run = most == 1 && high - low == 3;
+    let distinct = numbers
+        .iter()
+        .fold(0u8, |mask, &n| mask | 1 << n)
+        .count_ones()
+        == 4;
+    let run = distinct && high - low == 3;
     let flush = dice.iter().all(|d| d.suit == dice[0].suit);
     if run && flush {
         kind = kind.max(FormationKind::StraightFlush);
