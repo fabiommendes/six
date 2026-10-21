@@ -194,6 +194,13 @@ liu-web-check: liu-web-install
     cd digital/liu/web && nice -n 19 pnpm test
     cd digital/liu/web && nice -n 19 pnpm build
 
+# --- Sia ---------------------------------------------------------------------
+
+# Testes do motor do Sia em Rust
+[group('sia')]
+sia-engine-test:
+    cd digital && cargo test -p sia-engine --all-features
+
 # --- Site publicado ---------------------------------------------------------
 
 # Site publicado em out/site: o manual (site e PDF) na raiz e as interfaces web do Seks em seks/ e do Liu em liu/

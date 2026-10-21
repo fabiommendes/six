@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["seks/engine", "seks/bots", "seks/wasm", "liu/engine", "liu/bots", "liu/wasm"]
+members = ["seks/engine", "seks/bots", "seks/wasm", "liu/engine", "liu/bots", "liu/wasm", "sia/engine"]
 
 [workspace.package]
 edition = "2021"
@@ -20,4 +20,10 @@ opt-level = 2
 opt-level = 2
 
 [profile.dev.package.liu-bots]
+opt-level = 2
+
+[profile.dev.package.sia-engine]
+opt-level = 2
+
+[profile.dev.package.sia-bots]
 opt-level = 2
