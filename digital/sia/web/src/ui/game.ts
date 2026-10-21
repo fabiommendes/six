@@ -366,10 +366,11 @@ export class GameScreen {
 
   private onCardHover(event: PointerEvent): void {
     if (event.pointerType === "touch") return;
-    const card = (event.target as Element).closest<HTMLElement>("[data-stone]");
-    const stone = card ? Number(card.dataset.stone) : null;
+    const target = event.target as Element;
     // Moving over the table is reported by the table itself.
-    if (card || (event.target as Element).closest("[data-stones]")) this.setFocus(stone);
+    if (target.classList.contains("table-canvas")) return;
+    const card = target.closest<HTMLElement>("[data-stone]");
+    this.setFocus(card ? Number(card.dataset.stone) : null);
   }
 
   private onKey(event: KeyboardEvent): void {
@@ -614,7 +615,7 @@ export class GameScreen {
         if (can) classes.push("can");
         if (this.focus === i) classes.push("focus");
         const style = owner !== null ? ` style="--owner:${seatColor(owner)}"` : "";
-        const ribbon = can ? '<b class="ribbon">Reivindicar</b>' : owner !== null ? `<b class="ribbon taken">${esc(this.names[owner]!)}</b>` : "";
+        const ribbon = can ? '<b class="ribbon">Reivindicar</b>' : owner !== null ? `<b class="ribbon taken" title="Tomado por ${esc(this.names[owner]!)}">Tomado</b>` : "";
         return `<button type="button" class="${classes.join(" ")}" data-stone="${i}"${style} aria-label="Marco ${stoneLetter(i)}, número ${stone.number}">
           <header><span class="letter">${stoneLetter(i)}</span>${this.preparing ? emptySlot(22) : dieIcon(stone.number, 22, STONE_SUIT)}${ribbon}</header>
           ${side(i, far)}${side(i, near)}

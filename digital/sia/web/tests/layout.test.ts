@@ -37,8 +37,9 @@ describe("the seats", () => {
 
   it("puts the three dice of a side in the column of the stone, on the side of its player", () => {
     for (let stone = 0; stone < STONES; stone++) {
-      const first = sideSpot(0, stone, 0);
-      expect(first.x).toBe(stoneColumn(stone));
+      // Both sides of a stone are in the same column of the board.
+      expect(sideSpot(0, stone, 0).x).toBe(stoneColumn(stone));
+      expect(sideSpot(1, stone, 2).x).toBe(stoneColumn(stone));
       expect([0, 1, 2].map((k) => sideSpot(0, stone, k).z)).toEqual([1, 2, 3]);
       expect([0, 1, 2].map((k) => sideSpot(1, stone, k).z)).toEqual([-1, -2, -3]);
     }

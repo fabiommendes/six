@@ -42,9 +42,13 @@ export function stoneSpot(stone: number): Spot {
   return { x: stoneColumn(stone), z: 0 };
 }
 
-/** The cell of die `k` (0 to 2) of the side of `seat` at `stone`, on the table: nearest the stone first. */
+/**
+ * The cell of die `k` (0 to 2) of the side of `seat` at `stone`, on the table:
+ * nearest the stone first. Both sides of a stone are in its column, one on
+ * each side of the central row.
+ */
 export function sideSpot(seat: number, stone: number, k: number): Spot {
-  return seatToTable(seat, { x: stoneColumn(stone), z: 1 + k });
+  return { x: stoneColumn(stone), z: seat === 0 ? 1 + k : -(1 + k) };
 }
 
 /**

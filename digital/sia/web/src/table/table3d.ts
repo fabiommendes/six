@@ -640,22 +640,25 @@ export class Table3D {
       const p = sideSpot(seat, stone, k);
       this.placeMark(mesh, p, 1);
     });
+    // The brackets lie on the top of the stone, which would hide them on the board; the tag is only for one stone at a time.
     this.fillMarks(this.claimMarks, marks.claims.length, "claim", accent, (mesh, i) => {
-      const p = stoneSpot(marks.claims[i]!.stone);
-      this.placeMark(mesh, p, 1.2);
+      const stone = marks.claims[i]!.stone;
+      const die = this.stones[stone];
+      const p = stoneSpot(stone);
+      this.placeMark(mesh, p, 1.05, die ? topOf(die) + 0.02 : MARK_Y);
     });
-    while (this.claimTags.length < marks.claims.length) this.claimTags.push(this.newLabelSprite());
-    this.claimTags.forEach((tag, i) => {
-      const claim = marks.claims[i];
-      tag.visible = claim !== undefined;
-      if (!claim) return;
-      const key = `${claim.text}|${accent}`;
+    const tagged = marks.claims.length === 1 ? marks.claims[0] : marks.claims.find((c) => c.stone === marks.focus);
+    while (this.claimTags.length < 1) this.claimTags.push(this.newLabelSprite());
+    this.claimTags.forEach((tag) => {
+      tag.visible = tagged !== undefined;
+      if (!tagged) return;
+      const key = `${tagged.text}|${accent}`;
       if (tag.userData.key !== key) {
         tag.userData.key = key;
-        this.setLabel(tag, claim.text, 0.62, { background: accent, color: "#FFFFFF" });
+        this.setLabel(tag, tagged.text, 0.62, { background: accent, color: "#FFFFFF" });
       }
-      const p = stoneSpot(claim.stone);
-      tag.position.set(p.x, 1.7, p.z - (active === 1 ? -1 : 1) * 0.4);
+      const p = stoneSpot(tagged.stone);
+      tag.position.set(p.x, 1.7, p.z);
     });
     if (marks.last) {
       const list = this.sides[marks.last.seat]?.[marks.last.stone];
@@ -1077,7 +1080,7 @@ export class Table3D {
       }
     }
     if (this.marks.claims.length > 0) {
-      const s = 1.2 + 0.07 * Math.sin(now / 260);
+      const s = 1.05 + 0.07 * Math.sin(now / 260);
       for (const mesh of this.claimMarks) mesh.scale.set(s, 1, s);
       this.dirty = true;
     }
