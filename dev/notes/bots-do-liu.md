@@ -30,6 +30,14 @@ Partidas de `greedy` contra ele mesmo: 12,6 rodadas e 29 comandos; 90%
 acabam com o saco vazio, 6,5% com uma janela completa e 3,5% numa rodada
 sem dado posto.
 
+Os números desta nota, a linha de base e a calibração abaixo são da regra
+anterior a 2026-10-21, em que o saco vazio acabava o jogo e o saco tinha 15
+dados por jogador. Com a regra nova (16 por jogador; sem saco, o mercado é
+rolado de novo até haver maioria), 200 sementes de `greedy` contra ele mesmo
+dão, com 2 jogadores, 14,9 rodadas e 34 comandos, 80% das partidas acabando
+com uma janela completa e 20% numa rodada sem dado posto; com 4 jogadores,
+15 rodadas e 99% com janela completa. Os pesos não foram calibrados de novo.
+
 ## Calibração dos pesos (CMA-ES sobre o guloso)
 
 `tune/tune.py`, 12 candidatos por geração, 40 gerações, 500 distribuições

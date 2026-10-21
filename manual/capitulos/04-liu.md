@@ -45,8 +45,8 @@ muda na partida. A cada [[Rodada]], dados saem do [[Saco]] e são rolados no
 [[Mercado]]. No seu turno, você pega um dado do mercado e o põe na janela, ou
 o guarda na [[Mão]] para depois.
 
-O jogo acaba quando alguém completa a janela, quando o saco esvazia ou quando
-uma rodada passa sem que ninguém ponha dado. Linhas e colunas completas valem
+O jogo acaba quando alguém completa a janela ou quando uma rodada passa sem
+que ninguém ponha dado. Linhas e colunas completas valem
 pontos, e mais ainda se formam uma [[Sequência]] ou o seu [[Código]]. Vence
 quem fizer mais pontos.
 
@@ -55,7 +55,7 @@ quem fizer mais pontos.
 Com N jogadores:
 
 - N selos, um por jogador, cada um de uma cor que nenhum outro dado tem;
-- 15 dados comuns por jogador, no saco: 30 com 2 jogadores, 45 com 3 e 60
+- 16 dados comuns por jogador, no saco: 32 com 2 jogadores, 48 com 3 e 64
   com 4. Brancos e pretos podem se misturar: a cor de um dado comum não conta;
 - o saco;
 - N [[Moldura|molduras]], grades vazadas de 4 por 4 casas, uma por jogador.
@@ -94,10 +94,19 @@ duas vezes e o 5 nenhuma. Os três 4 não contam.
 Os dados que sobram no mercado ficam lá para a próxima rodada. Se o mercado já
 vale as duas condições no início da rodada, ninguém tira dado do saco.
 
+Se o saco esvazia antes disso, o anfitrião para de tirar dados e rola de novo
+todos os dados do mercado, juntos, até que um número de selo apareça mais
+vezes que cada um dos outros. Sem saco, o mercado pode ter menos dados que o
+de costume.
+
 ### Quem começa
 
 Começa o jogador cujo número de selo aparece mais vezes no mercado. Os outros
 jogam em seguida, em sentido horário. Cada jogador tem um turno por rodada.
+
+Se o saco e o mercado estão vazios, começa de novo quem começou a rodada
+anterior. Só quem tem um dado na mão pode fazer mais que passar: rolar de
+novo devolve o dado ao mercado.
 
 ## O turno
 
@@ -167,8 +176,10 @@ Um dado posto não se move nem muda de número. A janela está **completa** com
 O jogo acaba na hora, sem terminar a rodada, quando:
 
 - um jogador completa a janela;
-- o saco esvazia enquanto o anfitrião abastece o mercado;
-- uma rodada inteira passa sem que ninguém ponha dado na janela.
+- uma rodada inteira passa sem que ninguém ponha dado na janela. Guardar e
+  rolar de novo não põem dado.
+
+O saco vazio não acaba o jogo.
 
 ### Pontuação
 

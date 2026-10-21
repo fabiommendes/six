@@ -5,4 +5,4 @@ import type { Pos } from "./Pos";
 /**
  * Something that happened, in order, for an interface to show.
  */
-export type Event = { "kind": "marketFilled", drawn: Array<number>, } | { "kind": "roundStarted", round: number, first: number, } | { "kind": "placed", player: number, value: number, at: Pos, fromHand: boolean, } | { "kind": "kept", player: number, value: number, } | { "kind": "rerolled", player: number, returned: number, market: Array<number>, } | { "kind": "passed", player: number, } | { "kind": "sealBonus", player: number, value: number, } | { "kind": "gameOver", reason: EndReason, };
+export type Event = { "kind": "marketFilled", drawn: Array<number>, } | { "kind": "marketRerolled", market: Array<number>, rolls: number, } | { "kind": "roundStarted", round: number, first: number, } | { "kind": "placed", player: number, value: number, at: Pos, fromHand: boolean, } | { "kind": "kept", player: number, value: number, } | { "kind": "rerolled", player: number, returned: number, market: Array<number>, } | { "kind": "passed", player: number, } | { "kind": "sealBonus", player: number, value: number, } | { "kind": "gameOver", reason: EndReason, };

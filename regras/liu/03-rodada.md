@@ -18,8 +18,10 @@ cada vez, até que valham as duas condições:
 - entre os números de selo, um aparece no mercado **mais vezes que cada um
   dos outros**, sem empate. Os números que não são de nenhum selo não contam.
 
-Se o saco esvazia antes disso, o jogo acaba (ver
-[05-fim-do-jogo.md](05-fim-do-jogo.md)).
+Se o saco esvazia antes disso, o anfitrião deixa de comprar e rola de novo
+todos os dados do mercado, juntos, até que um número de selo apareça mais
+vezes que cada um dos outros. Sem saco, o mercado pode ficar com menos de
+N + 1 dados.
 
 Os dados que sobram no mercado ao fim da rodada continuam lá para a próxima.
 
@@ -37,6 +39,12 @@ rodada.
 
 > **Detalhe:** a condição de compra garante que um único número de selo tem
 > a maioria, então nunca há empate para começar.
+
+Se o saco e o mercado estão vazios, começa a rodada o mesmo jogador que
+começou a anterior.
+
+> **Detalhe:** com o mercado vazio, só quem tem um dado na mão pode fazer
+> mais que passar: rolar de novo devolve o dado ao mercado.
 
 ## Turno
 

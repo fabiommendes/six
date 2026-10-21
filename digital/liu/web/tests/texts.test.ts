@@ -33,6 +33,14 @@ describe("texts", () => {
     );
   });
 
+  it("tell the market rolled with the bag empty, and a round with nothing in the market", () => {
+    expect(eventText({ kind: "marketRerolled", market: [2, 2, 5], rolls: 3 }, names)).toBe(
+      "O saco acabou. O mercado foi rolado de novo 3 vezes até um número de selo ter a maioria: 2 2 5.",
+    );
+    expect(eventText({ kind: "roundStarted", round: 9, first: 1 }, names, [])).toBe("Rodada 9. O saco e o mercado estão vazios: começa de novo Bia.");
+    expect(eventText({ kind: "roundStarted", round: 9, first: 1 }, names, [3])).toBe("Rodada 9. Começa Bia, que tem a maioria no mercado.");
+  });
+
   it("name the winners", () => {
     expect(winnersText([1], names)).toBe("Bia venceu!");
     expect(winnersText([0, 2], names)).toBe("Ana e Caio dividem a vitória.");

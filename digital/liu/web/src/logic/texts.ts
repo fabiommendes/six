@@ -32,22 +32,28 @@ export function endText(reason: EndReason, names: readonly string[]): string {
   switch (reason.kind) {
     case "windowComplete":
       return `${names[reason.player]} completou a janela.`;
-    case "bagEmpty":
-      return "O saco esvaziou antes de o mercado ficar pronto.";
     case "noPlacement":
       return "Uma rodada inteira passou sem que ninguém pusesse dado na janela.";
   }
 }
 
-/** One line of the log for an event, or null for events not worth a line. */
-export function eventText(event: Event, names: readonly string[]): string | null {
+/**
+ * One line of the log for an event, or null for events not worth a line.
+ * `market` is the market once the events are over: an empty one means a
+ * round began with nothing to share.
+ */
+export function eventText(event: Event, names: readonly string[], market?: readonly number[]): string | null {
   switch (event.kind) {
     case "marketFilled":
       return event.drawn.length === 0
         ? "O mercado já estava pronto: ninguém tirou dado do saco."
         : `Saíram do saco: ${dice(event.drawn)}.`;
+    case "marketRerolled":
+      return `O saco acabou. O mercado foi rolado de novo ${event.rolls === 1 ? "1 vez" : `${event.rolls} vezes`} até um número de selo ter a maioria: ${dice(event.market)}.`;
     case "roundStarted":
-      return `Rodada ${event.round}. Começa ${names[event.first]}, que tem a maioria no mercado.`;
+      return market?.length === 0
+        ? `Rodada ${event.round}. O saco e o mercado estão vazios: começa de novo ${names[event.first]}.`
+        : `Rodada ${event.round}. Começa ${names[event.first]}, que tem a maioria no mercado.`;
     case "placed":
       return event.fromHand
         ? `${names[event.player]} pôs o ${event.value} da mão na janela.`
@@ -141,7 +147,8 @@ export function turnTitle(view: View, names: readonly string[], bot: boolean, pe
 }
 
 /** The banner of a new round: its number and who begins it. */
-export function roundBanner(round: number, first: number, seal: number, names: readonly string[]): { title: string; detail: string } {
+export function roundBanner(round: number, first: number, seal: number, names: readonly string[], marketEmpty = false): { title: string; detail: string } {
+  if (marketEmpty) return { title: `Rodada ${round}`, detail: `Saco e mercado vazios: começa de novo ${names[first]}.` };
   return { title: `Rodada ${round}`, detail: `Começa ${names[first]}: o ${seal} tem a maioria no mercado.` };
 }
 

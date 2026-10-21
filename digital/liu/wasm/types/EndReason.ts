@@ -3,4 +3,4 @@
 /**
  * Why a game ended (`regras/liu/05-fim-do-jogo.md`).
  */
-export type EndReason = { "kind": "windowComplete", player: number, } | { "kind": "bagEmpty" } | { "kind": "noPlacement" };
+export type EndReason = { "kind": "windowComplete", player: number, } | { "kind": "noPlacement" };

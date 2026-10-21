@@ -1069,19 +1069,21 @@ export class Table3D {
             void this.layoutMarket(300);
             await this.fly(back, { x: to.x, y: SURFACE.tray, z: to.z }, back.tumbler.quaternion.clone(), { duration: 480, height: 1.1 });
           }
-          // Every die of the market jumps and lands on its new number.
-          this.options.sounds.play("roll");
           this.setMarks({ ...NO_MARKS, active: before.toMove, last: this.marks.last });
-          for (const tag of this.sealTags) tag.visible = false;
-          const throws = this.market.map((die, i) => {
-            const value = event.market[i] ?? die.value;
-            const from = die.root.position.clone();
-            const end = orientation(value, this.marketYaw());
-            die.value = value;
-            return this.fly(die, { x: from.x, y: SURFACE.tray, z: from.z }, end, { duration: 620 + Math.random() * 200, height: 0.9 + Math.random() * 0.6, tumble: 2 + Math.random() });
-          });
-          await Promise.all(throws);
-          this.options.sounds.play("land");
+          await this.throwMarket(event.market);
+          this.updateSealTags(after);
+          break;
+        }
+        case "marketRerolled": {
+          // The bag is out: the market is rolled until a seal number has the majority.
+          const bag = bagSpot(this.seatCount);
+          this.float("Saco vazio", bag, { background: COLORS.ink, height: 2.6 });
+          const throws = this.motion ? Math.min(event.rolls, 3) : 1;
+          for (let k = 0; k < throws; k++) {
+            // The rolls before the last show some numbers; only the last one counts.
+            const last = k === throws - 1;
+            await this.throwMarket(last ? event.market : event.market.map(() => 1 + Math.floor(Math.random() * 6)));
+          }
           this.updateSealTags(after);
           break;
         }
@@ -1116,6 +1118,21 @@ export class Table3D {
     }
     // Whatever the animations left, the table is now the one of `after`.
     this.show(after, marks);
+  }
+
+  /** Every die of the market jumps and lands on its number in `values`. */
+  private async throwMarket(values: readonly number[]): Promise<void> {
+    this.options.sounds.play("roll");
+    for (const tag of this.sealTags) tag.visible = false;
+    const throws = this.market.map((die, i) => {
+      const value = values[i] ?? die.value;
+      const from = die.root.position.clone();
+      const end = orientation(value, this.marketYaw());
+      die.value = value;
+      return this.fly(die, { x: from.x, y: SURFACE.tray, z: from.z }, end, { duration: 620 + Math.random() * 200, height: 0.9 + Math.random() * 0.6, tumble: 2 + Math.random() });
+    });
+    await Promise.all(throws);
+    this.options.sounds.play("land");
   }
 
   /** The new complete lines light up, one after the other. */

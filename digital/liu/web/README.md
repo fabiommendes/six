@@ -36,7 +36,7 @@ em `src/styles/fonts.css`.
 
 ## Detalhes da versão digital
 
-- Todos os dados comuns são brancos, e o saco começa com 15 dados por
+- Todos os dados comuns são brancos, e o saco começa com 16 dados por
   jogador (`regras/liu/01-componentes.md`).
 - O código de cada jogador é escolhido pelo jogo, o que faz mais pontos: o
   conjunto de números mais comum entre as linhas e colunas completas.

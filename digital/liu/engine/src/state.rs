@@ -17,7 +17,7 @@ pub const MIN_PLAYERS: usize = 2;
 pub const MAX_PLAYERS: usize = 4;
 
 /// Common dice per player in the bag.
-pub const DICE_PER_PLAYER: usize = 15;
+pub const DICE_PER_PLAYER: usize = 16;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "wire", derive(Serialize, Deserialize, ts_rs::TS))]
@@ -136,8 +136,8 @@ impl GameState {
         if self.rerolled && self.players[self.to_move()].hand.is_some() {
             return Err("after a reroll the hand is empty".into());
         }
-        if self.end.is_none() && self.market.is_empty() {
-            return Err("the market is empty".into());
+        if self.end.is_none() && self.market.is_empty() && self.bag > 0 {
+            return Err("the market is empty with dice in the bag".into());
         }
         Ok(())
     }
@@ -220,26 +220,38 @@ impl GameState {
         self.market.len() > self.players.len() && self.majority().is_some()
     }
 
-    /// Fills the market and starts the next round, or ends the game when
-    /// the bag runs out first.
+    /// Fills the market and starts the next round. When the bag runs out
+    /// first, the whole market is rolled again until a seal number has the
+    /// majority; an empty market leaves the round to whoever began the last.
     fn start_round(&mut self, events: &mut Vec<Event>) {
         let mut drawn = Vec::new();
-        while !self.market_ready() {
-            if self.bag == 0 {
-                if !drawn.is_empty() {
-                    events.push(Event::MarketFilled { drawn });
-                }
-                self.finish(EndReason::BagEmpty, events);
-                return;
-            }
+        while !self.market_ready() && self.bag > 0 {
             self.bag -= 1;
             let value = self.rng.roll();
             self.market.push(value);
             drawn.push(value);
         }
-        events.push(Event::MarketFilled { drawn });
+        // An empty bag that gave nothing leaves the news to the rolls below.
+        if !drawn.is_empty() || self.market_ready() {
+            events.push(Event::MarketFilled { drawn });
+        }
+        if !self.market.is_empty() && self.majority().is_none() {
+            let mut rolls = 0;
+            while self.majority().is_none() {
+                for value in self.market.iter_mut() {
+                    *value = self.rng.roll();
+                }
+                rolls += 1;
+            }
+            events.push(Event::MarketRerolled {
+                market: self.market.clone(),
+                rolls,
+            });
+        }
         self.round += 1;
-        self.first = self.majority().expect("the market is ready");
+        if let Some(first) = self.majority() {
+            self.first = first;
+        }
         self.turns = 0;
         self.placed = false;
         events.push(Event::RoundStarted {
@@ -428,7 +440,7 @@ mod tests {
                     hand,
                 })
                 .collect(),
-            bag: (30 - market.len() - in_hands) as u8,
+            bag: (2 * DICE_PER_PLAYER - market.len() - in_hands) as u8,
             market: market.to_vec(),
             round: 1,
             first: 0,
@@ -473,20 +485,56 @@ mod tests {
     }
 
     #[test]
-    fn an_empty_bag_during_the_market_ends_the_game() {
-        let mut state = game(&[1, 3], [None, None]);
-        state.bag = 0;
-        state.players[0].hand = Some(1);
-        state.players[1].hand = Some(1);
+    fn an_empty_bag_rolls_the_market_until_a_majority() {
+        for seed in 0..50 {
+            let mut state = game(&[1, 3], [None, None]);
+            state.bag = 0;
+            state.rng = Rng::new(seed);
+            let mut events = Vec::new();
+            state.start_round(&mut events);
+            assert!(state.end.is_none());
+            assert_eq!(state.market.len(), 2);
+            let first = state.majority().expect("a majority after the rolls");
+            assert_eq!(state.first, first);
+            match &events[0] {
+                Event::MarketRerolled { market, rolls } => {
+                    assert_eq!(market, &state.market);
+                    assert!(*rolls >= 1);
+                }
+                other => panic!("expected the market rolled again, got {other:?}"),
+            }
+            assert_eq!(events[1], Event::RoundStarted { round: 2, first });
+        }
+    }
+
+    #[test]
+    fn an_empty_bag_keeps_a_ready_market_and_draws_what_is_left() {
+        let mut state = game(&[2, 4], [None, None]);
+        state.bag = 1;
+        state.rng = Rng::new(3);
         let mut events = Vec::new();
         state.start_round(&mut events);
-        assert_eq!(state.end, Some(EndReason::BagEmpty));
-        assert_eq!(
-            events,
-            vec![Event::GameOver {
-                reason: EndReason::BagEmpty
-            }]
-        );
+        assert_eq!(state.bag, 0);
+        assert_eq!(state.market.len(), 3);
+        assert!(state.majority().is_some());
+        assert!(matches!(&events[0], Event::MarketFilled { drawn } if drawn.len() == 1));
+    }
+
+    #[test]
+    fn with_the_bag_and_the_market_empty_the_same_player_begins() {
+        let mut state = game(&[], [Some(1), None]);
+        state.bag = 0;
+        state.first = 1;
+        let mut events = Vec::new();
+        state.start_round(&mut events);
+        assert!(state.end.is_none());
+        assert_eq!(state.first, 1);
+        assert_eq!(events, vec![Event::RoundStarted { round: 2, first: 1 }]);
+        // With nothing in the market and in the hand, player 1 can only pass;
+        // player 0 can roll the die of the hand into the market.
+        assert_eq!(state.legal_commands(), vec![Command::Pass]);
+        state.turns = 1;
+        assert_eq!(state.legal_commands(), vec![Command::Reroll, Command::Pass]);
     }
 
     #[test]
@@ -545,7 +593,7 @@ mod tests {
 
         state.players[0].hand = None;
         state.bag = 0;
-        state.market.extend([6; 26]);
+        state.market.extend([6; 28]);
         state.validate().unwrap();
         let (next, events) = state.apply(place).unwrap();
         assert_eq!(next.players[0].hand, None);

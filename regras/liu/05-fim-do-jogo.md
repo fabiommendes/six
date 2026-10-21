@@ -9,8 +9,12 @@ tags: [liu, regras, fim-do-jogo, pontuacao]
 O jogo acaba na hora, sem terminar a rodada, quando:
 
 - um jogador completa a sua janela;
-- o saco esvazia durante a compra do mercado;
 - uma rodada inteira passa sem que nenhum jogador ponha dado na janela.
+
+O saco vazio não acaba o jogo (ver [03-rodada.md](03-rodada.md#mercado)).
+
+> **Detalhe:** guardar e rolar de novo não põem dado na janela. Para o fim do
+> jogo, um turno assim conta como um turno em que o jogador passou.
 
 ## Pontuação
 

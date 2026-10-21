@@ -16,8 +16,8 @@ um dos números de selo apareça mais vezes que os outros. Cada jogador pega
 um dado do mercado e o põe na janela, ou guarda um dado na **mão** para
 depois.
 
-O jogo acaba quando alguém completa a janela, quando o saco esvazia ou
-quando uma rodada passa sem que ninguém ponha dado. Linhas e colunas
+O jogo acaba quando alguém completa a janela ou quando uma rodada passa sem
+que ninguém ponha dado. Linhas e colunas
 completas valem pontos, e mais ainda se formam uma sequência ou o código do
 jogador.
 

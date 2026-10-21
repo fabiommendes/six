@@ -111,12 +111,11 @@ fn run_batch(args: &[String]) -> Result<(), String> {
     let n = records.len() as f64;
     let ends = |end: &str| records.iter().filter(|r| r.end == end).count();
     println!(
-        "{} games, {players} players; {:.1} rounds, {:.1} commands; ends: window {}, bag {}, no placement {}",
+        "{} games, {players} players; {:.1} rounds, {:.1} commands; ends: window {}, no placement {}",
         records.len(),
         records.iter().map(|r| f64::from(r.rounds)).sum::<f64>() / n,
         records.iter().map(|r| f64::from(r.commands)).sum::<f64>() / n,
         ends("windowComplete"),
-        ends("bagEmpty"),
         ends("noPlacement"),
     );
     for s in batch::summarize(&config.bots, &records) {

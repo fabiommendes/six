@@ -34,8 +34,6 @@ pub enum Command {
 pub enum EndReason {
     /// A player completed the window.
     WindowComplete { player: usize },
-    /// The bag ran out while the market was being filled.
-    BagEmpty,
     /// A whole round passed without a die put in a window.
     NoPlacement,
 }
@@ -49,6 +47,13 @@ pub enum Event {
     /// Dice drawn from the bag and rolled into the market, in order.
     MarketFilled {
         drawn: Vec<u8>,
+    },
+    /// The bag ran out before a seal number had the majority: the whole
+    /// market was rolled `rolls` times, until one had it. `market` is the
+    /// new market.
+    MarketRerolled {
+        market: Vec<u8>,
+        rolls: u32,
     },
     /// A round began with `first` to play: the owner of the seal number
     /// with the most dice in the market.

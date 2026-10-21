@@ -120,7 +120,7 @@ export class GameScreen {
     for (const selector of ["[data-players]", "[data-dock]", ".topbar"]) this.resizeObserver.observe(need(host, selector));
     this.render();
     if (this.view.end === null) {
-      const r = roundBanner(this.view.round, this.view.first, this.view.players[this.view.first]!.seal, this.names);
+      const r = roundBanner(this.view.round, this.view.first, this.view.players[this.view.first]!.seal, this.names, this.view.market.length === 0);
       this.banner(r.title, r.detail);
     }
     this.runBot();
@@ -183,8 +183,8 @@ export class GameScreen {
     return !this.busy && this.game.canUndo() && this.people > 0;
   }
 
-  private record(event: Event): void {
-    const text = eventText(event, this.names);
+  private record(event: Event, market: readonly number[] = this.view.market): void {
+    const text = eventText(event, this.names, market);
     if (text) this.log.push(text);
     if (event.kind === "placed") this.last = { seat: event.player, at: event.at };
     this.log = this.log.slice(-LOG_LINES);
@@ -228,10 +228,10 @@ export class GameScreen {
 
   /** An event starts to show on the table: the history, the prompt and the banners follow it. */
   private onEvent(event: Event, after: View): void {
-    this.record(event);
-    this.happening = eventText(event, this.names);
+    this.record(event, after.market);
+    this.happening = eventText(event, this.names, after.market);
     if (event.kind === "roundStarted") {
-      const r = roundBanner(event.round, event.first, after.players[event.first]!.seal, this.names);
+      const r = roundBanner(event.round, event.first, after.players[event.first]!.seal, this.names, after.market.length === 0);
       this.banner(r.title, r.detail);
     }
     this.renderDock();

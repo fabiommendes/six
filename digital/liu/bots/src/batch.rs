@@ -46,7 +46,7 @@ pub struct Record {
     pub dice: Vec<u8>,
     pub rounds: u16,
     pub commands: u32,
-    /// `windowComplete`, `bagEmpty` or `noPlacement`.
+    /// `windowComplete` or `noPlacement`.
     pub end: &'static str,
     /// Milliseconds per decision of each seat: mean and maximum.
     pub mean_ms: Vec<f64>,
@@ -100,7 +100,6 @@ pub fn play(bots: &[String], seed: u64, rotation: usize) -> Result<Record, Strin
         commands,
         end: match state.end().expect("the game is over") {
             EndReason::WindowComplete { .. } => "windowComplete",
-            EndReason::BagEmpty => "bagEmpty",
             EndReason::NoPlacement => "noPlacement",
         },
         mean_ms: spent
