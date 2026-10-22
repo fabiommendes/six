@@ -1,0 +1,14 @@
+{
+ "bot": "greedy:cands=4,rerolls=2",
+ "weights": {
+  "owned": 1.0,
+  "adjacent": 0.3,
+  "prob": 1.6,
+  "sure": 0.3,
+  "neighbors": 1.0,
+  "placed": 0.05,
+  "lost": -0.15,
+  "hand": 0.3,
+  "opp_hand": -0.2
+ }
+}

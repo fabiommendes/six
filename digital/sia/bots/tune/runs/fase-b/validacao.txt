@@ -1,0 +1,4 @@
+4000 games, hand of 7, --stone-only-sequences, seeds 500000
+best.json vs maos.json: Elo +249 [+236, +263]
+best.json vs greedy default (standard-rule weights): Elo +138 [+126, +149]
+gen 30 vs gen 60: Elo +3 [-7, +14]
