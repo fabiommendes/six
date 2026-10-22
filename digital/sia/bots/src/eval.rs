@@ -14,13 +14,14 @@ use std::sync::OnceLock;
 use serde_json::{Map, Value};
 use sia_engine::{formation, Die, Formation, GameState, Side, NEIGHBORS_TO_WIN, STONES};
 
-/// Sums of 4 numbers go from 4 to 24.
-const SUMS: usize = 21;
+/// Sums go from 3 to 24; in the three-dice variant a run that the stone
+/// extends adds 16 to a sum of 6 to 15 (up to 31).
+const SUMS: usize = 32;
 /// Formation kinds times sums: the index of a formation in a [`Dist`].
 const RANKS: usize = 8 * SUMS;
 
 fn rank(f: Formation) -> usize {
-    f.kind.strength() * SUMS + (f.sum as usize - 4)
+    f.kind.strength() * SUMS + f.sum as usize
 }
 
 /// The distribution of the final formation of a side.
@@ -59,35 +60,76 @@ pub fn beat_chance(mine: &Dist, theirs: &Dist) -> f64 {
     f64::from(total)
 }
 
+/// The states of the suits of a side: 0, two suits are there (no flush);
+/// 1, the plain dice share a suit (a flush is possible); 2, no plain die
+/// is there (the side is empty, or all wild): a flush is the easiest.
+const SUIT_STATES: usize = 3;
+
+/// Chance that a new die keeps a flush possible when the plain dice share a
+/// suit: the suit or, in the variant, the wild one.
+fn keep_chance() -> f64 {
+    if sia_engine::experiment::variant().wild_suit {
+        3.0 / 7.0
+    } else {
+        0.25
+    }
+}
+
+/// Chance that `missing` dice, none of them there yet, end up in a flush.
+fn free_flush_chance(missing: usize) -> f64 {
+    let wild = if sia_engine::experiment::variant().wild_suit {
+        1.0 / 7.0
+    } else {
+        0.0
+    };
+    match missing {
+        0 | 1 => 1.0,
+        k => wild * free_flush_chance(k - 1) + (1.0 - wild) * keep_chance().powi(k as i32 - 1),
+    }
+}
+
+/// The suit state of the dice of a side.
+fn suit_state(dice: &[Die]) -> usize {
+    let mut plain = dice.iter().filter(|d| !d.is_wild());
+    match plain.next() {
+        None => 2,
+        Some(first) => usize::from(plain.all(|d| d.suit == first.suit)),
+    }
+}
+
 /// Position in the table of the stone number and the numbers of a side.
-fn key(stone: u8, numbers: &[u8], mono: bool) -> usize {
+fn key(stone: u8, numbers: &[u8], state: usize) -> usize {
     let mut sorted = [0u8; 3];
     sorted[..numbers.len()].copy_from_slice(numbers);
     sorted[..numbers.len()].sort_unstable();
     let code = sorted.iter().fold(0usize, |c, &n| c * 7 + n as usize);
-    ((stone as usize - 1) * 343 + code) * 2 + usize::from(mono)
+    ((stone as usize - 1) * 343 + code) * SUIT_STATES + state
 }
 
-fn build(stone: u8, numbers: &[u8], mono: bool) -> Dist {
+fn build(stone: u8, numbers: &[u8], state: usize) -> Dist {
+    let mono = state > 0;
     let missing = 3 - numbers.len();
     let mut pmf = [0.0f32; RANKS];
     let existing = |flush_suit: u8| -> Vec<Die> {
         numbers
             .iter()
             .enumerate()
-            .map(|(i, &n)| Die::new(n, if mono { flush_suit } else { (i % 2) as u8 }))
+            .map(|(i, &n)| match state {
+                0 => Die::new(n, (i % 2) as u8),
+                1 => Die::new(n, flush_suit),
+                _ => Die::new(n, sia_engine::WILD_SUIT),
+            })
             .collect()
     };
     if missing == 0 {
         pmf[rank(formation(stone, &existing(0)))] = 1.0;
         return Dist::from_pmf(pmf);
     }
-    let p_flush = if !mono {
-        0.0
-    } else if numbers.is_empty() {
-        1.0 / 16.0
-    } else {
-        0.25f64.powi(missing as i32)
+    let p_flush = match state {
+        0 => 0.0,
+        1 => keep_chance().powi(missing as i32),
+        _ if numbers.is_empty() => free_flush_chance(3),
+        _ => free_flush_chance(missing),
     };
     let combos = 6usize.pow(missing as u32);
     for code in 0..combos {
@@ -119,7 +161,8 @@ fn build(stone: u8, numbers: &[u8], mono: bool) -> Dist {
 fn table() -> &'static Vec<Option<Box<Dist>>> {
     static TABLE: OnceLock<Vec<Option<Box<Dist>>>> = OnceLock::new();
     TABLE.get_or_init(|| {
-        let mut table: Vec<Option<Box<Dist>>> = vec![None; 7 * 343 * 2];
+        let mut table: Vec<Option<Box<Dist>>> = vec![None; 7 * 343 * SUIT_STATES];
+        let wild = sia_engine::experiment::variant().wild_suit;
         for stone in 1..=6u8 {
             for a in 0..=6u8 {
                 for b in a..=6u8 {
@@ -127,13 +170,18 @@ fn table() -> &'static Vec<Option<Box<Dist>>> {
                         // Numbers in order, with 0 for no die: only the
                         // prefix of nonzero ones is a side.
                         let numbers: Vec<u8> = [a, b, c].into_iter().filter(|&n| n > 0).collect();
-                        for mono in [true, false] {
-                            if numbers.len() <= 1 && !mono {
+                        for state in 0..SUIT_STATES {
+                            let possible = match state {
+                                0 => numbers.len() >= 2,
+                                1 => !numbers.is_empty(),
+                                _ => numbers.is_empty() || wild,
+                            };
+                            if !possible {
                                 continue;
                             }
-                            let slot = key(stone, &numbers, mono);
+                            let slot = key(stone, &numbers, state);
                             if table[slot].is_none() {
-                                table[slot] = Some(Box::new(build(stone, &numbers, mono)));
+                                table[slot] = Some(Box::new(build(stone, &numbers, state)));
                             }
                         }
                     }
@@ -155,8 +203,7 @@ fn dist_for(stone: u8, dice: &[Die]) -> &'static Dist {
     for (slot, die) in numbers.iter_mut().zip(dice) {
         *slot = die.value;
     }
-    let mono = dice.iter().all(|d| d.suit == dice[0].suit);
-    table()[key(stone, &numbers[..dice.len()], mono)]
+    table()[key(stone, &numbers[..dice.len()], suit_state(dice))]
         .as_deref()
         .expect("every side has a distribution")
 }

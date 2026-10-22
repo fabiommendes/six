@@ -5,6 +5,8 @@
 //!                [--no-rotate] [--threads T] [--out FILE.jsonl]
 //!                [--four-below-run] [--four-below-run-only]
 //!                [--stone-only-sequences]
+//!                [--three-dice] [--flush-below-run] [--wild-suit]
+//!                [--place-on-opponent]
 //!                [--second-bonus N] [--first-no-reroll]
 //! ```
 //!
@@ -12,7 +14,7 @@
 //! (a `key=value` piece belongs to the spec before it); with one spec, both
 //! seats play it. `--games` counts deals: with rotation (the default) each
 //! deal is played twice, with the seats swapped. `--hand-size` changes the
-//! dice in a hand (7 by default) for experiments. The last five flags are
+//! dice in a hand (7 by default) for experiments. The last nine flags are
 //! rule variants for experiments (`sia_engine::experiment`); the rules do
 //! not have them. The summary goes to the
 //! standard output; `--out` writes one JSON line per game.
@@ -85,6 +87,10 @@ fn run_batch(args: &[String]) -> Result<(), String> {
             "--four-below-run" => variant.four_below_run = true,
             "--four-below-run-only" => variant.four_below_run_only = true,
             "--stone-only-sequences" => variant.stone_only_for_sequences = true,
+            "--flush-below-run" => variant.flush_below_run = true,
+            "--wild-suit" => variant.wild_suit = true,
+            "--three-dice" => variant.three_dice_formations = true,
+            "--place-on-opponent" => variant.place_on_opponent = true,
             "--second-bonus" => variant.second_bonus = number(value(args, &mut i, flag)?, flag)?,
             "--first-no-reroll" => variant.first_turn_without_reroll = true,
             _ => return Err(format!("unknown flag {flag:?}")),

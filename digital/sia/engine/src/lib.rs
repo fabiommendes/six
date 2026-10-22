@@ -39,8 +39,8 @@ mod state;
 pub mod wire;
 
 pub use command::{Command, EndReason, Event, GameError, Rolled};
-pub use die::{Die, SUITS};
-pub use formation::{best_completion, formation, Formation, FormationKind};
+pub use die::{Die, SUITS, WILD_SUIT};
+pub use formation::{best_completion, formation, is_flush, Formation, FormationKind};
 pub use rng::Rng;
 pub use state::{
     GameState, Player, Side, Step, DEFAULT_HAND_SIZE, HAND_SIZES, NEIGHBORS_TO_WIN, PLAYERS,

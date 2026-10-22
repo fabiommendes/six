@@ -4,4 +4,4 @@
  * A play of the player to move. Indexes of dice are positions in the hand
  * as it is before the command.
  */
-export type Command = { "kind": "reroll", target: number, lost: number, dice: number, } | { "kind": "claim", stone: number, } | { "kind": "place", die: number, stone: number, } | { "kind": "pass" };
+export type Command = { "kind": "reroll", target: number, lost: number, dice: number, } | { "kind": "claim", stone: number, } | { "kind": "place", die: number, stone: number, } | { "kind": "placeOnOpponent", die: number, stone: number, } | { "kind": "pass" };

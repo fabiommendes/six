@@ -33,6 +33,11 @@ pub enum Command {
     /// Step 3. Puts the die `die` of the hand on the side of the player at
     /// `stone`. Ends the turn after the draw.
     Place { die: usize, stone: usize },
+    /// Step 3, instead of `Place` (experiment `place_on_opponent` only): puts
+    /// the die `die` of the hand on the side of the opponent at `stone`,
+    /// which must have room. The hand is not refilled for it: the die counts
+    /// as lost. Needs 2 dice or more in the hand.
+    PlaceOnOpponent { die: usize, stone: usize },
     /// Step 3 when no stone has room on the side of the player: ends the
     /// turn.
     Pass,
@@ -105,7 +110,9 @@ pub enum Event {
         proven: bool,
     },
     /// The player put the die at `hand_index` on `stone`. `completes` is
-    /// true when it was the third die of the side.
+    /// true when it was the third die of the side. (A `PlaceOnOpponent`,
+    /// experiment only, gives the same event: the die lands on the side of
+    /// the opponent. Reusing it keeps the wire events as they are.)
     Placed {
         player: usize,
         die: Die,
@@ -160,6 +167,8 @@ pub enum GameError {
     NotProven {
         stone: usize,
     },
+    /// Placing on the opponent is not part of the rules in force.
+    PlaceOnOpponentClosed,
     /// Passing is only for a player with no room to put a die.
     MustPlace,
 }
@@ -178,6 +187,9 @@ impl std::fmt::Display for GameError {
             GameError::StoneTaken { stone } => write!(f, "the stone {stone} is already taken"),
             GameError::SideFull { stone } => write!(f, "the side of the stone {stone} is full"),
             GameError::NotProven { stone } => write!(f, "the stone {stone} is not proven yours"),
+            GameError::PlaceOnOpponentClosed => {
+                write!(f, "placing on the opponent is not in the rules")
+            }
             GameError::MustPlace => write!(f, "a die fits: place one"),
         }
     }

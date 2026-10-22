@@ -96,6 +96,13 @@ pub struct Record {
     pub rerolls: Vec<RerollRecord>,
     /// Dice lost by each seat.
     pub lost: Vec<u8>,
+    /// Dice put on the side of the opponent by each seat (experiment).
+    pub gives: Vec<u16>,
+    /// Wild dice drawn by each seat, the preparation included.
+    pub wild_drawn: Vec<u16>,
+    /// Wild dice put on the own side and on the side of the opponent.
+    pub wild_own: u16,
+    pub wild_given: u16,
     /// Milliseconds per decision of each seat: mean and maximum.
     pub mean_ms: Vec<f64>,
     pub max_ms: Vec<f64>,
@@ -118,13 +125,21 @@ pub fn play(bots: &[String], seed: u64, rotation: usize, hand_size: u8) -> Resul
         .iter()
         .map(|spec| by_name(spec))
         .collect::<Result<Vec<_>, _>>()?;
-    let (mut state, _) = GameState::with_hand_size(hand_size, seed);
+    let (mut state, start) = GameState::with_hand_size(hand_size, seed);
     let first = state.to_move();
     let mut spent = vec![(0.0, 0.0, 0u32); bots.len()];
     let mut commands = 0;
     let mut claims = Vec::new();
     let mut awards = Vec::new();
     let mut rerolls = Vec::new();
+    let mut gives = vec![0u16; bots.len()];
+    let mut wild_drawn = vec![0u16; bots.len()];
+    let (mut wild_own, mut wild_given) = (0u16, 0u16);
+    for event in &start {
+        if let Event::Drawn { player, dice } = event {
+            wild_drawn[*player] += dice.iter().filter(|d| d.is_wild()).count() as u16;
+        }
+    }
     while !state.is_over() {
         let seat = state.to_move();
         let turn = state.turn();
@@ -161,6 +176,18 @@ pub fn play(bots: &[String], seed: u64, rotation: usize, hand_size: u8) -> Resul
                         next.formation_of(player, stone)
                             .map_or(0, |f| f.kind.index()),
                     );
+                }
+                Event::Placed { player, die, .. } => {
+                    let given = matches!(command, Command::PlaceOnOpponent { .. });
+                    match (given, die.is_wild()) {
+                        (true, true) => wild_given += 1,
+                        (true, false) => gives[player] += 1,
+                        (false, true) => wild_own += 1,
+                        (false, false) => {}
+                    }
+                }
+                Event::Drawn { player, dice } => {
+                    wild_drawn[player] += dice.iter().filter(|d| d.is_wild()).count() as u16;
                 }
                 Event::Rerolled { target, rolled, .. } => rerolls.push(RerollRecord {
                     seat,
@@ -199,6 +226,10 @@ pub fn play(bots: &[String], seed: u64, rotation: usize, hand_size: u8) -> Resul
         sides,
         rerolls,
         lost: (0..2).map(|p| state.player(p).lost).collect(),
+        gives,
+        wild_drawn,
+        wild_own,
+        wild_given,
         mean_ms: spent
             .iter()
             .map(|&(total, _, n)| total / f64::from(n.max(1)))
@@ -416,6 +447,47 @@ pub fn report(records: &[Record]) -> String {
         rolled as f64 / all.len().max(1) as f64,
         records.iter().map(|r| r.lost.iter().map(|&l| f64::from(l)).sum::<f64>()).sum::<f64>() / n,
     );
+    let gives: usize = records
+        .iter()
+        .flat_map(|r| r.gives.iter())
+        .map(|&g| usize::from(g))
+        .sum();
+    if gives > 0 {
+        let _ = writeln!(
+            out,
+            "dice put on the opponent per game {:.2}",
+            gives as f64 / n
+        );
+    }
+    let wild: usize = records
+        .iter()
+        .flat_map(|r| r.wild_drawn.iter())
+        .map(|&w| usize::from(w))
+        .sum();
+    if wild > 0 {
+        let own: usize = records.iter().map(|r| usize::from(r.wild_own)).sum();
+        let given: usize = records.iter().map(|r| usize::from(r.wild_given)).sum();
+        let decided: Vec<&Record> = records
+            .iter()
+            .filter(|r| r.wild_drawn[0] != r.wild_drawn[1] && r.winners.len() == 1)
+            .collect();
+        let more_wins = decided
+            .iter()
+            .filter(|r| {
+                let more = usize::from(r.wild_drawn[1] > r.wild_drawn[0]);
+                r.winners[0] == more
+            })
+            .count();
+        let _ = writeln!(
+            out,
+            "wild dice per game: drawn {:.2}, put on the own side {:.2}, on the opponent {:.2}; the seat that drew more wins {:.1}% of {} games",
+            wild as f64 / n,
+            own as f64 / n,
+            given as f64 / n,
+            100.0 * more_wins as f64 / decided.len().max(1) as f64,
+            decided.len()
+        );
+    }
     let _ = writeln!(out, "{}", variety_line(records));
     let _ = writeln!(out, "{}", lost_line(records));
     let mut by_lost = [0usize; 10];

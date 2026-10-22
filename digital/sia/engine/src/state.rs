@@ -82,6 +82,10 @@ pub struct GameState {
     /// [`crate::experiment`]; not on the wire).
     #[cfg_attr(feature = "wire", serde(skip), ts(skip))]
     pub(crate) hand_bonus: [u8; PLAYERS],
+    /// Whether the player to move rerolled in this turn (experiments only;
+    /// not on the wire).
+    #[cfg_attr(feature = "wire", serde(skip), ts(skip))]
+    pub(crate) rerolled: bool,
     pub(crate) to_move: usize,
     pub(crate) step: Step,
     /// The turn, from 1.
@@ -116,6 +120,7 @@ impl GameState {
             players: [Player::default(), Player::default()],
             hand_size,
             hand_bonus: [0; PLAYERS],
+            rerolled: false,
             to_move: 0,
             step: Step::Reroll,
             turn: 1,
@@ -335,6 +340,15 @@ impl GameState {
             .collect()
     }
 
+    /// Whether the player to move may put any die on the opponent at the
+    /// cost of a die lost: the experiment move, in a turn without reroll,
+    /// with 2 dice or more. (A wild die goes without cost.)
+    fn can_give_dearly(&self) -> bool {
+        crate::experiment::place_on_opponent()
+            && !self.rerolled
+            && self.players[self.to_move].hand.len() >= 2
+    }
+
     pub fn can_place(&self, player: usize) -> bool {
         (0..STONES).any(|s| self.owners[s].is_none() && !self.sides[player][s].is_complete())
     }
@@ -342,7 +356,11 @@ impl GameState {
     // --- Moving ----------------------------------------------------------
 
     fn draw_die(&mut self) -> Die {
-        let suit = self.rng.suit();
+        let suit = if crate::experiment::wild_suit() {
+            self.rng.suit_with_wild()
+        } else {
+            self.rng.suit()
+        };
         Die::new(self.rng.roll(), suit)
     }
 
@@ -448,6 +466,7 @@ impl GameState {
                 let lost_die = next.players[me].hand.remove(lost);
                 next.players[me].lost += 1;
                 next.step = Step::Claim;
+                next.rerolled = true;
                 events.push(Event::Rerolled {
                     player: me,
                     target,
@@ -514,6 +533,47 @@ impl GameState {
                 next.end_turn(&mut events);
                 Ok((next, events))
             }
+            Command::PlaceOnOpponent { die, stone } => {
+                if die >= self.players[me].hand.len() {
+                    return Err(GameError::NoSuchDie { die });
+                }
+                let wild = self.players[me].hand[die].is_wild();
+                if !wild && !self.can_give_dearly() {
+                    return Err(GameError::PlaceOnOpponentClosed);
+                }
+                if !wild && self.players[me].hand.len() < 2 {
+                    return Err(GameError::HandTooSmall);
+                }
+                if stone >= STONES {
+                    return Err(GameError::NoSuchStone { stone });
+                }
+                if self.owners[stone].is_some() {
+                    return Err(GameError::StoneTaken { stone });
+                }
+                if self.sides[1 - me][stone].is_complete() {
+                    return Err(GameError::SideFull { stone });
+                }
+                let placed = next.players[me].hand.remove(die);
+                if !wild {
+                    next.players[me].lost += 1;
+                }
+                next.placements += 1;
+                let side = &mut next.sides[1 - me][stone];
+                side.dice.push(placed);
+                let completes = side.is_complete();
+                if completes {
+                    side.completed = Some(next.placements);
+                }
+                events.push(Event::Placed {
+                    player: me,
+                    die: placed,
+                    hand_index: die,
+                    stone,
+                    completes,
+                });
+                next.end_turn(&mut events);
+                Ok((next, events))
+            }
             Command::Pass => {
                 if self.can_place(me) {
                     return Err(GameError::MustPlace);
@@ -528,6 +588,7 @@ impl GameState {
     /// Step 4 and the hand-over: draws the new dice, checks the lack of
     /// room and starts the next turn.
     fn end_turn(&mut self, events: &mut Vec<Event>) {
+        self.rerolled = false;
         self.refill(self.to_move, events);
         if !self.can_place(0) && !self.can_place(1) {
             self.resolve(events);
@@ -581,6 +642,19 @@ impl GameState {
         for die in first_of_each(hand, None) {
             for &stone in &open {
                 commands.push(Command::Place { die, stone });
+            }
+        }
+        let dearly = self.can_give_dearly();
+        {
+            for die in first_of_each(hand, None) {
+                if !hand[die].is_wild() && !dearly {
+                    continue;
+                }
+                for stone in 0..STONES {
+                    if self.owners[stone].is_none() && !self.sides[1 - me][stone].is_complete() {
+                        commands.push(Command::PlaceOnOpponent { die, stone });
+                    }
+                }
             }
         }
         commands

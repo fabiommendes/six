@@ -34,6 +34,8 @@ pub struct Pimc {
     pub cands: usize,
     /// Placings the greedy choices consider.
     pub places: usize,
+    /// Placings on the opponent the greedy choices consider (experiment).
+    pub gives: usize,
 }
 
 impl Pimc {
@@ -47,6 +49,7 @@ impl Pimc {
             rerolls: 1,
             cands: 2,
             places: 5,
+            gives: 5,
         }
     }
 
@@ -55,6 +58,7 @@ impl Pimc {
             rerolls: self.rerolls,
             cands: self.cands,
             places: self.places,
+            gives: self.gives,
             ..Greedy::new(self.weights.clone())
         }
     }
@@ -98,8 +102,13 @@ impl Pimc {
 
 impl Bot for Pimc {
     fn name(&self) -> String {
+        let gives = if self.gives == self.places {
+            String::new()
+        } else {
+            format!(",gives={}", self.gives)
+        };
         format!(
-            "pimc:samples={},top={},turns={},temp={},rerolls={},cands={},places={}",
+            "pimc:samples={},top={},turns={},temp={},rerolls={},cands={},places={}{gives}",
             self.samples, self.top, self.turns, self.temp, self.rerolls, self.cands, self.places
         )
     }

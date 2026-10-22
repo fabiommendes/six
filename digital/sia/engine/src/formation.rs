@@ -44,6 +44,19 @@ impl FormationKind {
     /// experiment variant moves the four of a kind (see
     /// [`crate::experiment`]).
     pub fn strength(self) -> usize {
+        if crate::experiment::three_dice_formations() {
+            let (flush, run) = if crate::experiment::flush_below_run() {
+                (2, 3)
+            } else {
+                (3, 2)
+            };
+            match self {
+                FormationKind::Run => return run,
+                FormationKind::Flush => return flush,
+                FormationKind::ThreeOfAKind => return 4,
+                _ => {}
+            }
+        }
         if crate::experiment::four_below_run() {
             match self {
                 FormationKind::FourOfAKind => return 4,
@@ -93,6 +106,9 @@ pub struct Formation {
 /// If `dice` does not have exactly 3 dice.
 pub fn formation(stone: u8, dice: &[Die]) -> Formation {
     assert_eq!(dice.len(), 3, "a formation has 3 dice and the stone");
+    if crate::experiment::three_dice_formations() {
+        return three_dice_formation(stone, dice);
+    }
     let numbers = [stone, dice[0].value, dice[1].value, dice[2].value];
     let mut counts = [0u8; 7];
     let counted = if crate::experiment::stone_only_for_sequences() {
@@ -120,7 +136,7 @@ pub fn formation(stone: u8, dice: &[Die]) -> Formation {
         .count_ones()
         == 4;
     let run = distinct && high - low == 3;
-    let flush = dice.iter().all(|d| d.suit == dice[0].suit);
+    let flush = is_flush(dice);
     if run && flush {
         kind = kind.max(FormationKind::StraightFlush);
     } else if run {
@@ -131,6 +147,50 @@ pub fn formation(stone: u8, dice: &[Die]) -> Formation {
     Formation {
         kind,
         sum: numbers.iter().sum(),
+    }
+}
+
+/// Whether the dice share a suit, a wild die counting as any.
+pub fn is_flush(dice: &[Die]) -> bool {
+    let mut plain = dice.iter().filter(|d| !d.is_wild());
+    plain
+        .next()
+        .is_none_or(|first| plain.all(|d| d.suit == first.suit))
+}
+
+/// The formation of the variant that reads the 3 dice alone (see
+/// [`crate::experiment`]). The `sum` is the sum of the 3 dice, plus 16 for a
+/// run that the stone extends to 4 numbers, so that it breaks the tie
+/// between runs before the sum does.
+fn three_dice_formation(stone: u8, dice: &[Die]) -> Formation {
+    let low = dice.iter().map(|d| d.value).min().expect("3 dice");
+    let high = dice.iter().map(|d| d.value).max().expect("3 dice");
+    let sum: u8 = dice.iter().map(|d| d.value).sum();
+    let distinct = dice
+        .iter()
+        .fold(0u8, |mask, d| mask | 1 << d.value)
+        .count_ones()
+        == 3;
+    let run = distinct && high - low == 2;
+    let flush = is_flush(dice);
+    let equal = dice.iter().filter(|d| d.value == dice[0].value).count();
+    let kind = if run && flush {
+        FormationKind::StraightFlush
+    } else if equal == 3 {
+        FormationKind::ThreeOfAKind
+    } else if flush {
+        FormationKind::Flush
+    } else if run {
+        FormationKind::Run
+    } else if distinct {
+        FormationKind::Sum
+    } else {
+        FormationKind::Pair
+    };
+    let extended = run && (stone + 1 == low || stone == high + 1);
+    Formation {
+        kind,
+        sum: sum + if extended { 16 } else { 0 },
     }
 }
 
@@ -146,8 +206,8 @@ pub fn formation(stone: u8, dice: &[Die]) -> Formation {
 pub fn best_completion(stone: u8, dice: &[Die]) -> Formation {
     assert!(dice.len() <= 3, "a side has at most 3 dice");
     let missing = 3 - dice.len();
-    let suit = dice.first().map_or(0, |d| d.suit);
-    let same_suit = dice.iter().all(|d| d.suit == suit);
+    let suit = dice.iter().find(|d| !d.is_wild()).map_or(0, |d| d.suit);
+    let same_suit = is_flush(dice);
     let fill = if same_suit { suit } else { 0 };
     let mut full = [Die::new(1, fill); 3];
     full[..dice.len()].copy_from_slice(dice);
