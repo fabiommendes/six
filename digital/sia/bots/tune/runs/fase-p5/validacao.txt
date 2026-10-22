@@ -1,0 +1,2 @@
+2000 deals (4000 games), hand of 5, , seeds 500000, 30 generations
+p5/best.json vs maos.json: +2722 =0 -1278, Elo +131 [+120, +143]
