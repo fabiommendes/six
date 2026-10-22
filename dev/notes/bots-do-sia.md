@@ -319,6 +319,160 @@ mantém clara; se o designer quiser o fácil mais fraco, basta subir o ruído
   de "onde pôr" for o que interessa ao designer, (b) é a variante a
   considerar.
 
+## Quadra mais baixa, mão de 5, formação de 3 dados, pôr no adversário e naipe coringa
+
+Pedido do designer: testar mudanças mais simples que (b). Medições de
+2026-10-22. Cada configuração tem os seus pesos calibrados (CMA-ES, 30
+gerações de 12 candidatos, 300 partidas por candidato, `greedy` contra
+`greedy` com pesos à mão, pesos iniciais à mão; arquivos em
+`tune/runs/fase-<configuração>/`, saídas em `runs/medicoes/<configuração>/`).
+Sementes de validação (500000, 4000 partidas, calibrado contra pesos à mão):
+padrão/5 +131 Elo, (c)/5 +235, (c)/7 +237, (b)/5 +264, (d)/5 +112, (d)/7
++139, (e)/5 +387, (e)/7 +212, (f)/(d)/7 +170, (f)/(d, naipe abaixo)/7 +116,
+(f)/(c)/5 +231. Limite: a calibração parou em 30 gerações como a de (b) em
+60; a fitness média ainda subia devagar em algumas (por exemplo padrão/5, de
+0,65 na geração 16 para 0,70 na 29), então os pesos podem melhorar um pouco
+e os Elos pequenos abaixo (`places=1` perto de zero) não são definitivos.
+
+### Variantes novas (só experimento, flags de `sia-bots batch`)
+
+- (c) `--four-below-run-only`: o marco conta em tudo; ordem: sequência de
+  naipe, sequência, quadra, naipe, dois pares, trinca, par, soma.
+- (d) `--three-dice`: a formação lê só os 3 dados do jogador: sequência de
+  naipe, trinca, naipe, sequência, par, soma. O marco só desempata as
+  sequências (com ou sem naipe): a que ele estende para 4 números vence a que
+  não estende; depois a soma dos 3 dados; depois quem completou primeiro. Com
+  `--flush-below-run` o naipe fica abaixo da sequência.
+- (e) `--place-on-opponent`: no lugar do passo 3, põe um dado no lado do
+  adversário (marco não tomado, lado dele com menos de 3 dados). O dado sai
+  da mão para sempre (conta como dado perdido), precisa de 2 dados e não
+  vale no turno em que o jogador rolou de novo. Os bots a consideram
+  (`gives=N` limita as colocações no adversário que olham; `gives=0` nunca a
+  usa).
+- (f) `--wild-suit`: 3 naipes comuns e um coringa, 2:2:2:1 (o coringa é 1 em
+  7), com reposição. O coringa vale como qualquer naipe no naipe da
+  formação e pode ser posto no lado do adversário sem custo (a mão é reposta
+  e pode rolar de novo no turno). Medido sobre (d) nas duas ordens e sobre a
+  melhor configuração entre padrão e (c), que foi (c)/5.
+- O tamanho da mão já era `--hand-size`; a regra "com 1 dado não pode rolar"
+  segue coerente com a mão de 5 (o máximo de dados perdidos é 4) e o lote e a
+  calibração aceitam o tamanho.
+
+### Tabela, `greedy` contra `greedy`, 4000 partidas
+
+Sementes 900000 (lote), 920000 (`places=1`) e 910000 (sem rolar); cada bot
+com os pesos da sua configuração. "Dados perdidos" é a média por jogador e
+inclui, em (e), os dados postos no adversário. "Com 1 dado" é a parte dos
+jogadores que acabam com 1 dado na mão. `places=1` mede quanto importa onde
+pôr o dado (Elo do bot que olha só a melhor colocação contra o normal; em (e),
+só a colocação própria é limitada). "Sem rolar" é o Elo de quem nunca rola
+de novo.
+
+| Configuração | Lados: 1ª e 2ª formação | Reivindicações: 1ª | `places=1` (Elo) | Sem rolar (Elo) | Turnos | Fim: 5 marcos / 3 vizinhos / sem lugar (%) | 1º vence | Rolagens (própria/adversário) | Dados perdidos | Com 1 dado |
+|---|---|---|---|---|---|---|---|---|---|---|
+| padrão/7 (medido antes) | quadra 45%, naipe 30% | quadra 59% | -27 [-38, -17] | -84 [-95, -73] | 44,2 | 30/58/12 | 51,1% | 7,9 (4,9/3,0) | 3,9 | 30% |
+| padrão/5 | quadra 44%, naipe 28% | quadra 63% | -6 [-17, +5] | -66 [-77, -55] | 44,5 | 30/58/12 | 52,5% | 5,50 (3,38/2,11) | 2,75 | 40% |
+| (c)/5 | naipe 32%, sequência 22% | sequência 38% | -135 [-147, -124] | -21 [-32, -10] | 47,0 | 29/55/16 | 45,5% | 5,66 (1,25/4,42) | 2,83 | 38% |
+| (c)/7 | naipe 29%, quadra 25% | sequência 45% | -182 [-195, -170] | -28 [-38, -17] | 47,7 | 32/51/17 | 47,6% | 9,90 (3,72/6,18) | 4,95 | 52% |
+| (b)/5 | sequência 35%, naipe 28% | sequência 46% | -231 [-245, -218] | -17 [-28, -6] | 46,5 | 30/54/16 | 48,8% | 4,94 (0,95/3,99) | 2,47 | 29% |
+| (b)/7 (medido antes) | sequência 39%, naipe 26% | sequência 49% | -294 [-309, -280] | -30 [-41, -19] | 46,3 | 15/59/26 | 49,8% | 9,9 (4,5/5,4) | 5,0 | 54% |
+| (d)/5 | naipe 30%, trinca 19% | naipe 34% | +23 [+12, +33] | +21 [+10, +32] | 48,7 | 25/52/24 | 45,9% | 5,06 (0,57/4,49) | 2,53 | 40% |
+| (d)/7 | naipe 33%, trinca 30% | trinca 39% | -84 [-96, -73] | -67 [-78, -56] | 47,2 | 26/57/17 | 48,9% | 5,56 (1,94/3,62) | 2,78 | 7% |
+| (e)/5 | par 36%, quadra 24% | quadra 34% | -58 [-69, -48] | -4 [-14, +7] | 48,2 | 26/53/21 | 52,0% | 0,29 (0,15/0,14) | 3,46 | 68% |
+| (e)/7 | par 32%, quadra 27% | quadra 37% | -35 [-46, -24] | -8 [-19, +3] | 46,6 | 28/53/20 | 52,9% | 1,80 (1,41/0,39) | 5,01 | 52% |
+| (f) sobre (d)/7 | naipe 48%, seq. de naipe 24% | seq. de naipe 52% | -112 [-123, -101] | -84 [-95, -73] | 48,4 | 10/49/41 | 50,0% | 5,25 (3,06/2,18) | 2,62 | 8% |
+| (f) sobre (d), naipe abaixo da sequência/7 | naipe 30%, sequência 21% | seq. de naipe 45% | -83 [-94, -72] | -71 [-82, -60] | 50,7 | 6/36/58 | 48,6% | 8,27 (4,85/3,42) | 4,13 | 35% |
+| (f) sobre (c)/5 | naipe 56%, sequência 16% | naipe 45% | -118 [-129, -106] | -24 [-34, -13] | 47,3 | 28/56/16 | 46,5% | 3,27 (0,87/2,40) | 1,63 | 7% |
+
+### Tabela, `pimc` contra `pimc`, 300 partidas
+
+Sementes 800000 e 810000 (sem rolar). Intervalo do "1º vence" de uns 5,6
+pontos.
+
+| Configuração | Lados: 1ª e 2ª formação | Reivindicações: 1ª | `places=1` (Elo) | Sem rolar (Elo) | Turnos | Fim: 5 marcos / 3 vizinhos / sem lugar (%) | 1º vence | Rolagens (própria/adversário) | Dados perdidos | Com 1 dado |
+|---|---|---|---|---|---|---|---|---|---|---|
+| padrão/7 (medido antes) | quadra 45%, naipe 22% | quadra 66% | - | -156 [-202, -114] | 47,6 | 30/55/15 | 53,3% | 8,2 (3,4/4,8) | 4,1 | 30% |
+| padrão/5 | quadra 36%, naipe 25% | quadra 58% | - | -78 [-119, -38] | 49,0 | 29/52/19 | 44,7% | 5,13 (1,82/3,31) | 2,57 | 36% |
+| (c)/5 | quadra 29%, sequência 23% | sequência 39% | - | -66 [-107, -26] | 47,6 | 24/59/17 | 56,7% | 3,47 (1,30/2,17) | 1,74 | 14% |
+| (c)/7 | quadra 36%, sequência 21% | quadra 41% | - | -144 [-190, -103] | 47,7 | 32/50/18 | 46,7% | 6,77 (2,95/3,83) | 3,39 | 16% |
+| (b)/5 | sequência 33%, naipe 29% | sequência 46% | - | -108 [-150, -68] | 49,6 | 31/49/20 | 44,0% | 4,41 (1,89/2,51) | 2,20 | 18% |
+| (b)/7 (medido antes) | sequência 34%, naipe 30% | sequência 46% | - | -134 [-178, -93] | 49,8 | 20/58/22 | 43,3% | 6,8 (3,0/3,8) | 3,4 | 13% |
+| (d)/5 | trinca 26%, naipe 25% | trinca 37% | - | -51 [-92, -12] | 49,2 | 26/53/21 | 50,0% | 2,47 (0,88/1,59) | 1,23 | 6% |
+| (d)/7 | trinca 31%, naipe 27% | trinca 40% | - | -108 [-150, -68] | 48,8 | 38/42/20 | 42,0% | 4,25 (1,56/2,69) | 2,13 | 3% |
+| (e)/5 | par 30%, trinca 26% | trinca 30% | - | -9 [-49, +30] | 49,3 | 25/61/15 | 54,0% | 0,25 (0,07/0,18) | 3,69 | 78% |
+| (e)/7 | par 33%, trinca 25% | trinca 30% | - | +14 [-25, +54] | 48,5 | 26/56/18 | 49,3% | 1,55 (0,55/1,00) | 5,27 | 57% |
+| (f) sobre (d)/7 | naipe 40%, seq. de naipe 26% | seq. de naipe 48% | - | -105 [-148, -65] | 47,0 | 19/62/19 | 46,0% | 4,77 (1,64/3,13) | 2,39 | 5% |
+| (f) sobre (d), naipe abaixo da sequência/7 | naipe 28%, seq. de naipe 25% | seq. de naipe 44% | - | -110 [-153, -70] | 45,3 | 20/68/12 | 48,7% | 5,58 (2,03/3,55) | 2,79 | 11% |
+| (f) sobre (c)/5 | naipe 51%, sequência 14% | naipe 42% | - | -70 [-112, -31] | 47,7 | 28/55/17 | 54,0% | 2,20 (0,75/1,45) | 1,10 | 4% |
+
+### Medidas extras
+
+- (e): o bot passa a quase não rolar de novo (0,29 rolagens por partida em
+  /5, 1,8 em /7, contra 5,5 e 7,9) e põe no adversário 6,6 dados por partida
+  em /5 e 8,2 em /7 (`greedy`), 7,1 e 9,0 (`pimc`). Quem nunca usa a jogada
+  nova perde feio: -524 Elo em /5 e -560 em /7 (`greedy`), -388 e -489
+  (`pimc`). A jogada substitui a rolagem e vira a decisão central, mas com 68%
+  (/5) e 52% (/7) dos jogadores acabando com 1 dado.
+- (f), coringas por partida (`greedy`): 8,5 sorteados nas duas mãos e
+  reposições; postos no próprio lado e no do adversário: 2,9 e 5,3 sobre
+  (d)/7, 4,5 e 4,1 com o naipe abaixo da sequência, 0,5 e 7,0 sobre (c)/5. O
+  assento que sorteou mais coringas vence 68% (sobre (d)/7), 67% (naipe
+  abaixo) e 71% (sobre (c)/5) das partidas em que os dois sortearam
+  quantidades diferentes; com `pimc`, 73%, 75% e 70% (268 partidas). Não separei o
+  efeito do coringa do de repor mais dados, mas a diferença é grande.
+- (f) sobre (d)/7: o naipe sobe para 48% dos lados (40% com `pimc`), e
+  41% das partidas acabam sem lugar (58% com o naipe abaixo da sequência,
+  contra 17% a 24% em (d) sem coringa).
+
+### Leitura
+
+- **Formação dominante.** No padrão a quadra tem 44% a 45% dos lados e 59% a
+  63% das reivindicações (`greedy`). (c)/5 tira a quadra do topo para 32% (o
+  naipe) nos lados, e a primeira formação das reivindicações é a sequência,
+  38%; (c)/7 fica em 29% e 45%. (b)/5: sequência em 35% dos lados e 46% das
+  reivindicações. Com o `pimc` a quadra ainda é a primeira em (c) (29% a 36%
+  dos lados, contra 36% a 45% no padrão), e a sequência em (b) (33% a 34%). Em
+  dominância (c) é equivalente a (b) ou um pouco melhor nos lados; nas
+  reivindicações as duas ficam em 38% a 46%. Mão de 5 sozinha não muda nada:
+  quadra em 44% dos lados.
+- **Quanto importa onde pôr o dado.** Elo de `places=1`: padrão -6 (/5) e -27
+  (/7); (c) -135 (/5) e -182 (/7); (b) -231 (/5) e -294 (/7). Aqui (c) **não**
+  é equivalente a (b): recupera uns 60% do efeito de (b), e é bem
+  melhor que o padrão. (d)/5 não precisa decidir onde pôr (+23), (d)/7 sim
+  (-84); (e) e (f) ficam entre -35 e -118.
+- **Dados que sobram e rolar de novo.** A mão de 5 corta as rolagens (5,5 no
+  padrão contra 7,9), mas sem rolar o Elo continua só -66 e 40% dos
+  jogadores terminam com 1 dado. Em (c) a mão de 5 também reduz o rolar (5,7
+  contra 9,9 em /7) e os jogadores com 1 dado caem de 52% para 38% (`greedy`)
+  e ficam em 14% a 16% com o `pimc`. A mão de 7 em (d) é a que menos deixa
+  jogador com 1 dado (7% `greedy`, 3% `pimc`).
+- **Duração e fim.** Turnos ficam entre 44 e 51. Sem lugar sobe de 12% (padrão)
+  para 16% em (c)/5, 24% em (d)/5 e 41% a 58% com coringa sobre (d).
+- **Primeiro jogador.** (c)/5 e (d)/5 dão 45,5% e 45,9% ao primeiro com o
+  `greedy` (4000 partidas, intervalo de ±1,5); com o `pimc` os valores
+  oscilam de 42% a 57% sem padrão. Vale ficar de olho, é pequeno.
+- **(e)** vira um jogo de jogar dados fora: a rolagem some, os jogadores
+  acabam com 1 dado em 52% a 78% das partidas e o par vira a formação mais
+  comum nos lados (30% a 36%).
+- **(f)** piora o que se queria consertar: o naipe domina (48% a 56% dos
+  lados) ou, com o naipe abaixo da sequência, metade das partidas acaba sem
+  lugar, e quem sorteia mais coringas ganha cerca de 70% das vezes, que é
+  sorte demais.
+
+### Recomendação
+
+- **Testar (c) com mão de 5** em playtest. É a mudança mais barata (troca de
+  posição de uma linha da tabela e a mão de 7 para 5) e quebra a dominância
+  da quadra tanto quanto (b). Não faz onde pôr o dado pesar como em (b), mas
+  vai de -6 para -135 Elo.
+- Se a ideia for uma mudança estrutural, (d) com mão de 7 é a mais equilibrada
+  das novas (naipe 33%, trinca 30%, 7% com 1 dado), mas reescreve todas as
+  formações e o glossário, e a decisão de onde pôr pesa só -84.
+- Descartar (e) e (f): (e) acaba com a rolagem e deixa a maioria dos
+  jogadores com 1 dado; (f) concentra o jogo no naipe ou nas partidas sem
+  lugar e dá peso demais à sorte dos coringas.
+- Nada disto foi aplicado em `regras/`.
+
 ## Conclusões de design
 
 - O motor funciona: sem empates, partidas de 44 turnos com final variado, e
