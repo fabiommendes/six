@@ -7,7 +7,6 @@ import {
   extentPoints,
   frameLayout,
   handSpot,
-  MAX_CLAIMED,
   seatAngle,
   seatToTable,
   sideSpot,
@@ -47,37 +46,29 @@ describe("the seats", () => {
 });
 
 describe("the taken formations", () => {
-  it("sit in the two free rows behind the player, a block of 2 by 2 for each", () => {
+  it("slide along their own column to the end of the board on the side of the winner", () => {
     for (const seat of [0, 1]) {
       const sign = seat === 0 ? 1 : -1;
-      for (let slot = 0; slot < MAX_CLAIMED; slot++) {
-        const cells = [0, 1, 2, 3].map((part) => claimedSpot(seat, slot, part));
-        for (const cell of cells) expect(Math.abs(cell.z)).toBeGreaterThanOrEqual(4);
-        for (const cell of cells) expect(Math.abs(cell.z)).toBeLessThanOrEqual(5);
-        for (const cell of cells) expect(Math.sign(cell.z)).toBe(sign);
-        for (const cell of cells) expect(Math.abs(cell.x)).toBeLessThanOrEqual(5);
+      for (let stone = 0; stone < STONES; stone++) {
+        const cells = [0, 1, 2, 3].map((part) => claimedSpot(seat, stone, part));
+        for (const cell of cells) expect(cell.x).toBe(stoneColumn(stone));
+        // The order is kept, one cell apart, and the last die is on the last row.
+        expect(cells.map((c) => c.z * sign)).toEqual([2, 3, 4, 5]);
       }
     }
   });
 
-  it("never share a cell, nor take one of the three rows of the sides", () => {
+  it("move two cells with three dice, and keep the last die on the last row with fewer", () => {
     for (const seat of [0, 1]) {
-      const used = new Set<string>();
-      for (let slot = 0; slot < MAX_CLAIMED; slot++) {
-        for (let part = 0; part < 4; part++) {
-          const k = key(claimedSpot(seat, slot, part));
-          expect(used.has(k)).toBe(false);
-          used.add(k);
-        }
-      }
-      expect(used.size).toBe(MAX_CLAIMED * 4);
+      const sign = seat === 0 ? 1 : -1;
+      expect(claimedSpot(seat, 4, 0).z - stoneSpot(4).z).toBe(2 * sign);
+      expect(claimedSpot(seat, 4, 2, 2).z).toBe(5 * sign);
+      expect(claimedSpot(seat, 4, 0, 2).z).toBe(3 * sign);
     }
   });
 
-  it("start with the stone, on the row nearest the sides", () => {
-    expect(claimedSpot(0, 0, 0)).toEqual({ x: -5, z: 4 });
-    expect(claimedSpot(0, 1, 3)).toEqual({ x: -2, z: 5 });
-    expect(claimedSpot(1, 0, 0)).toEqual({ x: 5, z: -4 });
+  it("never reach the side of the other player", () => {
+    for (const seat of [0, 1]) for (let part = 0; part < 4; part++) expect(Math.sign(claimedSpot(seat, 0, part).z)).toBe(seat === 0 ? 1 : -1);
   });
 });
 

@@ -15,8 +15,6 @@ export const BOARD_CELLS = 11;
 export const STONES = 9;
 /** Dice on a side of a stone. */
 export const SIDE_DICE = 3;
-/** Most formations a player can hold: the fifth wins. */
-export const MAX_CLAIMED = 5;
 
 /** A point on the table. */
 export interface Spot {
@@ -51,16 +49,19 @@ export function sideSpot(seat: number, stone: number, k: number): Spot {
   return { x: stoneColumn(stone), z: seat === 0 ? 1 + k : -(1 + k) };
 }
 
+/** The row of the far end of a column, counted from the central row: the last of the 5 rows of a side. */
+export const LAST_ROW = (BOARD_CELLS - 1) / 2;
+
 /**
- * The cell of a part of a formation taken by `seat`, on the table. The
- * claimed formations sit in the two free rows behind the three of the
- * player, two columns each, left to right in the order of their stones:
- * `slot` is that order. Part 0 is the stone, then the three dice.
+ * The cell of a part of a formation taken by `seat` at `stone`, on the table.
+ * The column of the stone (the stone, then its `dice` dice in the same order)
+ * slides in a straight line to the end of the board on the side of the
+ * winner: the last die lands on the last row. Part 0 is the stone, then the
+ * dice.
  */
-export function claimedSpot(seat: number, slot: number, part: number): Spot {
-  const x0 = -(BOARD_CELLS - 1) / 2 + 2 * slot;
-  const local = { x: x0 + (part % 2), z: 4 + Math.floor(part / 2) };
-  return seatToTable(seat, local);
+export function claimedSpot(seat: number, stone: number, part: number, dice = SIDE_DICE): Spot {
+  const shift = LAST_ROW - dice;
+  return { x: stoneColumn(stone), z: (seat === 0 ? 1 : -1) * (shift + part) };
 }
 
 /** The shape of the table: beside the board when the screen is wide, above and below it when it is tall. */

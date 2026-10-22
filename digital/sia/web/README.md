@@ -40,15 +40,19 @@ o azul-ardósia `#46607A` da moldura e das marcas é provisório.
   a I nas bordas do tabuleiro (a letra é a posição, da esquerda do primeiro
   jogador; o texto do histórico fala "marco C"). Os dados de cada jogador
   ficam nas 3 fileiras do seu lado, na coluna do marco.
-- Reivindicar: o marco e a formação de quem o tomou sobem, deslizam para as
-  2 fileiras livres atrás das 3 desse jogador e formam um bloco de 2 por 2
-  sobre um tapete da cor do jogador. A casa que o marco deixou ganha um disco
-  da mesma cor. Os blocos ficam em ordem de posição, da esquerda para a
-  direita.
+- Reivindicar: a coluna de quem tomou o marco (o marco e os dados dele, na
+  mesma ordem) sobe e desliza em linha reta, na própria coluna, até o fundo
+  do tabuleiro do lado desse jogador: o último dado fica na última fileira
+  (com 3 dados, 2 casas de deslocamento). Uma borda fina da cor do jogador
+  corre dos dois lados da coluna. Os dados do perdedor ficam onde estavam e
+  desbotam para cinza, sem a cor do naipe e com os pontos legíveis, junto com
+  o deslize; os marcos resolvidos no fim do jogo seguem a mesma regra (sem
+  dono, os dados dos dois lados desbotam).
 - As duas mãos ficam abertas em bandejas ao lado do tabuleiro, cada uma
   perto do seu jogador (ao lado em tela larga, abaixo e acima em tela
-  estreita). A bolsa fica na mesa, grande, com a boca aberta: os dados saem
-  por ela e o dado perdido volta para ela. Quantos dados cada jogador perdeu
+  estreita). A bolsa fica na mesa: uma bolsa de tecido, grande, com cordão e
+  a boca franzida e aberta; os dados saem por ela e o dado perdido volta
+  para ela. Quantos dados cada jogador perdeu
   aparece no cartão dele ("mão: 5 de 5 dados (2 perdidos)").
 - Naipes: vermelho, azul, amarelo e verde nos dados da bolsa, grafite nos
   marcos. Cada face tem também uma marca no canto (círculo, quadrado,
@@ -69,7 +73,7 @@ o azul-ardósia `#46607A` da moldura e das marcas é provisório.
   preparação, os dados saem da boca da bolsa e rolam para a mão, o dado perdido sai
   da mão e volta para dentro da bolsa, os dados rolados saltam e mostram o número novo, o
   dado posto voa até o lado do marco, a reivindicação faz uma onda nos dados
-  e desliza o bloco, e os marcos que sobram no fim do jogo vão para quem
+  e desliza a coluna, e os marcos que sobram no fim do jogo vão para quem
   ganhou cada um. Na vez de um bot, a jogada é antecipada por marcas (dado
   levantado, anel no destino, cantos no marco, cruz e círculos tracejados
   no "rolar de novo"). Com "reduzir movimento" no sistema, as animações são

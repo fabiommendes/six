@@ -76,12 +76,15 @@ function drawGlyph(ctx: CanvasRenderingContext2D, suit: number, cx: number, cy: 
   ctx.fill();
 }
 
-/** A face of a die in the color of its suit, with the mark of the suit in a corner (none for the stones). */
-export function drawDieFace(value: number, suit: number, px: number): HTMLCanvasElement {
+/** The grey of a die that is out of the game: no suit color, the pips stay dark. */
+export const OUT_COLOR = "#A4A29C";
+
+/** A face of a die in the color of its suit, with the mark of the suit in a corner (none for the stones); `gray` draws it out of the game. */
+export function drawDieFace(value: number, suit: number, px: number, gray = false): HTMLCanvasElement {
   const canvas = makeCanvas(px);
   const ctx = context(canvas);
-  const body = SUIT_COLORS[suit] ?? SUIT_COLORS[STONE_SUIT];
-  const light = lightPips(suit);
+  const body = gray ? OUT_COLOR : (SUIT_COLORS[suit] ?? SUIT_COLORS[STONE_SUIT]);
+  const light = gray ? false : lightPips(suit);
   const gradient = ctx.createLinearGradient(0, 0, px, px);
   gradient.addColorStop(0, shade(body, 0.14));
   gradient.addColorStop(1, shade(body, -0.1));
@@ -101,8 +104,10 @@ export function drawDieFace(value: number, suit: number, px: number): HTMLCanvas
     disc(ctx, cx, cy, r);
     ctx.fill();
   }
-  ctx.fillStyle = light ? "rgba(255,255,255,0.92)" : "rgba(30,27,24,0.85)";
-  drawGlyph(ctx, suit, px * 0.15, px * 0.15, px * 0.062);
+  if (!gray) {
+    ctx.fillStyle = light ? "rgba(255,255,255,0.92)" : "rgba(30,27,24,0.85)";
+    drawGlyph(ctx, suit, px * 0.15, px * 0.15, px * 0.062);
+  }
   return canvas;
 }
 
@@ -301,7 +306,7 @@ export function drawTrayTop(w: number, h: number, accent: string): HTMLCanvasEle
   return canvas;
 }
 
-export type MarkKind = "ring" | "claim" | "selected" | "last" | "lost" | "roll" | "hover" | "taken" | "block";
+export type MarkKind = "ring" | "claim" | "selected" | "last" | "lost" | "roll" | "hover";
 
 /**
  * A mark of play in one cell (`px` by `px`). Each has its own shape, so the
@@ -396,29 +401,6 @@ export function drawMark(kind: MarkKind, px: number, accent: string = COLORS.sia
     case "hover":
       ctx.fillStyle = "rgba(70,96,122,0.26)";
       ctx.fillRect(px * 0.04, px * 0.04, px * 0.92, px * 0.92);
-      break;
-    case "block": {
-      // The mat under a taken formation, in the color of who took it.
-      const i = px * 0.03;
-      roundedRect(ctx, i, i, px - 2 * i, px - 2 * i, px * 0.08);
-      ctx.fillStyle = accent;
-      ctx.globalAlpha = 0.3;
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = accent;
-      ctx.lineWidth = px * 0.025;
-      ctx.stroke();
-      break;
-    }
-    case "taken":
-      // The cell a taken stone left, in the color of who took it.
-      ctx.fillStyle = accent;
-      disc(ctx, c, c, px * 0.4);
-      ctx.fill();
-      ctx.strokeStyle = COLORS.wool;
-      ctx.lineWidth = px * 0.05;
-      disc(ctx, c, c, px * 0.4);
-      ctx.stroke();
       break;
   }
   return canvas;

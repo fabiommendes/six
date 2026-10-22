@@ -2,6 +2,7 @@ import {
   AmbientLight,
   BoxGeometry,
   CanvasTexture,
+  CatmullRomCurve3,
   DoubleSide,
   DirectionalLight,
   Group,
@@ -22,9 +23,10 @@ import {
   RepeatWrapping,
   Scene,
   Sprite,
+  SphereGeometry,
   SpriteMaterial,
   SRGBColorSpace,
-  TorusGeometry,
+  TubeGeometry,
   Vector2,
   Vector3,
   WebGLRenderer,
@@ -33,7 +35,6 @@ import {
 } from "three";
 import type { Command, Die, Event, Formation, View } from "../engine/game";
 import { formationText, stoneLetter } from "../logic/formation";
-import { slotAmong } from "../logic/feedback";
 import { COLORS, seatColor, STONE_SUIT } from "../ui/svg";
 import { Die3D, DieAssets, orientation } from "./dice";
 import { drawBoard, drawLabel, drawMark, drawTrayTop, drawWood, shade, type MarkKind } from "./drawing";
@@ -173,12 +174,13 @@ export class Table3D {
   private readonly markGeometry = new PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
   private readonly markMaterials = new Map<string, MeshBasicMaterial>();
   private readonly floaters = new Set<Floater>();
-  private readonly tokens: Mesh[] = [];
+  /** Two thin strips under the column of each taken stone, in the color of the winner. */
+  private readonly edges: Mesh[][] = [];
+  private readonly edgeMaterials = new Map<string, MeshBasicMaterial>();
   private readonly claimTags: Sprite[] = [];
   private readonly rings: Mesh[] = [];
   private readonly rollMarks: Mesh[] = [];
   private readonly claimMarks: Mesh[] = [];
-  private readonly blockMats: Mesh[] = [];
   private readonly selectedMark: Mesh;
   private readonly lostMark: Mesh;
   private readonly lastMark: Mesh;
@@ -325,44 +327,91 @@ export class Table3D {
     slab.receiveShadow = true;
     slab.castShadow = true;
     this.world.add(slab);
-    // The taken stones leave a token on their cell, in the color of who took them.
+    // A taken column has a thin strip along each long side, in the color of who took it.
     for (let i = 0; i < STONES; i++) {
-      const token = new Mesh(this.markGeometry, this.markMaterial("taken", seatColor(0)));
-      token.renderOrder = 1;
-      token.visible = false;
-      this.world.add(token);
-      this.tokens.push(token);
+      this.edges.push(
+        [0, 1].map(() => {
+          const strip = new Mesh(this.markGeometry, this.edgeMaterial(seatColor(0)));
+          strip.renderOrder = 1;
+          strip.visible = false;
+          this.world.add(strip);
+          return strip;
+        }),
+      );
     }
   }
 
-  /** A big pouch with a wide open mouth, so the dice are seen coming out of it and going back in. */
+  private edgeMaterial(color: string): MeshBasicMaterial {
+    let found = this.edgeMaterials.get(color);
+    if (!found) {
+      found = new MeshBasicMaterial({ color });
+      this.edgeMaterials.set(color, found);
+    }
+    return found;
+  }
+
+  /**
+   * A big cloth bag with a drawstring: soft body, gathered into ruffles at the
+   * mouth, which is left wide open (wider than the dice, at the rim) so the
+   * dice are seen coming out of it and going back in.
+   */
   private buildBag(): void {
-    const outer = [
-      [0.0, 0], [1.1, 0.02], [1.65, 0.35], [1.85, 0.95], [1.65, 1.6], [1.3, 2.1], [1.12, 2.45], [1.25, 2.62], [1.12, 2.7],
+    // Outside from the base up to the rim, then down the inside: [radius, height].
+    const profile = [
+      [0.0, 0], [0.9, 0.02], [1.55, 0.3], [1.95, 0.9], [1.9, 1.5], [1.5, 2.0], [1.3, 2.2], [1.4, 2.5], [1.55, 2.7],
+      [1.45, 2.72], [1.25, 2.5], [1.1, 2.2], [1.3, 1.6], [1.4, 1.0], [1.0, 0.45], [0.0, 0.4],
     ].map(([x, y]) => new Vector2(x! * BAG_SCALE, y! * BAG_SCALE));
-    const inner = [
-      [0.0, 0.5], [1.2, 0.5], [1.55, 1.0], [1.45, 1.6], [1.08, 2.1], [0.92, 2.5], [1.02, 2.66],
-    ].map(([x, y]) => new Vector2(x! * BAG_SCALE, y! * BAG_SCALE));
-    const outerGeometry = new LatheGeometry(outer, 48);
-    const innerGeometry = new LatheGeometry(inner, 48);
-    this.geometries.push(outerGeometry, innerGeometry);
-    const cloth = this.material(new MeshStandardMaterial({ color: shade(COLORS.sia, -0.35), roughness: 0.95 }));
-    const lining = this.material(new MeshStandardMaterial({ color: "#1B2430", roughness: 1, side: DoubleSide }));
-    const body = new Mesh(outerGeometry, cloth);
+    const geometry = new LatheGeometry(profile, 72);
+    const position = geometry.getAttribute("position");
+    for (let n = 0; n < position.count; n++) {
+      const x = position.getX(n);
+      const y = position.getY(n);
+      const z = position.getZ(n);
+      const theta = Math.atan2(z, x);
+      const h = y / BAG_SCALE;
+      // Folds of the cloth: faint on the body, deep in the gathers around the mouth.
+      const gather = Math.min(1, Math.max(0, (h - 2.0) / 0.7));
+      const folds = 0.025 * Math.cos(5 * theta + 1.3 * h) + 0.07 * gather * Math.cos(9 * theta) + 0.025 * gather * Math.cos(14 * theta + 0.6);
+      // The bag sags to one side, as a full soft bag does.
+      const sag = 1 + 0.05 * Math.cos(theta - 0.6) * (1 - gather);
+      const k = (1 + folds) * sag;
+      // The rim droops here and there.
+      position.setXYZ(n, x * k, y - 0.14 * gather * gather * (1 + Math.cos(3 * theta + 0.8)), z * k);
+    }
+    geometry.computeVertexNormals();
+    this.geometries.push(geometry);
+    const cloth = this.material(new MeshStandardMaterial({ color: "#B79A6B", roughness: 1, side: DoubleSide }));
+    const body = new Mesh(geometry, cloth);
     body.castShadow = true;
     body.receiveShadow = true;
-    this.bag.add(body, new Mesh(innerGeometry, lining));
-    // The hem of the mouth and the drawstring just under it.
-    const hemGeometry = new TorusGeometry(1.1 * BAG_SCALE, 0.07 * BAG_SCALE, 8, 48).rotateX(Math.PI / 2);
-    const cordGeometry = new TorusGeometry(1.2 * BAG_SCALE, 0.045 * BAG_SCALE, 8, 48).rotateX(Math.PI / 2);
-    this.geometries.push(hemGeometry, cordGeometry);
-    const rope = this.material(new MeshStandardMaterial({ color: "#D9C7A0", roughness: 0.8 }));
-    const hem = new Mesh(hemGeometry, rope);
-    hem.position.y = BAG_HEIGHT;
-    const cord = new Mesh(cordGeometry, rope);
-    cord.position.y = 2.2 * BAG_SCALE;
-    cord.castShadow = true;
-    this.bag.add(hem, cord);
+    this.bag.add(body);
+    // The drawstring: a loop pulled around the neck, with a knot and two loose ends.
+    const rope = this.material(new MeshStandardMaterial({ color: "#EADFC3", roughness: 0.85 }));
+    const neck = 1.5 * BAG_SCALE;
+    const loop = Array.from({ length: 36 }, (_, n) => {
+      const theta = (n / 36) * Math.PI * 2;
+      return new Vector3(Math.cos(theta) * neck, 2.1 * BAG_SCALE + 0.05 * Math.sin(3 * theta), Math.sin(theta) * neck);
+    });
+    const cord = new TubeGeometry(new CatmullRomCurve3(loop, true), 96, 0.075 * BAG_SCALE, 8, true);
+    const tail = (turn: number) =>
+      new TubeGeometry(
+        new CatmullRomCurve3([
+          new Vector3(Math.cos(0.4) * neck, 2.1 * BAG_SCALE, Math.sin(0.4) * neck),
+          new Vector3(Math.cos(0.4 + turn * 0.1) * (neck + 0.25 * BAG_SCALE), 1.8 * BAG_SCALE, Math.sin(0.4 + turn * 0.1) * (neck + 0.25 * BAG_SCALE)),
+          new Vector3(Math.cos(0.4 + turn * 0.25) * (neck + 0.45 * BAG_SCALE), 1.4 * BAG_SCALE, Math.sin(0.4 + turn * 0.25) * (neck + 0.45 * BAG_SCALE)),
+        ]),
+        16,
+        0.04 * BAG_SCALE,
+        6,
+        false,
+      );
+    const knotGeometry = new SphereGeometry(0.11 * BAG_SCALE, 12, 8);
+    const tails = [tail(1), tail(-1)];
+    this.geometries.push(cord, knotGeometry, ...tails);
+    const knot = new Mesh(knotGeometry, rope);
+    knot.position.set(Math.cos(0.4) * neck, 2.1 * BAG_SCALE, Math.sin(0.4) * neck);
+    this.bag.add(new Mesh(cord, rope), knot, ...tails.map((t) => new Mesh(t, rope)));
+    this.bag.traverse((o) => (o.castShadow = true));
     this.world.add(this.bag);
   }
 
@@ -471,8 +520,15 @@ export class Table3D {
         });
       }
     });
+    // The column of a taken stone moves by its length, known only once the sides are filled.
+    const place = (die: Die3D | null | undefined, to: Point3) => die?.root.position.set(to.x, to.y, to.z);
+    this.stones.forEach((die, i) => place(die, this.targetOfStone(i)));
+    for (const seat of [0, 1]) this.sides[seat]!.forEach((dice, i) => dice.forEach((die, k) => place(die, this.targetOfSide(seat, i, k))));
     this.syncHands(view);
-    this.updateTokens(view.stones.map((s) => s.owner));
+    this.updateEdges(this.owners);
+    view.stones.forEach((stone, i) => {
+      if (stone.owner !== null || view.end !== null) for (const die of this.outDice(i, stone.owner)) die.setOut(1);
+    });
     this.updateLabels(view);
     this.setMarks(marks, view);
     this.dirty = true;
@@ -484,7 +540,7 @@ export class Table3D {
     this.handSize = view.handSize;
     this.clearDice();
     this.owners = Array.from({ length: STONES }, () => null);
-    this.updateTokens(this.owners);
+    this.updateEdges(this.owners);
     this.updateLabels(view);
     this.setMarks(NO_MARKS, view);
     this.applyArrangement(this.arrangement);
@@ -518,57 +574,44 @@ export class Table3D {
     return { x: p.x, y: TRAY_Y, z: p.z };
   }
 
-  /** The slot of a stone among those its owner has taken, in the running owners. */
-  private slotOf(stone: number): number {
-    const owner = this.owners[stone];
-    if (owner === null || owner === undefined) return -1;
-    return slotAmong(this.owners, owner, stone);
+  /** How many dice the owner has at a stone: the column that slides is as long as that. */
+  private columnDice(owner: number, stone: number): number {
+    return this.sides[owner]![stone]!.length;
   }
 
   private targetOfStone(stone: number): Point3 {
     const owner = this.owners[stone];
-    const slot = this.slotOf(stone);
-    const p = owner !== null && owner !== undefined && slot >= 0 ? claimedSpot(owner, slot, 0) : stoneSpot(stone);
+    const p = owner !== null && owner !== undefined ? claimedSpot(owner, stone, 0, this.columnDice(owner, stone)) : stoneSpot(stone);
     return { x: p.x, y: BOARD_Y, z: p.z };
   }
 
   private targetOfSide(seat: number, stone: number, k: number): Point3 {
     const owner = this.owners[stone];
-    const slot = this.slotOf(stone);
-    const p = owner === seat && slot >= 0 ? claimedSpot(seat, slot, k + 1) : sideSpot(seat, stone, k);
+    const p = owner === seat ? claimedSpot(seat, stone, k + 1, this.columnDice(seat, stone)) : sideSpot(seat, stone, k);
     return { x: p.x, y: BOARD_Y, z: p.z };
   }
 
-  /** A mat under each taken formation, in the color of its owner, so it is clear whose each one is. */
-  private updateBlockMats(owners: readonly (number | null)[]): void {
-    const blocks = [0, 1].flatMap((seat) => owners.flatMap((o, stone) => (o === seat ? [{ seat, slot: slotAmong(owners, seat, stone) }] : [])));
-    while (this.blockMats.length < blocks.length) {
-      const mesh = this.newMark("block");
-      mesh.renderOrder = 0;
-      this.blockMats.push(mesh);
-    }
-    this.blockMats.forEach((mesh, i) => {
-      const block = blocks[i];
-      if (!block) {
-        mesh.visible = false;
-        return;
-      }
-      const a = claimedSpot(block.seat, block.slot, 0);
-      const b = claimedSpot(block.seat, block.slot, 3);
-      mesh.material = this.markMaterial("block", seatColor(block.seat));
-      this.placeMark(mesh, { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 }, 2.1, BOARD_Y + 0.004);
-    });
+  /** The dice of a stone that are out of the game: those of the loser, or of both sides when nobody has it. */
+  private outDice(stone: number, owner: number | null): Die3D[] {
+    return [0, 1].filter((seat) => seat !== owner).flatMap((seat) => this.sides[seat]![stone]!);
   }
 
-  private updateTokens(owners: readonly (number | null)[]): void {
-    this.updateBlockMats(owners);
-    this.tokens.forEach((token, i) => {
-      const owner = owners[i];
-      token.visible = owner !== null && owner !== undefined;
+  /** Shows the strips under the columns of the taken stones, grown to `grow` (0 to 1) of their width. */
+  private updateEdges(owners: readonly (number | null)[], grow = 1): void {
+    this.edges.forEach((strips, stone) => {
+      const owner = owners[stone];
+      for (const strip of strips) strip.visible = owner !== null && owner !== undefined;
       if (owner === null || owner === undefined) return;
-      token.material = this.markMaterial("taken", seatColor(owner));
-      const p = stoneSpot(i);
-      token.position.set(p.x, BOARD_Y + 0.006, p.z);
+      const dice = this.columnDice(owner, stone);
+      const a = claimedSpot(owner, stone, 0, dice);
+      const b = claimedSpot(owner, stone, dice, dice);
+      const mid = (a.z + b.z) / 2;
+      const length = Math.abs(b.z - a.z) + 1;
+      strips.forEach((strip, side) => {
+        strip.material = this.edgeMaterial(seatColor(owner));
+        strip.position.set(a.x + (side === 0 ? -1 : 1) * 0.47, BOARD_Y + 0.006, mid);
+        strip.scale.set(0.07 * grow, 1, length);
+      });
     });
   }
 
@@ -998,22 +1041,29 @@ export class Table3D {
       await this.wave(stoneDie ? [stoneDie, ...dice] : dice, 0.5);
     }
     this.owners[stone] = player;
-    this.updateTokens(this.owners);
-    const token = this.tokens[stone];
-    if (token) {
-      void this.run(this.ms(500), (t) => {
-        token.scale.setScalar(easeOut(t));
-      });
-    }
-    await this.relayoutBoard(flash ? 800 : 600);
+    // The column slides in a line to the end of the board while the dice left behind go grey.
+    const out = this.outDice(stone, player);
+    await Promise.all([
+      this.relayoutBoard(flash ? 800 : 600, 0),
+      this.run(this.ms(flash ? 800 : 600), (t) => {
+        for (const die of out) die.setOut(easeInOut(t));
+      }),
+    ]);
+    for (const die of out) die.setOut(1);
     for (const die of [stoneDie, ...dice]) if (die) die.lift = 0;
     this.options.sounds.play("land", 0.8);
+    await this.run(this.ms(300), (t) => this.updateEdges(this.owners, easeOut(t)));
+    this.updateEdges(this.owners);
   }
 
   private async award(stone: number, player: number | null): Promise<void> {
     if (player === null) {
       this.float(`${stoneLetter(stone)} · sem dono`, stoneSpot(stone), { background: COLORS.ink, height: 1.4 });
-      await this.pause(500);
+      const out = this.outDice(stone, null);
+      await this.run(this.ms(500), (t) => {
+        for (const die of out) die.setOut(easeInOut(t));
+      });
+      for (const die of out) die.setOut(1);
       return;
     }
     const side = this.view?.stones[stone]?.sides[player]?.formation ?? null;

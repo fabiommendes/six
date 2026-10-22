@@ -15,7 +15,7 @@ import {
 } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { STONE_SUIT, SUIT_COLORS } from "../ui/svg";
-import { drawDieFace, FACE_SHARE, shade } from "./drawing";
+import { drawDieFace, FACE_SHARE, OUT_COLOR, shade } from "./drawing";
 import { DIE_SIZE } from "./layout";
 
 /** One face of a die in the die's own axes: the normal, and where "right" and "up" of its pips point. */
@@ -76,6 +76,7 @@ export class DieAssets {
   private readonly bodies = new Map<string, Material>();
   private readonly faces = new Map<string, Material>();
   private readonly textures: Texture[] = [];
+  private readonly grayMaps = new Map<string, Texture>();
 
   bodyMaterial(color: DieColor, ghost = false): Material {
     const id = `${color}${ghost ? "g" : ""}`;
@@ -100,6 +101,50 @@ export class DieAssets {
     return found;
   }
 
+  /** Steps of the grey that fades over a die going out of the game. */
+  static readonly FADE_STEPS = 10;
+
+  /** The grey body that fades over a die, `level` of `FADE_STEPS` (1 to FADE_STEPS) opaque. */
+  fadeBodyMaterial(level: number): Material {
+    const id = `out-body${level}`;
+    let found = this.bodies.get(id);
+    if (!found) {
+      found = new MeshStandardMaterial({ color: shade(OUT_COLOR, -0.08), roughness: 0.5, transparent: true, opacity: level / DieAssets.FADE_STEPS, depthWrite: false });
+      this.bodies.set(id, found);
+    }
+    return found;
+  }
+
+  /** The grey face of `value` that fades over a die, with dark pips. */
+  fadeFaceMaterial(value: number, level: number): Material {
+    const id = `out-face${value}:${level}`;
+    let found = this.faces.get(id);
+    if (!found) {
+      found = new MeshStandardMaterial({
+        map: this.grayMap(value),
+        roughness: 0.55,
+        transparent: true,
+        opacity: level / DieAssets.FADE_STEPS,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+      });
+      this.faces.set(id, found);
+    }
+    return found;
+  }
+
+  private grayMap(value: number): Texture {
+    const id = `out-map${value}`;
+    let found = this.grayMaps.get(id);
+    if (!found) {
+      found = texture(drawDieFace(value, STONE_SUIT, 128, true));
+      this.grayMaps.set(id, found);
+      this.textures.push(found);
+    }
+    return found;
+  }
+
   dispose(): void {
     this.body.dispose();
     this.face.dispose();
@@ -117,7 +162,7 @@ export class Die3D {
   constructor(
     readonly color: DieColor,
     public value: number,
-    assets: DieAssets,
+    private readonly assets: DieAssets,
     ghost = false,
   ) {
     this.body = new Mesh(assets.body, assets.bodyMaterial(color, ghost));
@@ -132,6 +177,39 @@ export class Die3D {
     }
     this.tumbler.position.y = DIE_SIZE / 2;
     this.root.add(this.tumbler);
+  }
+
+  private shell: { readonly body: Mesh; readonly faces: Mesh[]; level: number } | null = null;
+
+  /**
+   * How far the die has gone out of the game, 0 (its colors) to 1 (grey, the
+   * pips still readable). A grey shell fades in over the colored die.
+   */
+  setOut(amount: number): void {
+    const steps = DieAssets.FADE_STEPS;
+    const level = Math.round(Math.min(1, Math.max(0, amount)) * steps);
+    let shell = this.shell;
+    if (level === (shell?.level ?? 0)) return;
+    if (!shell) {
+      const body = new Mesh(this.assets.body, this.assets.fadeBodyMaterial(1));
+      body.scale.setScalar(1.0125);
+      const faces = FACES.map((face) => {
+        const mesh = new Mesh(this.assets.face, this.assets.fadeFaceMaterial(face.value, 1));
+        mesh.quaternion.setFromRotationMatrix(new Matrix4().makeBasis(face.right, face.up, face.normal));
+        mesh.position.copy(face.normal).multiplyScalar(DIE_SIZE / 2 + 0.0065);
+        return mesh;
+      });
+      this.tumbler.add(body, ...faces);
+      shell = { body, faces, level: 0 };
+      this.shell = shell;
+    }
+    shell.level = level;
+    shell.body.visible = level > 0;
+    for (const mesh of shell.faces) mesh.visible = level > 0;
+    if (level > 0) {
+      shell.body.material = this.assets.fadeBodyMaterial(level);
+      FACES.forEach((face, i) => (shell.faces[i]!.material = this.assets.fadeFaceMaterial(face.value, level)));
+    }
   }
 
   /** Shows `value` on top, upright for `yaw`. */
