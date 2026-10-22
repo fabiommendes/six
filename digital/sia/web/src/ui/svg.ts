@@ -90,10 +90,3 @@ export function brandMark(size: number): string {
   });
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">${s}</svg>`;
 }
-
-/** The strength of a formation as a row of `of` ticks, `filled` of them lit. */
-export function strengthBar(filled: number, of: number): string {
-  let s = "";
-  for (let i = 0; i < of; i++) s += `<i class="${i < filled ? "on" : ""}"></i>`;
-  return `<span class="strength" aria-hidden="true">${s}</span>`;
-}

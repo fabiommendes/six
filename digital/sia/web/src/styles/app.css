@@ -97,7 +97,19 @@ button.danger { background: #8d2a24; border-color: #5b1712; color: #fff; box-sha
 .tool.danger { background: #8d2a24; color: #fff; }
 .tools .confirm { color: var(--wool); font-weight: 700; margin-right: 4px; }
 
-.players { position: absolute; top: 56px; left: 14px; width: 270px; display: flex; flex-direction: column; gap: 8px; }
+.left-col { position: absolute; top: 56px; left: 14px; width: 270px; display: flex; flex-direction: column; gap: 8px; }
+.players { display: flex; flex-direction: column; gap: 8px; }
+.formations { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 9px 11px 10px; font-size: 12.5px; line-height: 1.25; }
+.formations h2 { margin: 0; font-size: 16px; font-weight: 800; }
+.formations .sub { margin: 2px 0 6px; color: var(--muted); font-size: 12px; }
+.formations ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.formations li { display: grid; grid-template-columns: 18px 1fr; gap: 6px; align-items: start; }
+.formations .pos { font-weight: 800; color: var(--muted); font-variant-numeric: lining-nums tabular-nums; text-align: right; }
+.formations li div { display: flex; flex-direction: column; }
+.formations li b { font-weight: 800; }
+.formations li span { color: var(--muted); }
+.formations .tie-rule { margin: 8px 0 0; padding-top: 7px; border-top: 1px solid var(--line); color: var(--ink); }
+.formations-toggle { display: none; }
 .player { position: relative; display: grid; grid-template-columns: 34px 1fr auto; grid-template-rows: auto auto; gap: 2px 8px; align-items: center; background: var(--card); border-radius: var(--radius); padding: 9px 11px 9px 9px; box-shadow: var(--shadow); border-left: 5px solid var(--seat); transition: transform 0.25s, box-shadow 0.25s; }
 .player.active { transform: translateX(6px); box-shadow: 0 0 0 2.5px var(--seat), var(--shadow); }
 .seat-dot { width: 18px; height: 18px; border-radius: 50%; background: var(--seat); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.65); flex: none; }
@@ -186,14 +198,10 @@ button.danger { background: #8d2a24; border-color: #5b1712; color: #fff; box-sha
 @keyframes claim-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(70, 96, 122, 0.5), var(--shadow); } 50% { box-shadow: 0 0 0 5px rgba(70, 96, 122, 0.28), var(--shadow); } }
 .stone-card.owned { border-color: var(--owner); background: color-mix(in srgb, var(--owner) 12%, var(--wool)); }
 .side { display: grid; grid-template-columns: 9px 1fr; column-gap: 5px; align-items: center; font-size: 12.5px; line-height: 1.15; }
-.side .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--seat); grid-row: 1 / 3; align-self: start; margin-top: 3px; }
+.side .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--seat); align-self: start; margin-top: 3px; }
 .side .fname { font-weight: 800; }
-.side .fsum { color: var(--muted); font-size: 11.5px; min-height: 1.15em; }
 .side.open .fname { color: var(--muted); font-weight: 700; }
-.strength { grid-column: 2; display: flex; gap: 2px; margin-top: 2px; }
-.strength i { flex: 1; height: 3px; border-radius: 2px; background: var(--line); }
-.strength i.on { background: var(--seat); }
-.side.open .strength i.on { background: repeating-linear-gradient(90deg, var(--seat) 0 3px, transparent 3px 5px); }
+.side .fnote, .side .tie { grid-column: 1 / 3; color: var(--muted); font-size: 11.5px; }
 
 /* ---- Game: the reroll ------------------------------------------------------- */
 
@@ -223,7 +231,11 @@ button.danger { background: #8d2a24; border-color: #5b1712; color: #fff; box-sha
   .tool { min-height: 32px; padding: 4px 9px; font-size: 13px; }
   .tool.icon { width: 32px; }
   .tools [data-action="history"], .tools a.tool, .tools [data-action="closer"], .tools [data-action="farther"] { display: none; }
-  .players { top: 48px; left: 8px; right: 8px; width: auto; flex-direction: row; gap: 6px; }
+  .left-col { top: 48px; left: 8px; right: 8px; width: auto; }
+  .players { flex-direction: row; gap: 6px; }
+  .formations-toggle { display: inline-flex; }
+  .formations { display: none; position: fixed; z-index: 6; top: 112px; left: 8px; right: 8px; max-height: calc(100vh - 130px); overflow-y: auto; font-size: 13.5px; }
+  .show-formations .formations { display: block; }
   .player { flex: 1 1 0; min-width: 0; grid-template-columns: 22px 1fr auto; padding: 5px 8px 5px 6px; border-left-width: 4px; gap: 0 5px; }
   .player.active { transform: translateY(2px); }
   .player .name { font-size: 15px; }

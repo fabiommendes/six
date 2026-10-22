@@ -31,6 +31,16 @@ const stay = (selection: Selection, note: string | null = null): Outcome => ({ s
 /** The empty reroll the "Rolar de novo" button starts. */
 export const REROLL_START: Selection = { kind: "reroll", target: null, lost: null, dice: [] };
 
+/**
+ * The reroll the "Rolar de novo" button starts. A die of the own hand already
+ * selected opens it with the own hand chosen and that die marked to roll, so
+ * the player only has to pick the die to lose.
+ */
+export function rerollStart(view: View, selection: Selection): Selection {
+  if (selection.kind !== "die" || !view.players[view.toMove]?.hand[selection.die]) return REROLL_START;
+  return { kind: "reroll", target: view.toMove, lost: null, dice: [selection.die] };
+}
+
 /** The stones where the die selected may go. */
 export function placeTargets(view: View, selection: Selection): number[] {
   if (selection.kind !== "die") return [];

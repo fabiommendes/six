@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { View } from "../src/engine/game";
 import { SiaGame } from "../src/engine/game";
-import { click, diceMask, NONE, placeTargets, REROLL_START, rerollCommand, rerollPreview, selectedDie, type Selection } from "../src/logic/selection";
+import { click, diceMask, NONE, placeTargets, REROLL_START, rerollCommand, rerollPreview, rerollStart, selectedDie, type Selection } from "../src/logic/selection";
 
 /** A fresh game and its view: both hands have 7 dice and every stone is open. */
 function fresh(seed = 4n): { game: SiaGame; view: View } {
@@ -143,5 +143,22 @@ describe("rerolling", () => {
   it("makes the bit mask of dice", () => {
     expect(diceMask([])).toBe(0);
     expect(diceMask([0, 3, 6])).toBe(0b1001001);
+  });
+});
+
+describe("starting a reroll", () => {
+  it("opens empty when no die is selected", () => {
+    const { view } = fresh();
+    expect(rerollStart(view, NONE)).toEqual(REROLL_START);
+  });
+
+  it("opens with the own hand chosen and the selected die marked to roll", () => {
+    const { view } = fresh();
+    const started = rerollStart(view, { kind: "die", die: 2 });
+    expect(started).toEqual({ kind: "reroll", target: view.toMove, lost: null, dice: [2] });
+    expect(rerollPreview(view, started)?.rolled).toEqual([view.players[view.toMove]!.hand[2]]);
+    // Picking another die of the own hand now loses it.
+    const lost = click(view, started, { kind: "hand", seat: view.toMove, die: 5 });
+    expect(rerollCommand(lost.selection)).toEqual({ kind: "reroll", target: view.toMove, lost: 5, dice: diceMask([2]) });
   });
 });

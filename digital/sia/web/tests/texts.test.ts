@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { SiaGame, type Event, type View } from "../src/engine/game";
 import { NONE, REROLL_START } from "../src/logic/selection";
-import { ACTIONS, claimTag, dieText, endText, eventText, handText, happeningText, hint, stonesCount, TOOLS, turnTitle, winnersText } from "../src/logic/texts";
+import { ACTIONS, claimTag, dieText, endText, eventText, handText, happeningText, hint, sideLines, stonesCount, TOOLS, turnTitle, winnersText } from "../src/logic/texts";
 
 const names = ["Ana", "Beto"];
 
 /** Words `regras/sia/GLOSSARY.md` says never to use. */
-const FORBIDDEN = /\b(combina[cç][aã]o|jogada|coluna|pilha|bandeira|fronteira|territ[oó]rio|reserva|capturar|conquistar|capturou|conquistou)\b/i;
+const FORBIDDEN = /\b(combina[cç][aã]o|jogada|coluna|pilha|bandeira|fronteira|territ[oó]rio|reserva|capturar|conquistar|capturou|conquistou|saco|caixa)\b/i;
 
 /** Plays a whole game with the last legal command and returns all the events and the views. */
 function playedGame(seed: bigint): { events: Event[]; views: View[]; game: SiaGame } {
@@ -131,5 +131,20 @@ describe("small texts", () => {
 
   it("keeps the labels of the buttons free of the forbidden words", () => {
     for (const text of [...Object.values(ACTIONS), ...Object.values(TOOLS)]) expect(text).not.toMatch(FORBIDDEN);
+  });
+});
+
+describe("sideLines", () => {
+  const die = (value: number) => ({ value, suit: 0 });
+  const potential = { kind: "fourOfAKind", sum: 15 } as const;
+
+  it("reads a complete side by formation, place in the order and the sum as the tiebreak", () => {
+    expect(sideLines({ dice: [die(1), die(1), die(1)], formation: { kind: "threeOfAKind", sum: 14 }, potential })).toEqual({ title: "Trinca", note: "6ª de 8", tiebreak: "desempate: soma 14" });
+  });
+
+  it("reads an incomplete side by what is missing and what it can still be", () => {
+    expect(sideLines({ dice: [die(3)], formation: null, potential })).toEqual({ title: "Faltam 2 dados", note: "pode chegar a quadra", tiebreak: "" });
+    expect(sideLines({ dice: [die(3), die(3)], formation: null, potential }).title).toBe("Falta 1 dado");
+    expect(sideLines({ dice: [], formation: null, potential })).toEqual({ title: "Vazio", note: "faltam 3 dados", tiebreak: "" });
   });
 });

@@ -2,6 +2,7 @@ import {
   AmbientLight,
   BoxGeometry,
   CanvasTexture,
+  DoubleSide,
   DirectionalLight,
   Group,
   HemisphereLight,
@@ -39,8 +40,8 @@ import { drawBoard, drawLabel, drawMark, drawTrayTop, drawWood, shade, type Mark
 import {
   type Arrangement,
   arrangementFor,
+  BAG_SCALE,
   bagSpot,
-  boxSpot,
   claimedSpot,
   DIE_SIZE,
   extentPoints,
@@ -116,7 +117,11 @@ export interface Progress {
 const BOARD_Y = 0.05;
 const TRAY_Y = 0.045;
 const MARK_Y = 0.075;
-const PITCH = { initial: 0.6, min: 0.42, max: 1.12 } as const;
+/** The camera leans at a fixed angle from the vertical; only the zoom and the seat change the view. */
+const PITCH = 0.6;
+
+/** Height of the mouth of the bag over the table. */
+const BAG_HEIGHT = 2.7 * BAG_SCALE;
 const ZOOM = { min: 0.42, max: 1.18 } as const;
 const UP = new Vector3(0, 1, 0);
 const GROUND = new Plane(new Vector3(0, 1, 0), 0);
@@ -147,8 +152,8 @@ type Point3 = { x: number; y: number; z: number };
 
 /**
  * The table in 3D: the board of the Seks with the nine stones and the sides
- * of the two players, a hand tray for each, the bag and the box of the dice
- * lost. It shows a `View` at once, or plays the events of a command as
+ * of the two players, a hand tray for each and the bag (the dice drawn come
+ * out of it and the dice lost go back into it). It shows a `View` at once, or plays the events of a command as
  * animations, and reports the picks of the pointer.
  */
 export class Table3D {
@@ -162,9 +167,6 @@ export class Table3D {
   private readonly seats: Seat[] = [];
   private readonly bag = new Group();
   private readonly bagLabel: Sprite;
-  private readonly box = new Group();
-  private readonly boxLabel: Sprite;
-  private boxKey = "";
   private readonly textures: Texture[] = [];
   private readonly materials: Material[] = [];
   private readonly geometries: { dispose(): void }[] = [];
@@ -199,8 +201,6 @@ export class Table3D {
   private viewer = 0;
   private yaw = 0;
   private yawGoal = 0;
-  private pitch: number = PITCH.initial;
-  private pitchGoal: number = PITCH.initial;
   private zoom = 1;
   private zoomGoal = 1;
   private cameraKey = "";
@@ -211,7 +211,7 @@ export class Table3D {
   private lastFrame = 0;
   private readonly observer: ResizeObserver;
   private readonly pointers = new Map<number, { x: number; y: number }>();
-  private press: { x: number; y: number; moved: boolean; yaw: number; pitch: number } | null = null;
+  private press: { x: number; y: number; moved: boolean } | null = null;
   private pinch: { distance: number; zoom: number } | null = null;
   private disposed = false;
 
@@ -254,11 +254,9 @@ export class Table3D {
     this.buildTable();
     this.buildBoard();
     this.buildBag();
-    this.buildBox();
     for (let i = 0; i < 2; i++) this.seats.push(this.buildSeat(i));
     this.bagLabel = this.newLabelSprite();
-    this.boxLabel = this.newLabelSprite();
-    this.setLabel(this.bagLabel, "Saco", 0.55);
+    this.setLabel(this.bagLabel, "Bolsa", 0.55);
     this.applyArrangement(this.arrangement);
 
     this.canvas.addEventListener("pointerdown", this.onPointerDown);
@@ -275,8 +273,7 @@ export class Table3D {
     // The labels are drawn with the fonts of the page: draw them again once they are in.
     void document.fonts?.ready.then(() => {
       for (const seat of this.seats) seat.labelKey = "";
-      this.boxKey = "";
-      this.setLabel(this.bagLabel, "Saco", 0.55);
+      this.setLabel(this.bagLabel, "Bolsa", 0.55);
       if (this.view) this.updateLabels(this.view);
       this.dirty = true;
     });
@@ -338,46 +335,35 @@ export class Table3D {
     }
   }
 
+  /** A big pouch with a wide open mouth, so the dice are seen coming out of it and going back in. */
   private buildBag(): void {
-    const profile = [
-      [0.0, 0], [0.75, 0.02], [0.98, 0.25], [1.05, 0.62], [0.92, 1.05], [0.6, 1.35], [0.38, 1.5], [0.42, 1.62], [0.62, 1.82], [0.55, 1.9], [0.3, 1.78],
-    ].map(([x, y]) => new Vector2(x!, y!));
-    const geometry = new LatheGeometry(profile, 40);
-    this.geometries.push(geometry);
-    const cloth = this.material(new MeshStandardMaterial({ color: shade(COLORS.sia, -0.4), roughness: 0.95 }));
-    const body = new Mesh(geometry, cloth);
+    const outer = [
+      [0.0, 0], [1.1, 0.02], [1.65, 0.35], [1.85, 0.95], [1.65, 1.6], [1.3, 2.1], [1.12, 2.45], [1.25, 2.62], [1.12, 2.7],
+    ].map(([x, y]) => new Vector2(x! * BAG_SCALE, y! * BAG_SCALE));
+    const inner = [
+      [0.0, 0.5], [1.2, 0.5], [1.55, 1.0], [1.45, 1.6], [1.08, 2.1], [0.92, 2.5], [1.02, 2.66],
+    ].map(([x, y]) => new Vector2(x! * BAG_SCALE, y! * BAG_SCALE));
+    const outerGeometry = new LatheGeometry(outer, 48);
+    const innerGeometry = new LatheGeometry(inner, 48);
+    this.geometries.push(outerGeometry, innerGeometry);
+    const cloth = this.material(new MeshStandardMaterial({ color: shade(COLORS.sia, -0.35), roughness: 0.95 }));
+    const lining = this.material(new MeshStandardMaterial({ color: "#1B2430", roughness: 1, side: DoubleSide }));
+    const body = new Mesh(outerGeometry, cloth);
     body.castShadow = true;
     body.receiveShadow = true;
-    const cordGeometry = new TorusGeometry(0.42, 0.045, 8, 32).rotateX(Math.PI / 2);
-    this.geometries.push(cordGeometry);
-    const cord = new Mesh(cordGeometry, this.material(new MeshStandardMaterial({ color: "#D9C7A0", roughness: 0.8 })));
-    cord.position.y = 1.52;
+    this.bag.add(body, new Mesh(innerGeometry, lining));
+    // The hem of the mouth and the drawstring just under it.
+    const hemGeometry = new TorusGeometry(1.1 * BAG_SCALE, 0.07 * BAG_SCALE, 8, 48).rotateX(Math.PI / 2);
+    const cordGeometry = new TorusGeometry(1.2 * BAG_SCALE, 0.045 * BAG_SCALE, 8, 48).rotateX(Math.PI / 2);
+    this.geometries.push(hemGeometry, cordGeometry);
+    const rope = this.material(new MeshStandardMaterial({ color: "#D9C7A0", roughness: 0.8 }));
+    const hem = new Mesh(hemGeometry, rope);
+    hem.position.y = BAG_HEIGHT;
+    const cord = new Mesh(cordGeometry, rope);
+    cord.position.y = 2.2 * BAG_SCALE;
     cord.castShadow = true;
-    this.bag.add(body, cord);
+    this.bag.add(hem, cord);
     this.world.add(this.bag);
-  }
-
-  /** The box of the dice lost for ever: an open box of dark wood. */
-  private buildBox(): void {
-    const wood = this.material(new MeshStandardMaterial({ color: "#5A3A22", roughness: 0.65 }));
-    const inner = this.material(new MeshStandardMaterial({ color: "#2A1B10", roughness: 0.9 }));
-    const size = 2.1;
-    const floor = new BoxGeometry(size, 0.1, size);
-    const longWall = new BoxGeometry(size, 0.55, 0.12);
-    const shortWall = new BoxGeometry(0.12, 0.55, size);
-    this.geometries.push(floor, longWall, shortWall);
-    const base = new Mesh(floor, inner);
-    base.position.y = 0.05;
-    base.receiveShadow = true;
-    this.box.add(base);
-    for (const [geometry, x, z] of [[longWall, 0, size / 2], [longWall, 0, -size / 2], [shortWall, size / 2, 0], [shortWall, -size / 2, 0]] as const) {
-      const wall = new Mesh(geometry, wood);
-      wall.position.set(x, 0.3, z);
-      wall.castShadow = true;
-      wall.receiveShadow = true;
-      this.box.add(wall);
-    }
-    this.world.add(this.box);
   }
 
   private buildSeat(index: number): Seat {
@@ -457,10 +443,7 @@ export class Table3D {
     }
     const bag = bagSpot(arrangement);
     this.bag.position.set(bag.x, 0, bag.z);
-    this.bagLabel.position.set(bag.x, 2.3, bag.z);
-    const box = boxSpot(arrangement);
-    this.box.position.set(box.x, 0, box.z);
-    this.boxLabel.position.set(box.x, 1.2, box.z);
+    this.bagLabel.position.set(bag.x, BAG_HEIGHT + 2, bag.z);
     this.cameraKey = "";
     // The dice of the hands move to the spots of the new arrangement, wherever the animations left them.
     this.hands.forEach((dice, seat) => {
@@ -604,12 +587,6 @@ export class Table3D {
         this.setLabel(seat.label, text, 0.72, { background: active || won ? color : "rgba(251,248,241,0.94)", color: active || won ? "#FFFFFF" : COLORS.ink });
       }
     }
-    const lost = view.players.reduce((n, p) => n + p.lost, 0);
-    const boxKey = `${lost}`;
-    if (boxKey !== this.boxKey) {
-      this.boxKey = boxKey;
-      this.setLabel(this.boxLabel, lost === 0 ? "Caixa" : lost === 1 ? "Caixa · 1 dado perdido" : `Caixa · ${lost} dados perdidos`, 0.55);
-    }
     this.dirty = true;
   }
 
@@ -724,7 +701,6 @@ export class Table3D {
   resetView(): void {
     const home = this.viewer === 0 ? 0 : Math.PI;
     this.yawGoal = home + Math.round((this.yawGoal - home) / (2 * Math.PI)) * 2 * Math.PI;
-    this.pitchGoal = PITCH.initial;
     this.zoomGoal = 1;
     this.dirty = true;
   }
@@ -824,7 +800,7 @@ export class Table3D {
 
   private bagMouth(): Point3 {
     const at = bagSpot(this.arrangement);
-    return { x: at.x, y: 1.7, z: at.z };
+    return { x: at.x, y: BAG_HEIGHT, z: at.z };
   }
 
   /** A text that rises over a point of the table and fades. */
@@ -958,14 +934,14 @@ export class Table3D {
     for (const drawn of dice) {
       const die = new Die3D(drawn.suit, drawn.value, this.assets);
       const mouth = this.bagMouth();
-      die.root.position.set(mouth.x, mouth.y, mouth.z);
+      die.root.position.set(mouth.x, mouth.y - 0.9, mouth.z);
       die.tumbler.quaternion.random();
       this.world.add(die.root);
       const slot = this.hands[seat]!.length;
       this.hands[seat]!.push(die);
       this.puffBag();
       this.options.sounds.play("pick");
-      flights.push(this.fly(die, this.handPoint(seat, slot), orientation(drawn.value, seatAngle(seat)), { duration: 620, height: 1.6, tumble: 2 }).then(() => this.land(die, 0.7)));
+      flights.push(this.fly(die, this.handPoint(seat, slot), orientation(drawn.value, seatAngle(seat)), { duration: 700, height: 2.4, tumble: 2 }).then(() => this.land(die, 0.7)));
       await this.pause(dice.length > 4 ? 90 : 170);
     }
     await Promise.all(flights);
@@ -982,14 +958,20 @@ export class Table3D {
     await this.pause(600);
     this.setMarks({ ...NO_MARKS, active: event.player });
     if (lostDie) {
-      // The lost die goes to the box and does not come back.
+      // The lost die goes back into the bag: over the mouth, then down into it.
       lostDie.lift = 0;
-      const box = boxSpot(this.arrangement);
+      const mouth = this.bagMouth();
       own.splice(event.lostIndex, 1);
       void this.relayoutHand(event.player, 420);
-      this.float("Perdido para sempre", this.handPoint(event.player, 0), { background: "#8D2A24", height: 1.4, duration: 2000 });
-      await this.fly(lostDie, { x: box.x, y: 0.3, z: box.z }, lostDie.tumbler.quaternion.clone().multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 1).normalize(), 1.2)), { duration: 760, height: 2.4, tumble: 1 });
+      this.float("Volta para a bolsa", this.handPoint(event.player, 0), { background: "#8D2A24", height: 1.4, duration: 2000 });
+      await this.fly(lostDie, { x: mouth.x, y: mouth.y + 0.5, z: mouth.z }, lostDie.tumbler.quaternion.clone().multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 1).normalize(), 1.2)), { duration: 800, height: 2.4, tumble: 1 });
+      this.puffBag();
       this.options.sounds.play("land", 0.6);
+      const top = lostDie.root.position.clone();
+      await this.run(this.ms(260), (t) => {
+        lostDie.root.position.set(top.x, top.y - 1.8 * t, top.z);
+        lostDie.root.scale.setScalar(1 - 0.35 * t);
+      });
       this.world.remove(lostDie.root);
     }
     if (rolled.length > 0) {
@@ -1068,10 +1050,9 @@ export class Table3D {
     this.lastFrame = now;
     const k = 1 - Math.exp(-dt * 7);
     const settle = (value: number, goal: number) => (Math.abs(goal - value) < 1e-4 ? goal : value + (goal - value) * k);
-    const moving = this.yaw !== this.yawGoal || this.pitch !== this.pitchGoal || this.zoom !== this.zoomGoal;
+    const moving = this.yaw !== this.yawGoal || this.zoom !== this.zoomGoal;
     if (moving) {
       this.yaw = settle(this.yaw, this.yawGoal);
-      this.pitch = settle(this.pitch, this.pitchGoal);
       this.zoom = settle(this.zoom, this.zoomGoal);
       this.dirty = true;
     }
@@ -1106,7 +1087,7 @@ export class Table3D {
     const width = this.canvas.clientWidth || 1;
     const height = this.canvas.clientHeight || 1;
     const insets = this.options.insets();
-    const camKey = `${this.yaw}|${this.pitch}|${this.zoom}|${width}|${height}|${insets.top}|${insets.bottom}|${insets.left}|${insets.right}|${this.arrangement}`;
+    const camKey = `${this.yaw}|${this.zoom}|${width}|${height}|${insets.top}|${insets.bottom}|${insets.left}|${insets.right}|${this.arrangement}`;
     if (camKey === this.cameraKey) return;
     this.cameraKey = camKey;
     const camera = this.camera;
@@ -1118,7 +1099,7 @@ export class Table3D {
       bottom: -1 + (2 * insets.bottom) / height + 0.03,
       top: 1 - (2 * insets.top) / height - 0.03,
     };
-    const dir = new Vector3(Math.sin(this.yaw) * Math.sin(this.pitch), Math.cos(this.pitch), Math.cos(this.yaw) * Math.sin(this.pitch));
+    const dir = new Vector3(Math.sin(this.yaw) * Math.sin(PITCH), Math.cos(PITCH), Math.cos(this.yaw) * Math.sin(PITCH));
     const toward = new Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw));
     const right = new Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
     // Zooming in moves the eye towards the board.
@@ -1296,7 +1277,7 @@ export class Table3D {
       this.press = null;
       return;
     }
-    this.press = { x: event.clientX, y: event.clientY, moved: false, yaw: this.yawGoal, pitch: this.pitchGoal };
+    this.press = { x: event.clientX, y: event.clientY, moved: false };
   };
 
   private readonly onPointerMove = (event: PointerEvent) => {
@@ -1313,16 +1294,8 @@ export class Table3D {
       const dx = event.clientX - press.x;
       const dy = event.clientY - press.y;
       if (!press.moved && Math.hypot(dx, dy) > 8) press.moved = true;
-      if (press.moved) {
-        // Dragging turns the table and leans the camera.
-        this.yawGoal = press.yaw - (dx / Math.max(320, this.canvas.clientWidth)) * Math.PI * 1.2;
-        this.pitchGoal = Math.min(PITCH.max, Math.max(PITCH.min, press.pitch + (dy / Math.max(320, this.canvas.clientHeight)) * 1.2));
-        this.yaw = this.yawGoal;
-        this.pitch = this.pitchGoal;
-        this.dirty = true;
-        this.canvas.style.cursor = "grabbing";
-        return;
-      }
+      // A press that moved is not a tap: it picks nothing and does not turn the table.
+      if (press.moved) return;
     }
     if (event.pointerType === "touch") return;
     const pick = this.pick(event);
@@ -1377,7 +1350,7 @@ export class Table3D {
     for (const t of this.textures) t.dispose();
     for (const g of this.geometries) g.dispose();
     this.markGeometry.dispose();
-    for (const sprite of [this.bagLabel, this.boxLabel, ...this.claimTags, ...this.seats.map((s) => s.label)]) {
+    for (const sprite of [this.bagLabel, ...this.claimTags, ...this.seats.map((s) => s.label)]) {
       sprite.material.map?.dispose();
       sprite.material.dispose();
     }

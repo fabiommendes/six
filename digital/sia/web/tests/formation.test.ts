@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Die, SideView, View } from "../src/engine/game";
 import { SiaGame } from "../src/engine/game";
-import { claimable, compareFormations, FORMATION_NAMES, FORMATION_ORDER, formationText, longestRun, ownedStones, sideText, stoneLetter, strength } from "../src/logic/formation";
+import { claimable, compareFormations, FORMATION_NAMES, FORMATION_ORDER, FORMATION_RULES, FORMATIONS_BY_STRENGTH, formationText, rankText, longestRun, ownedStones, sideText, stoneLetter, strength } from "../src/logic/formation";
 
 const die = (value: number): Die => ({ value, suit: 0 });
 const side = (dice: Die[], formation: SideView["formation"], potential = { kind: "sum", sum: 0 } as SideView["potential"]): SideView => ({ dice, formation, potential });
@@ -74,5 +74,18 @@ describe("with the engine", () => {
         if (s.formation) expect(compareFormations(s.formation, s.potential)).toBe(0);
       }
     }
+  });
+});
+
+describe("the order of the formations for the cards", () => {
+  it("lists them from the strongest, each with what it is", () => {
+    expect(FORMATIONS_BY_STRENGTH.map((k) => FORMATION_NAMES[k])).toEqual(["Sequência de naipe", "Quadra", "Sequência", "Naipe", "Dois pares", "Trinca", "Par", "Soma"]);
+    expect(FORMATION_RULES.fourOfAKind).toBe("4 números iguais");
+  });
+
+  it("says the place of a kind counting from the strongest", () => {
+    expect(rankText("straightFlush")).toBe("1ª de 8");
+    expect(rankText("threeOfAKind")).toBe("6ª de 8");
+    expect(rankText("sum")).toBe("8ª de 8");
   });
 });

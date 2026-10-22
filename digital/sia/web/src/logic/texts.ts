@@ -1,5 +1,5 @@
-import type { Die, EndReason, Event, View } from "../engine/game";
-import { sideText, stoneLetter, formationText, FORMATION_NAMES } from "./formation";
+import type { Die, EndReason, Event, SideView, View } from "../engine/game";
+import { formationText, FORMATION_NAMES, rankText, SIDE_SIZE, sideText, stoneLetter } from "./formation";
 import { rerollPreview, type Selection } from "./selection";
 import { SUIT_NAMES } from "../ui/svg";
 
@@ -33,6 +33,7 @@ export const TOOLS = {
   soundOn: "Som ligado",
   soundOff: "Som desligado",
   history: "Histórico",
+  formations: "Formações",
   rules: "Regras",
   leave: "Sair",
   confirmLeave: "Sair e abandonar a partida?",
@@ -74,7 +75,7 @@ export function eventText(event: Event, names: readonly string[], view?: Pick<Vi
     case "stonesRolled":
       return `Os marcos foram rolados: ${event.stones.join(" ")}.`;
     case "drawn":
-      return event.dice.length === 0 ? null : `${name(event.player)} tirou do saco: ${dice(event.dice)}.`;
+      return event.dice.length === 0 ? null : `${name(event.player)} tirou da bolsa: ${dice(event.dice)}.`;
     case "turnStarted":
       return null;
     case "rerolled": {
@@ -99,7 +100,7 @@ export function eventText(event: Event, names: readonly string[], view?: Pick<Vi
 
 /** A short line about an event for the prompt while it plays on the table. */
 export function happeningText(event: Event, names: readonly string[], view?: Pick<View, "stones">): string | null {
-  if (event.kind === "drawn") return event.dice.length === 0 ? null : `${names[event.player]} tira ${plural(event.dice.length, "dado", "dados")} do saco.`;
+  if (event.kind === "drawn") return event.dice.length === 0 ? null : `${names[event.player]} tira ${plural(event.dice.length, "dado", "dados")} da bolsa.`;
   if (event.kind === "stonesRolled") return "Os marcos são rolados.";
   return eventText(event, names, view);
 }
@@ -164,10 +165,25 @@ export function claimTag(view: View, stoneIndex: number): string {
   return side?.formation ? `Reivindicar · ${formationText(side.formation)}` : "Reivindicar";
 }
 
-/** Reads a side for the cards: the name apart from the sum, or the progress. */
-export function sideParts(side: { dice: readonly Die[]; formation: { kind: keyof typeof FORMATION_NAMES; sum: number } | null }): { name: string; detail: string } {
-  if (side.formation) return { name: FORMATION_NAMES[side.formation.kind], detail: `soma ${side.formation.sum}` };
-  return { name: side.dice.length === 0 ? "Vazio" : `${side.dice.length} de 3`, detail: "" };
+/** The three lines of a side on the card of a stone. */
+export interface SideLines {
+  /** The formation, or what is missing. */
+  readonly title: string;
+  /** Its place in the order, or what the side can still become. */
+  readonly note: string;
+  /** The sum that breaks a tie, said as such; empty for a side not complete. */
+  readonly tiebreak: string;
+}
+
+/** Reads a side for the cards: the formation with its place in the order and the sum as the tiebreak, or what is missing. */
+export function sideLines(side: Pick<SideView, "dice" | "formation" | "potential">): SideLines {
+  if (side.formation) {
+    return { title: FORMATION_NAMES[side.formation.kind], note: rankText(side.formation.kind), tiebreak: `desempate: soma ${side.formation.sum}` };
+  }
+  const missing = SIDE_SIZE - side.dice.length;
+  const left = missing === 1 ? "falta 1 dado" : `faltam ${missing} dados`;
+  if (side.dice.length === 0) return { title: "Vazio", note: left, tiebreak: "" };
+  return { title: left[0]!.toUpperCase() + left.slice(1), note: `pode chegar a ${FORMATION_NAMES[side.potential.kind].toLowerCase()}`, tiebreak: "" };
 }
 
 export { sideText };

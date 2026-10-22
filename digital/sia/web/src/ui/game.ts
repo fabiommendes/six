@@ -1,9 +1,9 @@
 import { BotCancelled, type BotPlayer } from "../bot/client";
 import { botLevel } from "../bot/levels";
 import type { Command, Event, SiaGame, View } from "../engine/game";
-import { claimable, FORMATION_ORDER, SHORT_NAMES, longestRun, strength, stoneLetter } from "../logic/formation";
+import { claimable, FORMATION_RULES, FORMATIONS_BY_STRENGTH, FORMATION_NAMES, longestRun, stoneLetter } from "../logic/formation";
 import type { SeatBot } from "../logic/save";
-import { click, NONE, placeTargets, REROLL_START, rerollCommand, rerollPreview, selectedDie, type Click, type Selection } from "../logic/selection";
+import { click, NONE, placeTargets, rerollCommand, rerollPreview, rerollStart, selectedDie, type Click, type Selection } from "../logic/selection";
 import {
   ACTIONS,
   claimTag,
@@ -12,7 +12,7 @@ import {
   handText,
   happeningText,
   hint,
-  sideParts,
+  sideLines,
   stonesCount,
   TOOLS,
   turnTitle,
@@ -21,7 +21,7 @@ import {
 import { Sounds } from "../table/sound";
 import { NO_MARKS, Table3D, type Pick, type TableMarks } from "../table/table3d";
 import { esc, need } from "./dom";
-import { brandMark, dieIcon, emptySlot, seatColor, STONE_SUIT, strengthBar } from "./svg";
+import { brandMark, dieIcon, emptySlot, seatColor, STONE_SUIT } from "./svg";
 
 /** Lines of the history kept. */
 const LOG_LINES = 80;
@@ -68,6 +68,8 @@ export class GameScreen {
   /** The preparation is playing: the numbers of the stones are not yet known to the cards. */
   private preparing = false;
   private historyOpen = false;
+  /** On a narrow screen the card of the formations is hidden until asked for. */
+  private formationsOpen = false;
   private endCardOpen = true;
   /** The seat whose side is at the bottom of the screen. */
   private viewer = 0;
@@ -94,7 +96,10 @@ export class GameScreen {
         <div class="status" data-status></div>
         <nav class="tools" data-tools></nav>
       </header>
-      <aside class="players" data-players></aside>
+      <div class="left-col">
+        <aside class="players" data-players></aside>
+        <aside class="formations" data-formations aria-label="Formações"></aside>
+      </div>
       <section class="stones" data-stones aria-label="Marcos"></section>
       <div class="banner" data-banner aria-live="polite"></div>
       <section class="dock" data-dock></section>
@@ -117,13 +122,14 @@ export class GameScreen {
     }
     // The browser tests find the dice and the cells on the page through the table.
     if (import.meta.env.DEV) Object.assign(window, { siaTable: this.table, siaScreen: this });
+    need(host, "[data-formations]").innerHTML = formationsCard();
     this.viewer = this.firstViewer();
     this.table?.setViewer(this.viewer, true);
     host.onclick = (event) => this.onClick(event);
     host.onpointerover = (event) => this.onCardHover(event);
     document.onkeydown = (event) => this.onKey(event);
     this.resizeObserver = new ResizeObserver(() => this.table?.refit());
-    for (const selector of ["[data-players]", "[data-dock]", "[data-stones]", ".topbar"]) this.resizeObserver.observe(need(host, selector));
+    for (const selector of ["[data-players]", "[data-formations]", "[data-dock]", "[data-stones]", ".topbar"]) this.resizeObserver.observe(need(host, selector));
     if (options.fresh) {
       this.table?.showEmpty(this.view);
       this.render();
@@ -403,7 +409,7 @@ export class GameScreen {
     if (action !== "leave" && action !== "stay") this.dismissLeave();
     switch (action) {
       case "reroll":
-        if (this.personToMove && this.view.canReroll) this.select(REROLL_START);
+        if (this.personToMove && this.view.canReroll) this.select(rerollStart(this.view, this.selection));
         return;
       case "reroll-target": {
         if (this.selection.kind !== "reroll") return;
@@ -436,6 +442,10 @@ export class GameScreen {
       case "history":
         this.historyOpen = !this.historyOpen;
         this.renderHistory();
+        return this.renderTools();
+      case "formations":
+        this.formationsOpen = !this.formationsOpen;
+        this.root.classList.toggle("show-formations", this.formationsOpen);
         return this.renderTools();
       case "see-table":
         this.endCardOpen = false;
@@ -557,6 +567,7 @@ export class GameScreen {
           ? `<path ${stroke} d="M4 10v4h4l5 4V6L8 10H4z"/><path ${stroke} d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>`
           : `<path ${stroke} d="M4 10v4h4l5 4V6L8 10H4z"/><path ${stroke} d="M17 9l5 6M22 9l-5 6"/>`,
       )}</button>`,
+      `<button type="button" class="tool formations-toggle" data-action="formations" aria-pressed="${this.formationsOpen}">${TOOLS.formations}</button>`,
       `<button type="button" class="tool" data-action="history" aria-pressed="${this.historyOpen}">${TOOLS.history}</button>`,
       `<button type="button" class="tool" data-action="leave">${TOOLS.leave}</button>`,
     ].join("");
@@ -598,12 +609,9 @@ export class GameScreen {
     const claimableNow = this.personToMove ? new Set(claimable(view)) : new Set<number>();
     const side = (stone: number, seat: number) => {
       const s = view.stones[stone]!.sides[seat]!;
-      const parts = sideParts(s);
-      const kind = s.formation ? s.formation.kind : s.potential.kind;
-      const label = parts.name;
-      const detail = s.formation ? parts.detail : s.dice.length === 0 ? "" : `até ${esc(SHORT_NAMES[kind])}`;
-      const bar = strengthBar(strength(kind) + 1, FORMATION_ORDER.length);
-      return `<div class="side${s.formation ? "" : " open"}" style="--seat:${seatColor(seat)}"><i class="dot"></i><span class="fname">${esc(label)}</span><span class="fsum">${detail}</span>${bar}</div>`;
+      const lines = sideLines(s);
+      const tiebreak = lines.tiebreak ? `<span class="tie">${esc(lines.tiebreak)}</span>` : "";
+      return `<div class="side${s.formation ? "" : " open"}" style="--seat:${seatColor(seat)}" title="${esc(this.names[seat]!)}"><i class="dot"></i><span class="fname">${esc(lines.title)}</span><span class="fnote">${esc(lines.note)}</span>${tiebreak}</div>`;
     };
     need(this.host, "[data-stones]").innerHTML = order
       .map((i) => {
@@ -713,4 +721,15 @@ export class GameScreen {
       <div class="actions"><button type="button" data-action="see-table">${TOOLS.seeTable}</button><button type="button" class="primary" data-action="new-game">${ACTIONS.newGame}</button></div>
     </div>`;
   }
+}
+
+/** The fixed card of the formations: the order, what each one is, and how a tie is broken. */
+function formationsCard(): string {
+  const rows = FORMATIONS_BY_STRENGTH.map(
+    (kind, i) => `<li><span class="pos">${i + 1}</span><div><b>${esc(FORMATION_NAMES[kind])}</b><span>${esc(FORMATION_RULES[kind])}</span></div></li>`,
+  ).join("");
+  return `<h2>Formações</h2>
+    <p class="sub">Da mais forte para a mais fraca. Cada lado vale pelos 3 dados do jogador mais o marco.</p>
+    <ol>${rows}</ol>
+    <p class="tie-rule"><b>Desempate:</b> a formação do mesmo tipo com maior soma dos 4 números vence; se a soma empata, vence quem completou o lado primeiro.</p>`;
 }

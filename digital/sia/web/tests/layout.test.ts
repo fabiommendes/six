@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   arrangementFor,
+  BAG_RADIUS,
   bagSpot,
-  boxSpot,
   claimedSpot,
   extentPoints,
   frameLayout,
@@ -118,11 +118,10 @@ describe("the arrangement", () => {
     expect(arrangementFor(390 / 600)).toBe("tall");
   });
 
-  it("keeps the bag and the box off the board and the trays", () => {
+  it("keeps the bag off the board and the trays", () => {
     for (const arrangement of ["wide", "tall"] as const) {
-      for (const spot of [bagSpot(arrangement), boxSpot(arrangement)]) {
-        expect(Math.max(Math.abs(spot.x), Math.abs(spot.z))).toBeGreaterThan(6.8);
-      }
+      const spot = bagSpot(arrangement);
+      expect(Math.max(Math.abs(spot.x), Math.abs(spot.z)) - BAG_RADIUS).toBeGreaterThan(6.8);
       expect(extentPoints(arrangement).length).toBeGreaterThan(8);
     }
   });

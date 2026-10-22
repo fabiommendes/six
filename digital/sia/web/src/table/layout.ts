@@ -113,18 +113,17 @@ export function handSpot(seat: number, slot: number, arrangement: Arrangement, s
   return seatToTable(seat, at);
 }
 
-/** Where the bag stands. */
-export function bagSpot(arrangement: Arrangement): Spot {
-  if (arrangement === "wide") return { x: -(BOARD_HALF + 2.3), z: BOARD_HALF - 1.4 };
-  const tray = traySize(arrangement);
-  return { x: -(tray.width / 2 + 1.5), z: trayCentre(0, arrangement).z };
-}
+/** Radius the bag takes on the table, with some air around it. */
+export const BAG_RADIUS = 2.5;
 
-/** Where the box stands: the dice lost for ever go there. */
-export function boxSpot(arrangement: Arrangement): Spot {
-  if (arrangement === "wide") return { x: BOARD_HALF + 2.5, z: -(BOARD_HALF - 1.4) };
+/** How much bigger than the first sketch the bag is drawn. */
+export const BAG_SCALE = 1.25;
+
+/** Where the bag stands: the dice are drawn from it and the dice lost go back into it. */
+export function bagSpot(arrangement: Arrangement): Spot {
+  if (arrangement === "wide") return { x: -(BOARD_HALF + 3.2), z: BOARD_HALF - 1.6 };
   const tray = traySize(arrangement);
-  return { x: tray.width / 2 + 1.5, z: trayCentre(0, arrangement).z };
+  return { x: -(tray.width / 2 + 2.6), z: Math.max(trayCentre(0, arrangement).z, BOARD_HALF + BAG_RADIUS + 0.2) };
 }
 
 /** The points the camera keeps in view: the corners of everything on the table. */
@@ -141,9 +140,8 @@ export function extentPoints(arrangement: Arrangement): Spot[] {
     // The label is wider than the tray.
     for (const sx of [-1, 1]) points.push({ x: c.x + sx * 2.9, z: c.z + outward * (size.depth / 2 + 0.75) });
   }
-  for (const spot of [bagSpot(arrangement), boxSpot(arrangement)]) {
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) points.push({ x: spot.x + sx * 1.1, z: spot.z + sz * 1.1 });
-  }
+  const bag = bagSpot(arrangement);
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) points.push({ x: bag.x + sx * BAG_RADIUS, z: bag.z + sz * BAG_RADIUS });
   return points;
 }
 
