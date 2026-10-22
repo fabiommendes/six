@@ -23,17 +23,13 @@ Depois do passo 4 de cada turno, se nenhum dos dois jogadores pode pôr um
 dado, o jogo acaba. Um jogador pode pôr um dado se existe um marco não
 tomado em que o seu lado tem menos de 3 dados.
 
-Então os marcos que ainda não foram tomados se resolvem:
+Nesse momento, todo marco ainda não tomado tem os dois lados completos. Cada
+um vai para quem tem a melhor formação, com o desempate de
+[04-formacoes.md](04-formacoes.md#desempate). Vence quem tem mais marcos,
+contando os que tomou antes e os que ganhou agora.
 
-- se os dois lados estão completos, o marco é de quem tem a melhor
-  formação, com o desempate de [04-formacoes.md](04-formacoes.md#desempate);
-- se só um lado está completo, o marco é desse lado;
-- se nenhum lado está completo, o marco não tem dono.
-
-Vence quem tem mais marcos, contando os que tomou antes e os que ganhou agora.
-
-> **Proposta:** se os dois têm o mesmo número de marcos, a partida termina
-> empatada.
+> **Detalhe:** a partida não empata. Os 9 marcos sempre têm dono no fim, e
+> 9 é ímpar.
 
 > **Proposta:** se um jogador não pode pôr dado, mas o outro pode, o jogo
 > continua. O que não pode pôr dado ainda pode rolar de novo e reivindicar.
