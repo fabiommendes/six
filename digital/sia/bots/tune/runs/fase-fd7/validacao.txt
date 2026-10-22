@@ -1,0 +1,2 @@
+2000 deals (4000 games), hand of 7, --three-dice --wild-suit, seeds 500000, 30 generations
+fd7/best.json vs maos.json: +2909 =0 -1091, Elo +170 [+158, +183]

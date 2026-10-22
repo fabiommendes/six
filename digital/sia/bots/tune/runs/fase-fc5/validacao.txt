@@ -1,0 +1,2 @@
+2000 deals (4000 games), hand of 5, --four-below-run-only --wild-suit, seeds 500000, 30 generations
+fc5/best.json vs maos.json: +3165 =0 -835, Elo +231 [+219, +245]
