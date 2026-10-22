@@ -165,6 +165,160 @@ pares, porque a trinca e o par leem só os 3 dados do lado. Combinar (a) e
   Não há compensação intermediária com dados inteiros.
 - Tirar a rolagem do primeiro turno desloca 1 ponto, dentro do ruído.
 
+## Regra padrão contra a variante (b), calibrada
+
+Pedido do designer: medir a variante (b) (`--stone-only-sequences`: o marco
+só conta para sequência e naipe) a fundo antes de decidir. Medições de
+2026-10-21; arquivos em `tune/runs/fase-b/` e saídas em `runs/medicoes/b-*`.
+
+### Calibração para (b)
+
+`tune/fase-b.json`: igual à fase 1 (CMA-ES, 12 candidatos, 300 partidas por
+candidato, `greedy` contra `greedy` com os pesos à mão, mão de 7), com a
+flag da variante em `flags`, 60 gerações (a fitness parou em torno de 0,78
+depois da geração 30; 30 e 60 empatam: +3 Elo [-7, +14]). Sementes que a
+busca não usou (500000), 4000 partidas, com a variante:
+
+| Comparação | Elo |
+|---|---|
+| calibrado (b) contra pesos à mão | +249 [+236, +263] |
+| calibrado (b) contra pesos calibrados do padrão | +138 [+126, +149] |
+
+| Peso | Padrão | (b) |
+|---|---|---|
+| `adjacent` | 0,21 | 0,58 |
+| `prob` | 1,47 | 0,22 |
+| `sure` | 0,08 | 0,96 |
+| `neighbors` | 0,81 | 0,05 |
+| `placed` | -0,30 | -0,47 |
+| `lost` | -0,53 | -0,59 |
+| `hand` | 0,42 | 0,28 |
+| `opp_hand` | -1,43 | -1,53 |
+
+Leitura: em (b) os pesos à mão eram ruins (a avaliação deles supunha a
+quadra). O bot calibrado passa a valorizar o que já está garantido
+(`sure`) e a adjacência dos dados, e quase ignora a probabilidade e os
+vizinhos. Cobrar o dado perdido e a mão do adversário não muda.
+
+### Lado a lado
+
+`greedy` x `greedy`, 4000 partidas (sementes 900000), cada regra com os seus
+pesos; `pimc` x `pimc`, 300 partidas (sementes 800000, intervalo de 95%).
+
+| | Padrão `greedy` | (b) `greedy` | Padrão `pimc` | (b) `pimc` |
+|---|---|---|---|---|
+| Formação mais comum nos lados | quadra 45% | sequência 39% | quadra 45% | sequência 34% |
+| Segunda e terceira | naipe 30%, seq. 9% | naipe 26%, seq. de naipe 12% | naipe 22%, seq. 10% | naipe 30%, seq. de naipe 13% |
+| Formação mais comum nas reivindicações | quadra 59% | sequência 49% | quadra 66% | sequência 46% |
+| Reivindicações por prova | 53% | 63% | 44% | 32% |
+| Turnos (média) | 44,2 | 46,3 | 47,6 | 49,8 |
+| Fim: 5 marcos / 3 vizinhos / sem lugar | 30 / 58 / 12% | 15 / 59 / 26% | 30 / 55 / 15% | 20 / 58 / 22% |
+| Marcos decididos no fim por falta de lugar | 0,18 por partida | 1,26 | 0,18 | 0,60 |
+| Primeiro vence | 51,1% [49,6; 52,7] | 49,8% [48,3; 51,3] | 53,3% [47,7; 58,9] | 43,3% [37,8; 49,0] |
+| Rolagens por partida | 7,9 | 9,9 | 8,2 | 6,8 |
+| Sua própria mão / a do adversário | 4,9 / 3,0 | 4,5 / 5,4 | 3,4 / 4,8 | 3,0 / 3,8 |
+| Dados perdidos por jogador (média) | 3,9 | 5,0 | 4,1 | 3,4 |
+| Jogadores que acabam com 1 dado (6 perdidos) | 30% | 54% | 30% | 13% |
+| Tipos de formação por partida, lados / reivindicações | 4,1 / 2,8 | 4,4 / 2,6 | 4,9 / 2,6 | 4,7 / 2,7 |
+| Entropia dos lados / das reivindicações (bits, máx. 3) | 2,12 / 1,68 | 2,21 / 1,82 | 2,34 / 1,57 | 2,26 / 1,68 |
+
+Com os pesos calibrados, (b) não tira a formação dominante: a quadra vira
+sequência (e a sequência de naipe, que é sequência, acompanha). Com os
+pesos do padrão nenhuma formação passava de 35% dos lados; recalibrado, o
+bot passa a perseguir a sequência. A fatia da formação mais comum nos lados cai
+de 45% para 34% a 39%, e das reivindicações de 59 a 66% para 46 a 49%:
+melhora, mas é a mesma situação.
+
+(b) também traz custos. Mais partidas acabam por falta de lugar (22% a 26%
+contra 12% a 15%) e 1,26 marco por partida se decide no fim, no caso do
+`greedy`: sequência e naipe pedem dados de números certos, então os lados
+ficam incompletos com mais frequência. Com o `pimc`, o primeiro jogador
+vence 43% das vezes em (b) (intervalo até 49,0%); com 300 partidas é um
+indício, não uma medida, e com o `greedy` e 4000 partidas some (49,8%).
+
+### (i) Dependência de rolar de novo
+
+Elo de quem nunca rola de novo (`cands=0`) contra o mesmo bot que rola:
+
+| Bot | Padrão | (b) |
+|---|---|---|
+| `greedy` (4000 partidas) | -84 [-95, -73] | -30 [-41, -19] |
+| `pimc` (300 partidas) | -156 [-202, -114] | -134 [-178, -93] |
+
+Rolar de novo vale menos em (b) para o `greedy` e o mesmo para o `pimc`
+(os intervalos se sobrepõem). Em nenhuma regra o jogo depende de rolar:
+sem rolar o `greedy` ainda ganha 38% (padrão) e 46% (b) das partidas, e o
+`pimc` uns 30%. Em (b) o `greedy` rola mais e
+mais na mão do adversário (5,4 contra 3,0 por partida), mas ganha menos com
+isso.
+
+### (ii) Variedade da decisão
+
+Duas medidas simples:
+
+- Tipos de formação diferentes por partida (e entropia da distribuição de
+  formações, em bits): mede quantas "vias" aparecem. Em ambas as regras
+  são 4 a 5 tipos nos lados e 2,6 a 2,8 nas reivindicações; a entropia
+  fica entre 2,1 e 2,3 bits nos lados. As regras não se distinguem: a
+  variedade dos lados é a mesma, só muda quem domina.
+- Quanto a escolha de onde pôr importa: Elo do `greedy` que olha só a
+  colocação de maior ganho de chance (`places=1`) contra o que olha as 10
+  melhores. No padrão a perda é pequena (-27 Elo [-38, -17]); em (b) é
+  grande (-294 [-309, -280]).
+
+A segunda medida é a que diferencia: em (b) o marco passa a contar só para
+sequência e naipe, então onde pôr cada dado muda muito a chance dos lados, e
+a decisão de colocação carrega peso. No padrão a escolha é quase única (a
+que sobe mais a chance), porque a quadra com o marco aceita qualquer dado
+igual a ele.
+
+### Dados perdidos e o nível fácil
+
+O problema da web: partidas entre bots chegam a mãos de 1 dado. É da regra
+mais do que do nível: com o `greedy` calibrado, 30% dos jogadores perdem os
+6 dados no padrão e 54% em (b); o `pimc` perde 30% e 13%. A distribuição
+completa de dados perdidos por jogador no fim (0 a 6) está nas linhas
+`lost per seat` das saídas.
+
+O nível fácil (`greedy:noise=2`) era absurdo: o ruído de 2 pontos ficava
+maior do que o custo de rolar de novo, então ele sorteava rolagens como se
+fossem jogadas comuns. Resultado: 12 rolagens por partida, e **98% dos
+jogadores terminavam com 1 dado** (6 perdidos), nas duas regras.
+
+Ajuste (aplicado em `Greedy::pick`): o ruído não alcança o rolar de novo,
+que só entra no sorteio quando é o melhor comando. Com ele, 2,2 rolagens
+por partida, média de 1,1 dado perdido por jogador (33% sem perder, 37%
+com 1, 20% com 2) e partidas de 50 turnos. Efeito no nível, 4000 partidas:
+
+| | Antes | Depois |
+|---|---|---|
+| Fácil contra `random` | +404 Elo [+369, +446] | +1079 [+928, +inf] (998 a 2) |
+| Fácil contra `greedy` (médio) | -1059 [-1243, -971] (9 a 3991) | -460 [-483, -439] (265 a 3735) |
+
+O fácil melhora, porque deixa de queimar os próprios dados, e ainda perde
+91% das partidas contra o médio. A diferença entre os níveis encolhe mas se
+mantém clara; se o designer quiser o fácil mais fraco, basta subir o ruído
+(`noise=3`). O mesmo vale para (b) (-521 contra o médio).
+
+### Conclusões e recomendação
+
+- A variante (b) não resolve a dominância: a quadra sai e a sequência
+  entra no lugar, com 34% a 39% dos lados e 46% a 49% das reivindicações.
+  A queda é de uns 10 pontos, não uma mudança de natureza.
+- A variedade de formações por partida é igual nas duas regras. O que (b)
+  muda de fato é onde pôr o dado, que passa a importar muito, e o custo
+  é mais partidas sem lugar e mais marcos decididos no fim.
+- O jogo não depende de rolar de novo em nenhuma das duas; em (b) a
+  dependência é menor para o `greedy`.
+- **Recomendação:** manter a regra padrão. O ganho de (b) é pequeno para o
+  custo de reescrever as formações e o glossário, e traz partidas sem
+  lugar. Se o designer quiser atacar a dominância, o próximo teste é o
+  item 4 abaixo (rolar de novo custar mais), que ataca a causa
+  (a rolagem custa pouco e o dado perdido não pesa): o problema dos
+  jogadores com 1 dado também é da regra e (b) não o resolve. Se a decisão
+  de "onde pôr" for o que interessa ao designer, (b) é a variante a
+  considerar.
+
 ## Conclusões de design
 
 - O motor funciona: sem empates, partidas de 44 turnos com final variado, e
@@ -181,14 +335,12 @@ pares, porque a trinca e o par leem só os 3 dados do lado. Combinar (a) e
 
 Nada disto foi aplicado em `regras/`; é para o designer decidir.
 
-1. Se a quadra dominante incomodar, testar a variante (b), em que o marco
-   só entra na sequência e no naipe. Ela remove quadra e dois pares, então
-   a ordem das formações e o glossário mudam. Antes de adotar: recalibrar
-   os pesos para ela, medir com o `pimc` e olhar se o jogo continua com
-   decisões (a avaliação do bot já lê a variante).
+1. A variante (b), em que o marco só entra na sequência e no naipe, foi
+   recalibrada e medida com o `pimc` (seção acima): não resolve a
+   dominância, a sequência assume o lugar da quadra. Não recomendada.
 2. Reescrever `regras/sia/05-fim-do-jogo.md` sem os casos de empate por
    falta de lugar, que não ocorrem.
 3. Manter 7 dados, sem compensação para o segundo jogador.
 4. Alternativa não testada para a quadra: rolar de novo custar mais (por
    exemplo, perder um dado e não poder rolar a própria mão duas vezes
-   seguidas). Só vale medir se (b) não agradar.
+   seguidas). É o próximo teste, agora que (b) foi medida.
