@@ -3,7 +3,8 @@
 //! ```text
 //! sia-bots batch --bots A,B [--games G] [--seed S] [--hand-size N]
 //!                [--no-rotate] [--threads T] [--out FILE.jsonl]
-//!                [--four-below-run] [--stone-only-sequences]
+//!                [--four-below-run] [--four-below-run-only]
+//!                [--stone-only-sequences]
 //!                [--second-bonus N] [--first-no-reroll]
 //! ```
 //!
@@ -11,7 +12,7 @@
 //! (a `key=value` piece belongs to the spec before it); with one spec, both
 //! seats play it. `--games` counts deals: with rotation (the default) each
 //! deal is played twice, with the seats swapped. `--hand-size` changes the
-//! dice in a hand (7 by default) for experiments. The last four flags are
+//! dice in a hand (7 by default) for experiments. The last five flags are
 //! rule variants for experiments (`sia_engine::experiment`); the rules do
 //! not have them. The summary goes to the
 //! standard output; `--out` writes one JSON line per game.
@@ -82,6 +83,7 @@ fn run_batch(args: &[String]) -> Result<(), String> {
             "--out" => out = Some(value(args, &mut i, flag)?.to_string()),
             "--no-rotate" => config.rotate = false,
             "--four-below-run" => variant.four_below_run = true,
+            "--four-below-run-only" => variant.four_below_run_only = true,
             "--stone-only-sequences" => variant.stone_only_for_sequences = true,
             "--second-bonus" => variant.second_bonus = number(value(args, &mut i, flag)?, flag)?,
             "--first-no-reroll" => variant.first_turn_without_reroll = true,

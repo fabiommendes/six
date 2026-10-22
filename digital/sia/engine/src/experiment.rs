@@ -11,6 +11,11 @@ pub struct Variant {
     /// Four of a kind ranks below the flush and the run (order: sum, pair,
     /// three, two pairs, four, flush, run, straight flush).
     pub four_below_run: bool,
+    /// Four of a kind ranks below the run but stays above the flush (order:
+    /// sum, pair, three, two pairs, flush, four, run, straight flush). The
+    /// stone still counts for every kind. Unlike `four_below_run`, which
+    /// puts the four below the flush as well; that one wins if both are on.
+    pub four_below_run_only: bool,
     /// The stone counts only for the run and the flush: the kinds made of
     /// equal numbers (pair, three, two pairs, four) read the 3 dice alone,
     /// so there is no four of a kind and no two pairs.
@@ -22,6 +27,7 @@ pub struct Variant {
 }
 
 static FOUR_BELOW_RUN: AtomicU8 = AtomicU8::new(0);
+static FOUR_BELOW_RUN_ONLY: AtomicU8 = AtomicU8::new(0);
 static STONE_ONLY: AtomicU8 = AtomicU8::new(0);
 static SECOND_BONUS: AtomicU8 = AtomicU8::new(0);
 static FIRST_NO_REROLL: AtomicU8 = AtomicU8::new(0);
@@ -29,6 +35,7 @@ static FIRST_NO_REROLL: AtomicU8 = AtomicU8::new(0);
 /// Sets the variant for every game of the process.
 pub fn set_variant(variant: Variant) {
     FOUR_BELOW_RUN.store(variant.four_below_run.into(), Ordering::Relaxed);
+    FOUR_BELOW_RUN_ONLY.store(variant.four_below_run_only.into(), Ordering::Relaxed);
     STONE_ONLY.store(variant.stone_only_for_sequences.into(), Ordering::Relaxed);
     SECOND_BONUS.store(variant.second_bonus, Ordering::Relaxed);
     FIRST_NO_REROLL.store(variant.first_turn_without_reroll.into(), Ordering::Relaxed);
@@ -38,6 +45,7 @@ pub fn set_variant(variant: Variant) {
 pub fn variant() -> Variant {
     Variant {
         four_below_run: FOUR_BELOW_RUN.load(Ordering::Relaxed) != 0,
+        four_below_run_only: FOUR_BELOW_RUN_ONLY.load(Ordering::Relaxed) != 0,
         stone_only_for_sequences: STONE_ONLY.load(Ordering::Relaxed) != 0,
         second_bonus: SECOND_BONUS.load(Ordering::Relaxed),
         first_turn_without_reroll: FIRST_NO_REROLL.load(Ordering::Relaxed) != 0,
@@ -50,4 +58,8 @@ pub(crate) fn four_below_run() -> bool {
 
 pub(crate) fn stone_only_for_sequences() -> bool {
     STONE_ONLY.load(Ordering::Relaxed) != 0
+}
+
+pub(crate) fn four_below_run_only() -> bool {
+    FOUR_BELOW_RUN_ONLY.load(Ordering::Relaxed) != 0
 }

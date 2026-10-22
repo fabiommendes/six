@@ -52,6 +52,14 @@ impl FormationKind {
                 _ => {}
             }
         }
+        if crate::experiment::four_below_run_only() {
+            match self {
+                FormationKind::Flush => return 4,
+                FormationKind::FourOfAKind => return 5,
+                FormationKind::Run => return 6,
+                _ => {}
+            }
+        }
         self as usize
     }
 }
