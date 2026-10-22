@@ -1,0 +1,2 @@
+2000 deals (4000 games), hand of 7, --three-dice, seeds 500000, 30 generations
+d7/best.json vs maos.json: +2760 =0 -1240, Elo +139 [+127, +151]

@@ -1,0 +1,2 @@
+2000 deals (4000 games), hand of 7, --place-on-opponent, seeds 500000, 30 generations
+e7/best.json vs maos.json: +3087 =0 -913, Elo +212 [+199, +225]
