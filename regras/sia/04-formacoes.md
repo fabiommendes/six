@@ -59,7 +59,7 @@ Há dois casos.
 - **O lado do adversário está incompleto.** O jogador toma o marco se a sua
   formação vence **toda** formação que o adversário ainda pode completar
   naquele lado. Para isso, cada dado que falta pode ter qualquer número de 1
-  a 6 e qualquer dos 4 naipes do saco.
+  a 6 e qualquer dos 4 naipes da bolsa.
 
 > **Detalhe:** na prova, se uma formação possível do adversário empata com a
 > do jogador em tipo e soma, o jogador vence, porque o seu lado foi
@@ -70,7 +70,7 @@ Há dois casos.
 > marco não for tomado. Até lá, o marco ainda aceita dados de um lado
 > incompleto, mas não de um lado completo.
 
-> **Detalhe:** a prova não olha a mão do adversário nem o saco. Um dado que
+> **Detalhe:** a prova não olha a mão do adversário nem a bolsa. Um dado que
 > o adversário tem na mão não limita o que ele pode pôr.
 
 > **Design:** os números não se esgotam, então a prova não conta dados, como

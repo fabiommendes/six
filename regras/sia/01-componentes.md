@@ -9,15 +9,15 @@ tags: [sia, regras, componentes]
 Do kit físico (ver [../kit.md](../kit.md)), o Sia usa:
 
 - 9 dados de um **naipe**, que são os **marcos**;
-- um **saco** com dados dos outros 4 naipes, de onde os dados saem sem que se
+- uma **bolsa** com dados dos outros 4 naipes, de onde os dados saem sem que se
   veja qual;
 - o tabuleiro de 11 por 11 casas do Seks.
 
 Um **naipe** é uma cor de dado. O jogo tem 5 naipes: um é o dos marcos, e os
-outros 4 são os do saco.
+outros 4 são os da bolsa.
 
-> **Proposta:** o saco não tem limite de dados. No físico, o kit decide
-> depois quantos dados cada naipe tem. No digital, o saco nunca acaba.
+> **Proposta:** a bolsa não tem limite de dados. No físico, o kit decide
+> depois quantos dados cada naipe tem. No digital, a bolsa nunca acaba.
 
 ## O tabuleiro
 

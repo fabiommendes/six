@@ -4,9 +4,19 @@ Definições dos termos do Sia e o termo em inglês de cada um. As regras em
 `regras/sia/` usam estes termos sempre com o sentido definido aqui. O formato
 é o de `regras/seks/GLOSSARY.md`.
 
+## Bolsa
+
+Onde ficam os dados dos 4 naipes que não são o dos marcos. Não tem limite de
+dados. Os dados saem dela para a mão, e o dado perdido ao rolar de novo volta
+para ela.
+
+en: bag
+Ver também: Mão, Naipe, Rolar de novo
+Não usar: saco, caixa
+
 ## Dado
 
-Cada peça rolada do jogo: os marcos, os dados do saco e os da mão. O número
+Cada peça rolada do jogo: os marcos, os dados da bolsa e os da mão. O número
 que mostra é o que conta.
 
 en: die
@@ -50,16 +60,16 @@ Não usar: bandeira, fronteira, território
 ## Mão
 
 Os dados que um jogador guarda para pôr depois. Começa com 7, fica à vista
-dos dois, e ganha dados do saco no fim de cada turno, até 7 menos os dados
+dos dois, e ganha dados da bolsa no fim de cada turno, até 7 menos os dados
 perdidos.
 
 en: hand
-Ver também: Rolar de novo, Saco
+Ver também: Rolar de novo, Bolsa
 Não usar: reserva
 
 ## Naipe
 
-A cor de um dado. O jogo tem 5: o dos marcos e os 4 do saco. O naipe do
+A cor de um dado. O jogo tem 5: o dos marcos e os 4 da bolsa. O naipe do
 marco vale como qualquer naipe na formação.
 
 en: suit
@@ -103,18 +113,11 @@ Não usar: capturar, conquistar
 ## Rolar de novo
 
 Rolar uma segunda vez dados de uma mão, a própria ou a do adversário, no
-passo 1 do turno, ao custo de um dado da própria mão, perdido para sempre.
+passo 1 do turno, ao custo de um dado da própria mão, perdido para sempre: ele volta para a
+bolsa.
 
 en: reroll
 Ver também: Mão
-
-## Saco
-
-Onde ficam os dados dos 4 naipes que não são o dos marcos. Não tem limite de
-dados. Os dados saem dele para a mão.
-
-en: bag
-Ver também: Mão, Naipe
 
 ## Sequência
 

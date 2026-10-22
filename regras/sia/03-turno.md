@@ -15,8 +15,8 @@ O jogador escolhe uma **mão**, a sua ou a do adversário, e rola de novo
 quantos dados dela quiser, os que escolher.
 
 Antes de rolar, o jogador **perde para sempre** um dado da própria mão,
-escolhido por ele. O dado volta à caixa, e a mão dele passa a ter um dado a
-menos até o fim da partida.
+escolhido por ele. O dado volta para a bolsa, e a mão dele passa a ter um
+dado a menos até o fim da partida.
 
 - O jogador que tem só 1 dado na mão não pode rolar de novo, nem a mão do
   adversário.
@@ -54,7 +54,7 @@ O passo é obrigatório, se houver lugar.
 
 ## 4. Repor
 
-O jogador tira dados do saco, rola cada um e os põe na mão, até ter 7 dados
+O jogador tira dados da bolsa, rola cada um e os põe na mão, até ter 7 dados
 menos os que perdeu na partida. Se já tem esse número, não tira nenhum.
 
 > **Detalhe:** com 0 dados perdidos, a mão volta a 7 depois de pôr um dado.

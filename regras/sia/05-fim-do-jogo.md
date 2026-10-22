@@ -38,5 +38,5 @@ Vence quem tem mais marcos, contando os que tomou antes e os que ganhou agora.
 > **Proposta:** se um jogador não pode pôr dado, mas o outro pode, o jogo
 > continua. O que não pode pôr dado ainda pode rolar de novo e reivindicar.
 
-> **Detalhe:** o saco nunca acaba no digital, então ele não encerra a
+> **Detalhe:** a bolsa nunca acaba no digital, então ela não encerra a
 > partida. No físico, o kit decide depois.
