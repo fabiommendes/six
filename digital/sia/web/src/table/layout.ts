@@ -117,8 +117,8 @@ export function handSpot(seat: number, slot: number, arrangement: Arrangement, s
 /** Radius the bag takes on the table, with some air around it. */
 export const BAG_RADIUS = 2.5;
 
-/** How much bigger than the first sketch the bag is drawn. */
-export const BAG_SCALE = 1.25;
+/** How much the bag is scaled from its first sketch. */
+export const BAG_SCALE = 1.0;
 
 /** Where the bag stands: the dice are drawn from it and the dice lost go back into it. */
 export function bagSpot(arrangement: Arrangement): Spot {

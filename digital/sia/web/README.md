@@ -44,13 +44,14 @@ o azul-ardósia `#46607A` da moldura e das marcas é provisório.
   mesma ordem) sobe e desliza em linha reta, na própria coluna, até o fundo
   do tabuleiro do lado desse jogador: o último dado fica na última fileira
   (com 3 dados, 2 casas de deslocamento). Uma borda fina da cor do jogador
-  corre dos dois lados da coluna. Os dados do perdedor ficam onde estavam e
-  desbotam para cinza, sem a cor do naipe e com os pontos legíveis, junto com
-  o deslize; os marcos resolvidos no fim do jogo seguem a mesma regra (sem
+  corre dos dois lados da coluna e diz de quem é o marco. Os dados do
+  perdedor ficam onde estavam, e o marco e os dados do vencedor seguem na
+  coluna; todos desbotam para cinza, sem a cor do naipe e com os pontos
+  legíveis, junto com o deslize; os marcos resolvidos no fim do jogo seguem a mesma regra (sem
   dono, os dados dos dois lados desbotam).
 - As duas mãos ficam abertas em bandejas ao lado do tabuleiro, cada uma
   perto do seu jogador (ao lado em tela larga, abaixo e acima em tela
-  estreita). A bolsa fica na mesa: uma bolsa de tecido, grande, com cordão e
+  estreita). A bolsa fica na mesa: uma bolsa de tecido, com cordão e
   a boca franzida e aberta; os dados saem por ela e o dado perdido volta
   para ela. Quantos dados cada jogador perdeu
   aparece no cartão dele ("mão: 5 de 5 dados (2 perdidos)").
@@ -59,7 +60,8 @@ o azul-ardósia `#46607A` da moldura e das marcas é provisório.
   triângulo, losango), para o naipe não depender só da cor.
 - Cartão das formações (HTML, à esquerda, sob os cartões dos jogadores): as 8
   formações da mais forte para a mais fraca, o que cada uma é e o
-  desempate (maior soma; se empata, quem completou o lado primeiro). Em tela
+  desempate (maior soma; se empata, quem completou o lado primeiro) e uma nota
+  sobre reivindicar. Em tela
   estreita fica escondido atrás do botão "Formações" da barra de cima.
 - Cartas dos marcos (HTML, acima da mesa): para cada lado, o nome da formação
   e o lugar dela na ordem ("Trinca", "6ª de 8"), com a soma dita como

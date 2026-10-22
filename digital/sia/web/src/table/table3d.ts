@@ -591,9 +591,14 @@ export class Table3D {
     return { x: p.x, y: BOARD_Y, z: p.z };
   }
 
-  /** The dice of a stone that are out of the game: those of the loser, or of both sides when nobody has it. */
+  /**
+   * The dice of a stone that are out of the game: all of a taken stone (the
+   * stone die and both sides, the strips tell whose it is), or both sides when nobody has it.
+   */
   private outDice(stone: number, owner: number | null): Die3D[] {
-    return [0, 1].filter((seat) => seat !== owner).flatMap((seat) => this.sides[seat]![stone]!);
+    const sides = [0, 1].flatMap((seat) => this.sides[seat]![stone]!);
+    const stoneDie = this.stones[stone];
+    return owner !== null && stoneDie ? [stoneDie, ...sides] : sides;
   }
 
   /** Shows the strips under the columns of the taken stones, grown to `grow` (0 to 1) of their width. */

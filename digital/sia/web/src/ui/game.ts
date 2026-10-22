@@ -731,5 +731,6 @@ function formationsCard(): string {
   return `<h2>Formações</h2>
     <p class="sub">Da mais forte para a mais fraca. Cada lado vale pelos 3 dados do jogador mais o marco.</p>
     <ol>${rows}</ol>
-    <p class="tie-rule"><b>Desempate:</b> a formação do mesmo tipo com maior soma dos 4 números vence; se a soma empata, vence quem completou o lado primeiro.</p>`;
+    <p class="tie-rule"><b>Desempate:</b> a formação do mesmo tipo com maior soma dos 4 números vence; se a soma empata, vence quem completou o lado primeiro.</p>
+    <p class="claim-rule"><b>Reivindicar:</b> com os dois lados de um marco completos, a melhor formação o toma. Antes disso, você o toma se nenhuma formação que o adversário ainda possa completar vence a sua. Quem toma o faz no seu turno, e a coluna vai para o seu lado.</p>`;
 }
