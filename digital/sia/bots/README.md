@@ -10,7 +10,7 @@ A especificação é `NOME[:chave=valor,...]`, lida por `sia_bots::by_name`.
 | Bot | O que faz |
 |---|---|
 | `random` | um comando legal ao acaso (rolar de novo uma vez em dez) |
-| `greedy` | olha um comando à frente e joga o de melhor avaliação. `noise=E` sorteia entre os comandos até `E` pontos abaixo do melhor; `rerolls=R` avalia "rolar de novo" pela média de `R` resultados sorteados (3); `cands=C` olha no máximo `C` rolagens (8; 0 nunca rola); `places=P` olha as `P` colocações que mais sobem a chance (10) |
+| `greedy` | olha um comando à frente e joga o de melhor avaliação. `noise=E` sorteia entre os comandos até `E` pontos abaixo do melhor (rolar de novo só entra se for o melhor, porque custa um dado); `rerolls=R` avalia "rolar de novo" pela média de `R` resultados sorteados (3); `cands=C` olha no máximo `C` rolagens (8; 0 nunca rola); `places=P` olha as `P` colocações que mais sobem a chance (10) |
 | `pimc` | Monte Carlo com informação perfeita (abaixo). `samples=S` (16), `top=K` (6), `turns=T` (8 comandos; 0 joga até o fim), `temp=X` (2), `rerolls=R` (1), `cands=C` (2), `places=P` (5) |
 | `@arquivo.json` | `{"bot": ESPEC, "weights": {...}}`: os pesos listados trocam os de `weights/default.json` |
 
@@ -61,4 +61,4 @@ sobre os marcos, vistos de um assento; a unidade dos pesos é o marco.
   com rotação de assentos; escreve o resumo (fim, duração, quem começa,
   formações, rolagens) e o Elo.
 - `just sia-tune CONFIG`: calibração por CMA-ES, como a do Liu
-  (`tune/tune.py`, formato em `tune/example.json`).
+  (`tune/tune.py`, formato em `tune/example.json`; `flags` repassa ao lote as variantes de regra).

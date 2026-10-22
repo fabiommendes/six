@@ -13,6 +13,7 @@
   "sigma": 0.25,
   "threads": 6,
   "hand_size": 7,
+  "flags": [],
   "binary": "digital/sia/bots/tune/runs/sia-bots",
   "out": "digital/sia/bots/tune/runs/fase-1"
 }

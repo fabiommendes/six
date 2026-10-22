@@ -416,12 +416,82 @@ pub fn report(records: &[Record]) -> String {
         rolled as f64 / all.len().max(1) as f64,
         records.iter().map(|r| r.lost.iter().map(|&l| f64::from(l)).sum::<f64>()).sum::<f64>() / n,
     );
+    let _ = writeln!(out, "{}", variety_line(records));
+    let _ = writeln!(out, "{}", lost_line(records));
     let mut by_lost = [0usize; 10];
     for r in &all {
         by_lost[r.lost_before as usize] += 1;
     }
     let _ = writeln!(out, "rerolls by dice already lost: {:?}", &by_lost[..5]);
     out
+}
+
+/// Shannon entropy in bits of the distribution of `kinds`.
+fn entropy(kinds: &[usize]) -> f64 {
+    let n = kinds.len() as f64;
+    let mut counts = [0usize; 8];
+    for &k in kinds {
+        counts[k] += 1;
+    }
+    -counts
+        .iter()
+        .filter(|&&c| c > 0)
+        .map(|&c| c as f64 / n * (c as f64 / n).log2())
+        .sum::<f64>()
+}
+
+/// Variety of the formations: the distinct kinds in a game (among the
+/// complete sides at the end and among the claims) and the entropy of the
+/// pooled distribution, in bits (0 to 3).
+fn variety_line(records: &[Record]) -> String {
+    let n = records.len() as f64;
+    let distinct = |kinds: Vec<usize>| -> usize {
+        let mut seen = [false; 8];
+        for k in kinds {
+            seen[k] = true;
+        }
+        seen.iter().filter(|&&s| s).count()
+    };
+    let sides: f64 = records
+        .iter()
+        .map(|r| distinct(r.sides.clone()) as f64)
+        .sum();
+    let claims: f64 = records
+        .iter()
+        .map(|r| distinct(r.claims.iter().map(|c| c.kind).collect()) as f64)
+        .sum();
+    let all_sides: Vec<usize> = records.iter().flat_map(|r| r.sides.clone()).collect();
+    let all_claims: Vec<usize> = records
+        .iter()
+        .flat_map(|r| r.claims.iter().map(|c| c.kind))
+        .collect();
+    format!(
+        "variety: kinds per game {:.2} among sides, {:.2} among claims; entropy {:.2} bits of sides, {:.2} of claims",
+        sides / n,
+        claims / n,
+        entropy(&all_sides),
+        entropy(&all_claims),
+    )
+}
+
+/// Dice lost by a seat at the end: mean and the share of seats at each
+/// count (0 to 6 and more).
+fn lost_line(records: &[Record]) -> String {
+    let seats: Vec<u8> = records.iter().flat_map(|r| r.lost.clone()).collect();
+    let n = seats.len() as f64;
+    let mut hist = [0usize; 8];
+    for &l in &seats {
+        hist[usize::from(l).min(7)] += 1;
+    }
+    let shares: Vec<String> = hist
+        .iter()
+        .map(|&c| format!("{:.0}", 100.0 * c as f64 / n))
+        .collect();
+    format!(
+        "lost per seat: mean {:.2}; % of seats with 0..6,7+ lost: [{}]",
+        seats.iter().map(|&l| f64::from(l)).sum::<f64>() / n,
+        shares.join(" ")
+    )
 }
 
 #[cfg(test)]
@@ -447,7 +517,26 @@ mod tests {
         assert_eq!(summaries[0].seats, 6);
         let shares: f64 = summaries.iter().map(|s| s.wins).sum();
         assert!((shares - 6.0).abs() < 1e-9);
-        assert!(report(&records).contains("first player wins"));
+        let text = report(&records);
+        for line in ["first player wins", "variety:", "lost per seat:"] {
+            assert!(text.contains(line), "{line}");
+        }
+    }
+
+    #[test]
+    fn the_noise_does_not_burn_dice_on_rerolls() {
+        let config = Config {
+            seeds: 6,
+            threads: 2,
+            ..Config::new(vec!["greedy:noise=2".into(), "greedy:noise=2".into()])
+        };
+        let records = run(&config, &|_| {}).unwrap();
+        let lost: Vec<f64> = records
+            .iter()
+            .flat_map(|r| r.lost.iter().map(|&l| f64::from(l)))
+            .collect();
+        let mean = lost.iter().sum::<f64>() / lost.len() as f64;
+        assert!(mean < 3.0, "mean dice lost {mean}");
     }
 
     #[test]

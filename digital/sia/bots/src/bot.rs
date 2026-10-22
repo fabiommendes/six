@@ -35,7 +35,8 @@ pub trait Bot {
 ///   (among the candidates) one time in ten.
 /// - `greedy[:ARGS]`: one command of lookahead with the evaluation
 ///   ([`crate::eval`]). `noise=E` chooses at random among the commands at
-///   most `E` points below the best (0 by default); `rerolls=R` scores a
+///   most `E` points below the best (0 by default), except that a reroll is
+///   chosen only when it is the best; `rerolls=R` scores a
 ///   reroll by the mean of `R` sampled outcomes (3 by default); `cands=C`
 ///   considers at most `C` rerolls (8 by default, 0 never rerolls);
 ///   `places=P` considers the `P` placings that raise the chance of the
@@ -280,7 +281,8 @@ impl Bot for Random {
 #[derive(Clone, Debug)]
 pub struct Greedy {
     pub weights: Weights,
-    /// Chooses among the commands at most this many points below the best.
+    /// Chooses among the commands at most this many points below the best
+    /// (a reroll only when it is the best).
     pub noise: f64,
     /// Sampled outcomes that score a reroll.
     pub rerolls: u32,
@@ -372,8 +374,13 @@ impl Greedy {
         }
         let scores = self.scores(state, commands, rng);
         let best = scores.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        // The noise does not reach the rerolls: a reroll costs a die for good,
+        // so only the best-scored command can be one.
         let near: Vec<usize> = (0..scores.len())
-            .filter(|&i| scores[i] >= best - self.noise)
+            .filter(|&i| {
+                scores[i] >= best - self.noise
+                    && (scores[i] >= best || !matches!(commands[i], Command::Reroll { .. }))
+            })
             .collect();
         near[rng.below(near.len())]
     }

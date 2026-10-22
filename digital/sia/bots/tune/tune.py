@@ -11,7 +11,8 @@ Each candidate (a vector of weights) plays one `sia-bots batch` against the
 opponent; its fitness is its mean share of the win over those games. Every
 candidate of a generation plays the same deals, and each generation plays
 new ones. Rerunning the same command resumes from the last finished
-generation. The config format is in `example.json`; adapted from the tuner
+generation. `flags` in the config are passed on to `sia-bots batch` (the rule
+variants, e.g. `["--stone-only-sequences"]`). The config format is in `example.json`; adapted from the tuner
 of the Rio (`~/git/games/rio/digital/tools/tune.py`).
 
 Output directory:
@@ -70,6 +71,7 @@ class Config:
     sigma: float
     threads: int
     hand_size: int
+    flags: tuple[str, ...]
     binary: Path
     out: Path
     raw: dict
@@ -97,6 +99,7 @@ def load_config(path: Path) -> Config:
         sigma=raw.get("sigma", 0.25),
         threads=raw.get("threads", 6),
         hand_size=raw.get("hand_size", 7),
+        flags=tuple(raw.get("flags", [])),
         binary=Path(raw.get("binary", DIGITAL / "target" / "release" / "sia-bots")),
         out=Path(raw["out"]),
         raw=raw,
@@ -137,6 +140,7 @@ def evaluate(config: Config, work: Path, x, first_seed: int) -> float:
         "--threads", str(config.threads),
         "--hand-size", str(config.hand_size),
         "--out", str(out),
+        *config.flags,
     ]  # fmt: skip
     result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
     if result.returncode != 0:
