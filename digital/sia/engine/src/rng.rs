@@ -50,13 +50,6 @@ impl Rng {
         (((self.next_u64() >> 32) * 4) >> 32) as u8
     }
 
-    /// A suit of the bag with a wild suit: 0 to 2 with 2 chances in 7 each,
-    /// and 3 (the wild one) with 1 in 7.
-    pub fn suit_with_wild(&mut self) -> u8 {
-        let x = (((self.next_u64() >> 32) * 7) >> 32) as u8;
-        (x / 2).min(3)
-    }
-
     /// A fair coin.
     pub fn coin(&mut self) -> bool {
         self.next_u64() >> 63 == 1

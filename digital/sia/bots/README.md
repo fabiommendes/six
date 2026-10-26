@@ -15,7 +15,7 @@ A especificação é `NOME[:chave=valor,...]`, lida por `sia_bots::by_name`.
 | `@arquivo.json` | `{"bot": ESPEC, "weights": {...}}`: os pesos listados trocam os de `weights/default.json` |
 
 Nenhum bot lê o gerador de dados do estado: todos jogam sobre cópias com
-outra semente (`GameState::reseeded`). Os dados que vão sair do saco e das
+outra semente (`GameState::reseeded`). Os dados que vão sair do bolsa e das
 rolagens ficam tão desconhecidos para o bot quanto para uma pessoa.
 
 ### Rolar de novo
@@ -61,4 +61,13 @@ sobre os marcos, vistos de um assento; a unidade dos pesos é o marco.
   com rotação de assentos; escreve o resumo (fim, duração, quem começa,
   formações, rolagens) e o Elo.
 - `just sia-tune CONFIG`: calibração por CMA-ES, como a do Liu
-  (`tune/tune.py`, formato em `tune/example.json`; `flags` repassa ao lote as variantes de regra).
+  (`tune/tune.py`, formato em `tune/example.json`). As configurações
+  `tune/fase-*.json` anteriores à regra decidida usam flags de variantes que
+  o motor não tem mais (`--joker`, `--stone-only-sequences` e outras): ficam
+  como registro e não rodam de novo.
+
+## Pesos padrão
+
+`weights/default.json` vem da fase `gb5` (`tune/fase-gb5.json`,
+`tune/runs/fase-gb5/`), calibrada na regra decidida: mão de 5, o marco conta
+só para sequência e naipe, um coringa por jogador.

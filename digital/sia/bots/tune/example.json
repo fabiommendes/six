@@ -12,7 +12,7 @@
   "seed": 100000,
   "sigma": 0.25,
   "threads": 6,
-  "hand_size": 7,
+  "hand_size": 5,
   "flags": [],
   "binary": "digital/sia/bots/tune/runs/sia-bots",
   "out": "digital/sia/bots/tune/runs/fase-1"

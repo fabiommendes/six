@@ -78,20 +78,19 @@ pub fn with_weights(spec: &str, weights: Weights) -> Result<Box<dyn Bot + Send>,
             Box::new(Random)
         }
         "greedy" => {
-            args.only(&["noise", "rerolls", "cands", "places", "gives"])?;
+            args.only(&["noise", "rerolls", "cands", "places"])?;
             let defaults = Greedy::new(weights);
             Box::new(Greedy {
                 noise: args.get("noise", defaults.noise)?,
                 rerolls: args.get("rerolls", defaults.rerolls)?,
                 cands: args.get("cands", defaults.cands)?,
                 places: args.get("places", defaults.places)?,
-                gives: args.get("gives", defaults.gives)?,
                 ..defaults
             })
         }
         "pimc" => {
             args.only(&[
-                "samples", "top", "turns", "temp", "rerolls", "cands", "places", "gives",
+                "samples", "top", "turns", "temp", "rerolls", "cands", "places",
             ])?;
             let defaults = Pimc::new(weights);
             let pimc = Pimc {
@@ -102,7 +101,6 @@ pub fn with_weights(spec: &str, weights: Weights) -> Result<Box<dyn Bot + Send>,
                 rerolls: args.get("rerolls", defaults.rerolls)?,
                 cands: args.get("cands", defaults.cands)?,
                 places: args.get("places", defaults.places)?,
-                gives: args.get("gives", defaults.gives)?,
                 ..defaults
             };
             if pimc.samples == 0 || pimc.top == 0 {
@@ -230,15 +228,11 @@ pub fn reroll_candidates(state: &GameState, limit: usize) -> Vec<Command> {
 }
 
 /// The claims and the pass, and the `places` placings that raise most the
-/// chance of the player to move on the stone. In the experiment variant with
-/// the move, also the `gives` placings on the opponent that lower most his
-/// chance.
-pub fn actions(state: &GameState, places: usize, gives: usize) -> Vec<Command> {
+/// chance of the player to move on the stone.
+pub fn actions(state: &GameState, places: usize) -> Vec<Command> {
     let me = state.to_move();
     let base = stone_chances(state, me);
     let mut ranked: Vec<(f64, Command)> = Vec::new();
-    let mut given: Vec<(f64, Command)> = Vec::new();
-    let other_base = stone_chances(state, 1 - me);
     let mut commands = Vec::new();
     for command in state.legal_actions() {
         match command {
@@ -246,26 +240,18 @@ pub fn actions(state: &GameState, places: usize, gives: usize) -> Vec<Command> {
                 let gain = chance_with(state, me, stone, state.hand(me)[die]) - base[stone];
                 ranked.push((gain, command));
             }
-            Command::PlaceOnOpponent { die, stone } => {
-                // The gain of the player is the loss of the chance of the other.
-                let gain =
-                    other_base[stone] - chance_with(state, 1 - me, stone, state.hand(me)[die]);
-                given.push((gain, command));
-            }
             _ => commands.push(command),
         }
     }
     ranked.sort_by(|a, b| b.0.total_cmp(&a.0));
-    given.sort_by(|a, b| b.0.total_cmp(&a.0));
     commands.extend(ranked.into_iter().take(places).map(|(_, c)| c));
-    commands.extend(given.into_iter().take(gives).map(|(_, c)| c));
     commands
 }
 
 /// The commands a bot considers: the [`actions`] and at most `rerolls`
 /// rerolls ([`reroll_candidates`]).
-pub fn candidates(state: &GameState, places: usize, gives: usize, rerolls: usize) -> Vec<Command> {
-    let mut commands = actions(state, places, gives);
+pub fn candidates(state: &GameState, places: usize, rerolls: usize) -> Vec<Command> {
+    let mut commands = actions(state, places);
     commands.extend(reroll_candidates(state, rerolls));
     commands
 }
@@ -306,8 +292,6 @@ pub struct Greedy {
     pub rerolls: u32,
     /// Rerolls considered at most; 0 never rerolls.
     pub cands: usize,
-    /// Placings on the opponent considered at most (experiment only).
-    pub gives: usize,
     /// Placings considered at most.
     pub places: usize,
 }
@@ -320,7 +304,6 @@ impl Greedy {
             rerolls: 3,
             cands: 8,
             places: 10,
-            gives: 10,
         }
     }
 
@@ -364,7 +347,7 @@ impl Greedy {
 
     /// The best value of a placing (or the pass) from a position in the turn.
     fn best_placing(&self, state: &GameState, seat: usize) -> f64 {
-        actions(state, self.places, self.gives)
+        actions(state, self.places)
             .into_iter()
             .filter(|c| !matches!(c, Command::Claim { .. }))
             .map(|c| self.after(state, c, seat))
@@ -373,7 +356,7 @@ impl Greedy {
 
     /// The best value of finishing the turn from a position in it.
     fn best_finish(&self, state: &GameState, seat: usize) -> f64 {
-        actions(state, self.places, self.gives)
+        actions(state, self.places)
             .into_iter()
             .map(|c| self.after(state, c, seat))
             .fold(f64::NEG_INFINITY, f64::max)
@@ -384,7 +367,6 @@ impl Greedy {
         candidates(
             state,
             self.places,
-            self.gives,
             if self.rerolls == 0 { 0 } else { self.cands },
         )
     }
@@ -410,13 +392,8 @@ impl Greedy {
 
 impl Bot for Greedy {
     fn name(&self) -> String {
-        let gives = if self.gives == self.places {
-            String::new()
-        } else {
-            format!(",gives={}", self.gives)
-        };
         format!(
-            "greedy:noise={},rerolls={},cands={},places={}{gives}",
+            "greedy:noise={},rerolls={},cands={},places={}",
             self.noise, self.rerolls, self.cands, self.places
         )
     }

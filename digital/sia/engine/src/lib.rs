@@ -30,7 +30,6 @@
 
 mod command;
 mod die;
-pub mod experiment;
 mod formation;
 mod rng;
 mod state;
@@ -39,7 +38,7 @@ mod state;
 pub mod wire;
 
 pub use command::{Command, EndReason, Event, GameError, Rolled};
-pub use die::{Die, JOKER_SUIT, SUITS, WILD_SUIT};
+pub use die::{Die, JOKER_SUIT, SUITS};
 pub use formation::{best_completion, formation, is_flush, Formation, FormationKind};
 pub use rng::Rng;
 pub use state::{

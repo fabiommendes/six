@@ -3,4 +3,4 @@
 /**
  * The kinds of formation, from the weakest to the strongest.
  */
-export type FormationKind = "sum" | "pair" | "threeOfAKind" | "twoPairs" | "flush" | "run" | "fourOfAKind" | "straightFlush";
+export type FormationKind = "sum" | "pair" | "threeOfAKind" | "flush" | "run" | "straightFlush";

@@ -1,13 +1,17 @@
 //! The formations (`regras/sia/04-formacoes.md`): the three dice of a side
 //! and the stone, ranked, and the best formation a side can still become.
+//! The order, from the strongest: straight flush, run, flush, three of a
+//! kind, pair, sum.
 
 #[cfg(feature = "wire")]
 use serde::{Deserialize, Serialize};
 
 use crate::die::Die;
+#[cfg(test)]
+use crate::die::JOKER_SUIT;
 
 /// The kinds of formation, from the weakest to the strongest.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "wire", derive(Serialize, Deserialize, ts_rs::TS))]
 #[cfg_attr(feature = "wire", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "wire", ts(export))]
@@ -15,77 +19,26 @@ pub enum FormationKind {
     Sum,
     Pair,
     ThreeOfAKind,
-    TwoPairs,
     Flush,
     Run,
-    FourOfAKind,
     StraightFlush,
 }
 
 impl FormationKind {
     /// Every kind, from the weakest to the strongest.
-    pub const ALL: [FormationKind; 8] = [
+    pub const ALL: [FormationKind; 6] = [
         FormationKind::Sum,
         FormationKind::Pair,
         FormationKind::ThreeOfAKind,
-        FormationKind::TwoPairs,
         FormationKind::Flush,
         FormationKind::Run,
-        FormationKind::FourOfAKind,
         FormationKind::StraightFlush,
     ];
 
-    /// The position in [`FormationKind::ALL`].
+    /// The position in [`FormationKind::ALL`], which is the order of
+    /// strength.
     pub fn index(self) -> usize {
         self as usize
-    }
-
-    /// The position in the order of strength: the index, unless an
-    /// experiment variant moves the four of a kind (see
-    /// [`crate::experiment`]).
-    pub fn strength(self) -> usize {
-        if crate::experiment::three_dice_formations() {
-            let (flush, run) = if crate::experiment::flush_below_run() {
-                (2, 3)
-            } else {
-                (3, 2)
-            };
-            match self {
-                FormationKind::Run => return run,
-                FormationKind::Flush => return flush,
-                FormationKind::ThreeOfAKind => return 4,
-                _ => {}
-            }
-        }
-        if crate::experiment::four_below_run() {
-            match self {
-                FormationKind::FourOfAKind => return 4,
-                FormationKind::Flush => return 5,
-                FormationKind::Run => return 6,
-                _ => {}
-            }
-        }
-        if crate::experiment::four_below_run_only() {
-            match self {
-                FormationKind::Flush => return 4,
-                FormationKind::FourOfAKind => return 5,
-                FormationKind::Run => return 6,
-                _ => {}
-            }
-        }
-        self as usize
-    }
-}
-
-impl PartialOrd for FormationKind {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for FormationKind {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.strength().cmp(&other.strength())
     }
 }
 
@@ -101,33 +54,22 @@ pub struct Formation {
 
 /// The formation of the stone number and the three dice of a side.
 ///
+/// The stone counts for the run and for the sum, and its suit counts as any
+/// suit; the pair and the three of a kind read the 3 dice alone, so there is
+/// no four of a kind and no two pairs. The `sum` is the sum of the four
+/// numbers, the stone included.
+///
 /// # Panics
 ///
 /// If `dice` does not have exactly 3 dice.
 pub fn formation(stone: u8, dice: &[Die]) -> Formation {
     assert_eq!(dice.len(), 3, "a formation has 3 dice and the stone");
-    if crate::experiment::three_dice_formations() {
-        return three_dice_formation(stone, dice);
-    }
     let numbers = [stone, dice[0].value, dice[1].value, dice[2].value];
     let mut counts = [0u8; 7];
-    let counted = if crate::experiment::stone_only_for_sequences() {
-        &numbers[1..]
-    } else {
-        &numbers[..]
-    };
-    for &n in counted {
-        counts[n as usize] += 1;
+    for die in dice {
+        counts[die.value as usize] += 1;
     }
     let most = *counts.iter().max().expect("counts is not empty");
-    let pairs = counts.iter().filter(|&&c| c == 2).count();
-    let mut kind = match (most, pairs) {
-        (4, _) => FormationKind::FourOfAKind,
-        (3, _) => FormationKind::ThreeOfAKind,
-        (2, 2) => FormationKind::TwoPairs,
-        (2, _) => FormationKind::Pair,
-        _ => FormationKind::Sum,
-    };
     let low = *numbers.iter().min().expect("4 numbers");
     let high = *numbers.iter().max().expect("4 numbers");
     let distinct = numbers
@@ -137,61 +79,26 @@ pub fn formation(stone: u8, dice: &[Die]) -> Formation {
         == 4;
     let run = distinct && high - low == 3;
     let flush = is_flush(dice);
-    if run && flush {
-        kind = kind.max(FormationKind::StraightFlush);
-    } else if run {
-        kind = kind.max(FormationKind::Run);
-    } else if flush {
-        kind = kind.max(FormationKind::Flush);
-    }
+    let kind = match (run, flush, most) {
+        (true, true, _) => FormationKind::StraightFlush,
+        (true, false, _) => FormationKind::Run,
+        (false, true, _) => FormationKind::Flush,
+        (false, false, 3) => FormationKind::ThreeOfAKind,
+        (false, false, 2) => FormationKind::Pair,
+        _ => FormationKind::Sum,
+    };
     Formation {
         kind,
         sum: numbers.iter().sum(),
     }
 }
 
-/// Whether the dice share a suit, a wild die counting as any.
+/// Whether the dice share a suit, a joker counting as any.
 pub fn is_flush(dice: &[Die]) -> bool {
-    let mut plain = dice.iter().filter(|d| !d.is_wild());
+    let mut plain = dice.iter().filter(|d| !d.is_joker());
     plain
         .next()
         .is_none_or(|first| plain.all(|d| d.suit == first.suit))
-}
-
-/// The formation of the variant that reads the 3 dice alone (see
-/// [`crate::experiment`]). The `sum` is the sum of the 3 dice, plus 16 for a
-/// run that the stone extends to 4 numbers, so that it breaks the tie
-/// between runs before the sum does.
-fn three_dice_formation(stone: u8, dice: &[Die]) -> Formation {
-    let low = dice.iter().map(|d| d.value).min().expect("3 dice");
-    let high = dice.iter().map(|d| d.value).max().expect("3 dice");
-    let sum: u8 = dice.iter().map(|d| d.value).sum();
-    let distinct = dice
-        .iter()
-        .fold(0u8, |mask, d| mask | 1 << d.value)
-        .count_ones()
-        == 3;
-    let run = distinct && high - low == 2;
-    let flush = is_flush(dice);
-    let equal = dice.iter().filter(|d| d.value == dice[0].value).count();
-    let kind = if run && flush {
-        FormationKind::StraightFlush
-    } else if equal == 3 {
-        FormationKind::ThreeOfAKind
-    } else if flush {
-        FormationKind::Flush
-    } else if run {
-        FormationKind::Run
-    } else if distinct {
-        FormationKind::Sum
-    } else {
-        FormationKind::Pair
-    };
-    let extended = run && (stone + 1 == low || stone == high + 1);
-    Formation {
-        kind,
-        sum: sum + if extended { 16 } else { 0 },
-    }
 }
 
 /// The strongest formation a side with `dice` (0 to 3 dice) can still
@@ -206,7 +113,7 @@ fn three_dice_formation(stone: u8, dice: &[Die]) -> Formation {
 pub fn best_completion(stone: u8, dice: &[Die]) -> Formation {
     assert!(dice.len() <= 3, "a side has at most 3 dice");
     let missing = 3 - dice.len();
-    let suit = dice.iter().find(|d| !d.is_wild()).map_or(0, |d| d.suit);
+    let suit = dice.iter().find(|d| !d.is_joker()).map_or(0, |d| d.suit);
     let same_suit = is_flush(dice);
     let fill = if same_suit { suit } else { 0 };
     let mut full = [Die::new(1, fill); 3];
@@ -243,11 +150,9 @@ mod tests {
 
     #[test]
     fn the_order_is_the_one_of_the_rules() {
-        assert!(StraightFlush > FourOfAKind);
-        assert!(FourOfAKind > Run);
+        assert!(StraightFlush > Run);
         assert!(Run > Flush);
-        assert!(Flush > TwoPairs);
-        assert!(TwoPairs > ThreeOfAKind);
+        assert!(Flush > ThreeOfAKind);
         assert!(ThreeOfAKind > Pair);
         assert!(Pair > Sum);
     }
@@ -255,27 +160,43 @@ mod tests {
     #[test]
     fn each_kind_is_recognized() {
         assert_eq!(kind(3, &[(1, 0), (2, 0), (4, 0)]), (StraightFlush, 10));
-        assert_eq!(kind(3, &[(3, 0), (3, 1), (3, 2)]), (FourOfAKind, 12));
         assert_eq!(kind(3, &[(2, 0), (4, 1), (5, 2)]), (Run, 14));
         assert_eq!(kind(1, &[(2, 0), (4, 0), (6, 0)]), (Flush, 13));
-        assert_eq!(kind(2, &[(2, 0), (5, 1), (5, 2)]), (TwoPairs, 14));
-        assert_eq!(kind(2, &[(2, 0), (2, 1), (5, 2)]), (ThreeOfAKind, 11));
-        assert_eq!(kind(2, &[(2, 0), (4, 1), (5, 2)]), (Pair, 13));
+        assert_eq!(kind(2, &[(5, 0), (5, 1), (5, 2)]), (ThreeOfAKind, 17));
+        assert_eq!(kind(2, &[(5, 0), (5, 1), (4, 2)]), (Pair, 16));
         assert_eq!(kind(1, &[(3, 0), (4, 1), (6, 2)]), (Sum, 14));
     }
 
     #[test]
-    fn four_of_a_kind_is_not_two_pairs_and_a_run_is_not_a_flush() {
-        // Same suit and 4 equal numbers: the four of a kind wins over the flush.
-        assert_eq!(kind(4, &[(4, 1), (4, 1), (4, 1)]).0, FourOfAKind);
+    fn the_stone_counts_for_the_run_and_the_sum_but_not_for_equal_numbers() {
+        // A stone equal to a die of the side does not make a pair.
+        assert_eq!(kind(2, &[(2, 0), (4, 1), (5, 2)]), (Sum, 13));
+        // Three equal dice and an equal stone are a three of a kind, not four.
+        assert_eq!(kind(3, &[(3, 0), (3, 1), (3, 2)]), (ThreeOfAKind, 12));
+        // The stone makes a pair of dice and a stone no two pairs.
+        assert_eq!(kind(2, &[(2, 0), (5, 1), (5, 2)]), (Pair, 14));
+        // The stone completes a run of 4 numbers.
+        assert_eq!(kind(1, &[(2, 0), (3, 1), (4, 2)]).0, Run);
+        assert_eq!(kind(5, &[(2, 0), (3, 1), (4, 2)]).0, Run);
+        // Without the stone, 3 numbers in a row are not a run.
+        assert_eq!(kind(6, &[(2, 0), (3, 1), (4, 2)]).0, Sum);
+    }
+
+    #[test]
+    fn a_run_is_not_a_flush_and_the_joker_takes_any_suit() {
         // Flush with a pair: the flush wins over the pair.
-        assert_eq!(kind(4, &[(4, 1), (2, 1), (6, 1)]).0, Flush);
+        assert_eq!(kind(4, &[(4, 1), (2, 1), (4, 1)]).0, Flush);
+        // Three equal dice of one suit are a flush, which is above the three.
+        assert_eq!(kind(4, &[(4, 1), (4, 1), (4, 1)]).0, Flush);
         // Run in one suit is a straight flush, not a flush.
         assert_eq!(kind(4, &[(5, 2), (6, 2), (3, 2)]).0, StraightFlush);
         // 1 2 3 4, 2 3 4 5 and 3 4 5 6 are runs, 1 2 3 5 is not.
         assert_eq!(kind(1, &[(2, 0), (3, 1), (4, 2)]).0, Run);
         assert_eq!(kind(6, &[(3, 0), (4, 1), (5, 2)]).0, Run);
         assert_eq!(kind(1, &[(2, 0), (3, 1), (5, 2)]).0, Sum);
+        // The joker is any suit.
+        assert_eq!(kind(2, &[(1, 2), (3, 2), (6, JOKER_SUIT)]).0, Flush);
+        assert_eq!(kind(2, &[(1, 2), (3, 1), (6, JOKER_SUIT)]).0, Sum);
     }
 
     #[test]
@@ -339,8 +260,11 @@ mod tests {
     #[test]
     fn two_suits_cannot_be_a_flush_any_more() {
         let side = dice(&[(1, 0), (1, 1)]);
-        assert_eq!(best_completion(1, &side).kind, FourOfAKind);
+        assert_eq!(best_completion(1, &side).kind, ThreeOfAKind);
         let side = dice(&[(1, 0), (2, 1)]);
         assert_eq!(best_completion(3, &side).kind, Run);
+        // With a joker the suit of the other die is kept.
+        let side = dice(&[(1, 0), (1, JOKER_SUIT)]);
+        assert_eq!(best_completion(1, &side).kind, Flush);
     }
 }

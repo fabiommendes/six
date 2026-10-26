@@ -38,8 +38,9 @@ impl Game {
 
 #[wasm_bindgen]
 impl Game {
-    /// A new game with hands of 7 dice: the stones rolled, the hands dealt
-    /// and the first player drawn. `seed` picks the dice.
+    /// A new game with hands of 5 dice (the joker and 4 of the bag): the
+    /// stones rolled, the hands dealt and the first player drawn. `seed`
+    /// picks the dice.
     #[wasm_bindgen(constructor)]
     pub fn new(seed: u64) -> Game {
         Game::start(DEFAULT_HAND_SIZE, seed)

@@ -12,16 +12,17 @@
 use std::sync::OnceLock;
 
 use serde_json::{Map, Value};
-use sia_engine::{formation, Die, Formation, GameState, Side, NEIGHBORS_TO_WIN, STONES};
+use sia_engine::{
+    formation, Die, Formation, FormationKind, GameState, Side, NEIGHBORS_TO_WIN, STONES,
+};
 
-/// Sums go from 3 to 24; in the three-dice variant a run that the stone
-/// extends adds 16 to a sum of 6 to 15 (up to 31).
-const SUMS: usize = 32;
+/// Sums go from 4 to 24 (the stone and 3 dice).
+const SUMS: usize = 25;
 /// Formation kinds times sums: the index of a formation in a [`Dist`].
-const RANKS: usize = 8 * SUMS;
+const RANKS: usize = FormationKind::ALL.len() * SUMS;
 
 fn rank(f: Formation) -> usize {
-    f.kind.strength() * SUMS + f.sum as usize
+    f.kind.index() * SUMS + f.sum as usize
 }
 
 /// The distribution of the final formation of a side.
@@ -62,35 +63,24 @@ pub fn beat_chance(mine: &Dist, theirs: &Dist) -> f64 {
 
 /// The states of the suits of a side: 0, two suits are there (no flush);
 /// 1, the plain dice share a suit (a flush is possible); 2, no plain die
-/// is there (the side is empty, or all wild): a flush is the easiest.
+/// is there (the side is empty, or all jokers): a flush is the easiest.
 const SUIT_STATES: usize = 3;
 
 /// Chance that a new die keeps a flush possible when the plain dice share a
-/// suit: the suit or, in the variant, the wild one.
-fn keep_chance() -> f64 {
-    if sia_engine::experiment::variant().wild_suit {
-        3.0 / 7.0
-    } else {
-        0.25
-    }
-}
+/// suit: it must be of that suit, 1 of the 4.
+const KEEP_CHANCE: f64 = 0.25;
 
 /// Chance that `missing` dice, none of them there yet, end up in a flush.
 fn free_flush_chance(missing: usize) -> f64 {
-    let wild = if sia_engine::experiment::variant().wild_suit {
-        1.0 / 7.0
-    } else {
-        0.0
-    };
     match missing {
         0 | 1 => 1.0,
-        k => wild * free_flush_chance(k - 1) + (1.0 - wild) * keep_chance().powi(k as i32 - 1),
+        k => KEEP_CHANCE.powi(k as i32 - 1),
     }
 }
 
 /// The suit state of the dice of a side.
 fn suit_state(dice: &[Die]) -> usize {
-    let mut plain = dice.iter().filter(|d| !d.is_wild());
+    let mut plain = dice.iter().filter(|d| !d.is_joker());
     match plain.next() {
         None => 2,
         Some(first) => usize::from(plain.all(|d| d.suit == first.suit)),
@@ -127,7 +117,7 @@ fn build(stone: u8, numbers: &[u8], state: usize) -> Dist {
     }
     let p_flush = match state {
         0 => 0.0,
-        1 => keep_chance().powi(missing as i32),
+        1 => KEEP_CHANCE.powi(missing as i32),
         _ if numbers.is_empty() => free_flush_chance(3),
         _ => free_flush_chance(missing),
     };
@@ -162,9 +152,6 @@ fn table() -> &'static Vec<Option<Box<Dist>>> {
     static TABLE: OnceLock<Vec<Option<Box<Dist>>>> = OnceLock::new();
     TABLE.get_or_init(|| {
         let mut table: Vec<Option<Box<Dist>>> = vec![None; 7 * 343 * SUIT_STATES];
-        let variant = sia_engine::experiment::variant();
-        // A side of wild dice only: the suit of the wild suit or the joker.
-        let wild = variant.wild_suit || variant.joker;
         for stone in 1..=6u8 {
             for a in 0..=6u8 {
                 for b in a..=6u8 {
@@ -176,7 +163,7 @@ fn table() -> &'static Vec<Option<Box<Dist>>> {
                             let possible = match state {
                                 0 => numbers.len() >= 2,
                                 1 => !numbers.is_empty(),
-                                _ => numbers.is_empty() || wild,
+                                _ => true,
                             };
                             if !possible {
                                 continue;
@@ -453,8 +440,8 @@ mod tests {
 
     #[test]
     fn an_empty_side_matches_chance_of_the_formations() {
-        // The RFC table, for a random stone: a straight flush is rarer than
-        // 1% and a pair is the most common formation.
+        // For a random stone: a straight flush is rarer than 1%, and the
+        // pair and the sum are the common formations.
         let (state, _) = GameState::new(1);
         let dist = dist_of(state.stones()[0], state.side(0, 0));
         let at = |kind: FormationKind| -> f32 {
@@ -462,8 +449,9 @@ mod tests {
             dist.pmf[k..k + SUMS].iter().sum()
         };
         assert!(at(FormationKind::StraightFlush) < 0.01);
-        assert!(at(FormationKind::Pair) > at(FormationKind::Sum));
-        assert!(at(FormationKind::Pair) > 0.4);
+        assert!(at(FormationKind::Pair) > 0.3);
+        assert!(at(FormationKind::Sum) > 0.3);
+        assert!(at(FormationKind::ThreeOfAKind) < 0.03);
     }
 
     #[test]

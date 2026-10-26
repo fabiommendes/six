@@ -1,16 +1,16 @@
 {
   "owned": 1.0,
-  "adjacent": 0.2119,
-  "prob": 1.4729,
-  "sure": 0.0784,
-  "neighbors": 0.8052,
-  "placed": -0.3011,
-  "lost": -0.5305,
-  "hand": 0.4238,
-  "opp_hand": -1.4348,
+  "adjacent": 0.0004,
+  "prob": 0.2846,
+  "sure": 0.672,
+  "neighbors": 0.0017,
+  "placed": -0.1063,
+  "lost": -0.849,
+  "hand": 0.4785,
+  "opp_hand": -1.9802,
   "meta": {
-    "source": "CMA-ES phase 1 (digital/sia/bots/tune/fase1.json), 30 generations x 12 candidates x 300 games, hand of 7, mean of the last generation",
-    "validation": "4000 games on seeds 500000.., +96 Elo [+85, +107] over the hand-made weights",
-    "date": "2026-10-21"
+    "source": "CMA-ES fase gb5 (digital/sia/bots/tune/fase-gb5.json), 30 generations x 12 candidates x 150 deals, hand of 5, rule of regras/sia (stone only for the run, joker per player), best of the last generation (digital/sia/bots/tune/runs/fase-gb5/best.json)",
+    "validation": "4000 games on seeds 600000.., +305 Elo [+290, +321] over the hand-made weights (digital/sia/bots/tune/maos.json)",
+    "date": "2026-10-26"
   }
 }

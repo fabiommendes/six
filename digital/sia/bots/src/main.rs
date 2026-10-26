@@ -3,21 +3,15 @@
 //! ```text
 //! sia-bots batch --bots A,B [--games G] [--seed S] [--hand-size N]
 //!                [--no-rotate] [--threads T] [--out FILE.jsonl]
-//!                [--four-below-run] [--four-below-run-only]
-//!                [--stone-only-sequences]
-//!                [--three-dice] [--flush-below-run] [--wild-suit]
-//!                [--place-on-opponent] [--joker]
-//!                [--second-bonus N] [--first-no-reroll]
 //! ```
 //!
 //! `--bots` takes the two specs (see `sia_bots::by_name`), comma separated
 //! (a `key=value` piece belongs to the spec before it); with one spec, both
 //! seats play it. `--games` counts deals: with rotation (the default) each
 //! deal is played twice, with the seats swapped. `--hand-size` changes the
-//! dice in a hand (7 by default) for experiments. The last ten flags are
-//! rule variants for experiments (`sia_engine::experiment`); the rules do
-//! not have them. The summary goes to the
-//! standard output; `--out` writes one JSON line per game.
+//! dice in a hand (5 by default, as in the rules) for experiments. The
+//! summary goes to the standard output; `--out` writes one JSON line per
+//! game.
 
 use std::io::Write;
 use std::sync::Mutex;
@@ -72,7 +66,6 @@ fn run_batch(args: &[String]) -> Result<(), String> {
     config.threads =
         DEFAULT_THREADS.min(std::thread::available_parallelism().map_or(1, |n| n.get()));
     let mut out = None;
-    let mut variant = sia_engine::experiment::Variant::default();
     let mut i = 0;
     while i < args.len() {
         let flag = args[i].as_str();
@@ -84,16 +77,6 @@ fn run_batch(args: &[String]) -> Result<(), String> {
             "--hand-size" => config.hand_size = number(value(args, &mut i, flag)?, flag)?,
             "--out" => out = Some(value(args, &mut i, flag)?.to_string()),
             "--no-rotate" => config.rotate = false,
-            "--four-below-run" => variant.four_below_run = true,
-            "--four-below-run-only" => variant.four_below_run_only = true,
-            "--stone-only-sequences" => variant.stone_only_for_sequences = true,
-            "--flush-below-run" => variant.flush_below_run = true,
-            "--wild-suit" => variant.wild_suit = true,
-            "--three-dice" => variant.three_dice_formations = true,
-            "--joker" => variant.joker = true,
-            "--place-on-opponent" => variant.place_on_opponent = true,
-            "--second-bonus" => variant.second_bonus = number(value(args, &mut i, flag)?, flag)?,
-            "--first-no-reroll" => variant.first_turn_without_reroll = true,
             _ => return Err(format!("unknown flag {flag:?}")),
         }
         i += 1;
@@ -104,7 +87,6 @@ fn run_batch(args: &[String]) -> Result<(), String> {
     if !sia_engine::HAND_SIZES.contains(&config.hand_size) {
         return Err(format!("--hand-size {} outside 2 to 10", config.hand_size));
     }
-    sia_engine::experiment::set_variant(variant);
     if bots.len() == 1 {
         bots.push(bots[0].clone());
     }

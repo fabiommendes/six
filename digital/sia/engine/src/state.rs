@@ -18,9 +18,9 @@ pub const PLAYERS: usize = 2;
 pub const STONES: usize = 9;
 /// Dice of one side of a stone.
 pub const SIDE_DICE: usize = 3;
-/// Dice in a hand at the start of the game.
-pub const DEFAULT_HAND_SIZE: u8 = 7;
-/// The hand sizes the engine accepts (the standard is 7; the others are for
+/// Dice in a hand at the start of the game: the joker and 4 dice of the bag.
+pub const DEFAULT_HAND_SIZE: u8 = 5;
+/// The hand sizes the engine accepts (the rules say 5; the others are for
 /// experiments).
 pub const HAND_SIZES: std::ops::RangeInclusive<u8> = 2..=10;
 /// Stones that win the game.
@@ -78,14 +78,6 @@ pub struct GameState {
     pub(crate) sides: [[Side; STONES]; PLAYERS],
     pub(crate) players: [Player; PLAYERS],
     pub(crate) hand_size: u8,
-    /// Extra dice in the hand of each player (experiments only, see
-    /// [`crate::experiment`]; not on the wire).
-    #[cfg_attr(feature = "wire", serde(skip), ts(skip))]
-    pub(crate) hand_bonus: [u8; PLAYERS],
-    /// Whether the player to move rerolled in this turn (experiments only;
-    /// not on the wire).
-    #[cfg_attr(feature = "wire", serde(skip), ts(skip))]
-    pub(crate) rerolled: bool,
     pub(crate) to_move: usize,
     pub(crate) step: Step,
     /// The turn, from 1.
@@ -97,14 +89,14 @@ pub struct GameState {
 }
 
 impl GameState {
-    /// A new game with hands of 7 dice: the preparation done and the events
-    /// of it.
+    /// A new game with hands of 5 dice (the joker and 4 of the bag): the
+    /// preparation done and the events of it.
     pub fn new(seed: u64) -> (GameState, Vec<Event>) {
         GameState::with_hand_size(DEFAULT_HAND_SIZE, seed)
     }
 
     /// A new game with hands of `hand_size` dice (2 to 10), for
-    /// experiments. The rules say 7.
+    /// experiments. The rules say 5.
     ///
     /// # Panics
     ///
@@ -119,8 +111,6 @@ impl GameState {
             sides: std::array::from_fn(|_| std::array::from_fn(|_| Side::default())),
             players: [Player::default(), Player::default()],
             hand_size,
-            hand_bonus: [0; PLAYERS],
-            rerolled: false,
             to_move: 0,
             step: Step::Reroll,
             turn: 1,
@@ -131,27 +121,16 @@ impl GameState {
         let mut events = vec![Event::StonesRolled {
             stones: stones.to_vec(),
         }];
-        let experiment = crate::experiment::variant();
         for player in 0..PLAYERS {
-            if experiment.joker {
-                let joker = Die::new(state.rng.roll(), JOKER_SUIT);
-                state.players[player].hand.push(joker);
-                events.push(Event::Drawn {
-                    player,
-                    dice: vec![joker],
-                });
-            }
+            let joker = Die::new(state.rng.roll(), JOKER_SUIT);
+            state.players[player].hand.push(joker);
+            events.push(Event::Drawn {
+                player,
+                dice: vec![joker],
+            });
             state.refill(player, &mut events);
         }
         state.to_move = usize::from(state.rng.coin());
-        if experiment.second_bonus > 0 {
-            let second = 1 - state.to_move;
-            state.hand_bonus[second] = experiment.second_bonus;
-            state.refill(second, &mut events);
-        }
-        if experiment.first_turn_without_reroll {
-            state.step = Step::Claim;
-        }
         events.push(Event::TurnStarted {
             player: state.to_move,
             turn: 1,
@@ -348,15 +327,6 @@ impl GameState {
             .collect()
     }
 
-    /// Whether the player to move may put any die on the opponent at the
-    /// cost of a die lost: the experiment move, in a turn without reroll,
-    /// with 2 dice or more. (A wild die goes without cost.)
-    fn can_give_dearly(&self) -> bool {
-        crate::experiment::place_on_opponent()
-            && !self.rerolled
-            && self.players[self.to_move].hand.len() >= 2
-    }
-
     pub fn can_place(&self, player: usize) -> bool {
         (0..STONES).any(|s| self.owners[s].is_none() && !self.sides[player][s].is_complete())
     }
@@ -364,17 +334,12 @@ impl GameState {
     // --- Moving ----------------------------------------------------------
 
     fn draw_die(&mut self) -> Die {
-        let suit = if crate::experiment::wild_suit() {
-            self.rng.suit_with_wild()
-        } else {
-            self.rng.suit()
-        };
-        Die::new(self.rng.roll(), suit)
+        Die::new(self.rng.roll(), self.rng.suit())
     }
 
     /// The dice `player` has in hand after drawing.
     fn hand_target(&self, player: usize) -> usize {
-        (self.hand_size + self.hand_bonus[player] - self.players[player].lost) as usize
+        (self.hand_size - self.players[player].lost) as usize
     }
 
     /// Draws for `player` until the hand has `hand_size` minus the dice
@@ -483,7 +448,6 @@ impl GameState {
                 let lost_die = next.players[me].hand.remove(lost);
                 next.players[me].lost += 1;
                 next.step = Step::Claim;
-                next.rerolled = true;
                 events.push(Event::Rerolled {
                     player: me,
                     target,
@@ -550,47 +514,6 @@ impl GameState {
                 next.end_turn(&mut events);
                 Ok((next, events))
             }
-            Command::PlaceOnOpponent { die, stone } => {
-                if die >= self.players[me].hand.len() {
-                    return Err(GameError::NoSuchDie { die });
-                }
-                let wild = self.players[me].hand[die].is_wild_suit();
-                if !wild && !self.can_give_dearly() {
-                    return Err(GameError::PlaceOnOpponentClosed);
-                }
-                if !wild && self.players[me].hand.len() < 2 {
-                    return Err(GameError::HandTooSmall);
-                }
-                if stone >= STONES {
-                    return Err(GameError::NoSuchStone { stone });
-                }
-                if self.owners[stone].is_some() {
-                    return Err(GameError::StoneTaken { stone });
-                }
-                if self.sides[1 - me][stone].is_complete() {
-                    return Err(GameError::SideFull { stone });
-                }
-                let placed = next.players[me].hand.remove(die);
-                if !wild {
-                    next.players[me].lost += 1;
-                }
-                next.placements += 1;
-                let side = &mut next.sides[1 - me][stone];
-                side.dice.push(placed);
-                let completes = side.is_complete();
-                if completes {
-                    side.completed = Some(next.placements);
-                }
-                events.push(Event::Placed {
-                    player: me,
-                    die: placed,
-                    hand_index: die,
-                    stone,
-                    completes,
-                });
-                next.end_turn(&mut events);
-                Ok((next, events))
-            }
             Command::Pass => {
                 if self.can_place(me) {
                     return Err(GameError::MustPlace);
@@ -605,7 +528,6 @@ impl GameState {
     /// Step 4 and the hand-over: draws the new dice, checks the lack of
     /// room and starts the next turn.
     fn end_turn(&mut self, events: &mut Vec<Event>) {
-        self.rerolled = false;
         self.refill(self.to_move, events);
         if !self.can_place(0) && !self.can_place(1) {
             self.resolve(events);
@@ -659,19 +581,6 @@ impl GameState {
         for die in first_of_each(hand, None) {
             for &stone in &open {
                 commands.push(Command::Place { die, stone });
-            }
-        }
-        let dearly = self.can_give_dearly();
-        {
-            for die in first_of_each(hand, None) {
-                if !hand[die].is_wild_suit() && !dearly {
-                    continue;
-                }
-                for stone in 0..STONES {
-                    if self.owners[stone].is_none() && !self.sides[1 - me][stone].is_complete() {
-                        commands.push(Command::PlaceOnOpponent { die, stone });
-                    }
-                }
             }
         }
         commands
@@ -766,18 +675,23 @@ mod tests {
     }
 
     #[test]
-    fn the_preparation_rolls_the_stones_and_deals_seven_dice() {
+    fn the_preparation_rolls_the_stones_and_deals_the_joker_and_four_dice() {
         let (state, events) = GameState::new(7);
         assert_eq!(state.validate(), Ok(()));
         assert!(state.stones.iter().all(|n| (1..=6).contains(n)));
         for p in 0..PLAYERS {
-            assert_eq!(state.hand(p).len(), 7);
+            assert_eq!(state.hand(p).len(), 5);
             assert!(state.hand(p).iter().all(Die::is_valid));
+            // The joker comes first, with a rolled number; the rest is bag.
+            assert_eq!(state.hand(p)[0].suit, JOKER_SUIT);
+            assert!(state.hand(p)[1..].iter().all(|d| d.suit < JOKER_SUIT));
         }
         assert!(matches!(events[0], Event::StonesRolled { .. }));
-        assert!(matches!(events[1], Event::Drawn { player: 0, .. }));
-        assert!(matches!(events[2], Event::Drawn { player: 1, .. }));
-        assert!(matches!(events[3], Event::TurnStarted { turn: 1, .. }));
+        assert!(matches!(&events[1], Event::Drawn { player: 0, dice } if dice.len() == 1));
+        assert!(matches!(&events[2], Event::Drawn { player: 0, dice } if dice.len() == 4));
+        assert!(matches!(&events[3], Event::Drawn { player: 1, dice } if dice.len() == 1));
+        assert!(matches!(&events[4], Event::Drawn { player: 1, dice } if dice.len() == 4));
+        assert!(matches!(events[5], Event::TurnStarted { turn: 1, .. }));
         assert_eq!(state.turn(), 1);
         assert_eq!(state.step(), Step::Reroll);
     }
@@ -807,7 +721,7 @@ mod tests {
             })
             .unwrap();
         assert_eq!(next.player(me).lost, 1);
-        assert_eq!(next.hand(me).len(), 6);
+        assert_eq!(next.hand(me).len(), 4);
         assert_eq!(next.step(), Step::Claim);
         // The hand without the lost die; indexes 1 and 2 may have new numbers.
         let after = next.hand(me);
@@ -842,13 +756,13 @@ mod tests {
             Command::Reroll {
                 target: 1 - me,
                 lost: 3,
-                dice: 0b101_0001,
+                dice: 0b1_0100,
             },
         );
-        assert_eq!(next.hand(me).len(), 6);
-        assert_eq!(next.hand(1 - me).len(), 7);
+        assert_eq!(next.hand(me).len(), 4);
+        assert_eq!(next.hand(1 - me).len(), 5);
         assert_eq!(next.player(1 - me).lost, 0);
-        for i in [1, 2, 3, 5] {
+        for i in [0, 1, 3] {
             assert_eq!(next.hand(1 - me)[i], other_before[i]);
         }
     }
@@ -867,12 +781,12 @@ mod tests {
             GameError::BadRoll
         );
         assert_eq!(
-            state.apply(reroll(me, 0, 1 << 7)).unwrap_err(),
+            state.apply(reroll(me, 0, 1 << 5)).unwrap_err(),
             GameError::BadRoll
         );
         assert_eq!(
-            state.apply(reroll(me, 7, 1)).unwrap_err(),
-            GameError::NoSuchDie { die: 7 }
+            state.apply(reroll(me, 5, 1)).unwrap_err(),
+            GameError::NoSuchDie { die: 5 }
         );
         assert_eq!(
             state.apply(reroll(2, 0, 1)).unwrap_err(),
@@ -895,9 +809,10 @@ mod tests {
         let (mut state, _) = GameState::new(14);
         let me = state.to_move();
         state.players[me].hand.truncate(1);
-        state.players[me].lost = 6;
-        state.players[1 - me].hand.truncate(1);
-        state.players[1 - me].lost = 6;
+        state.players[me].lost = 4;
+        // The one die of the other hand is not the joker, which cannot be rolled.
+        state.players[1 - me].hand = vec![d(4, 1)];
+        state.players[1 - me].lost = 4;
         assert_eq!(state.validate(), Ok(()));
         for target in 0..2 {
             assert_eq!(
@@ -917,7 +832,7 @@ mod tests {
             .all(|c| !matches!(c, Command::Reroll { .. })));
         // With 2 dice, the other hand of one die can be rolled.
         state.players[me].hand.push(d(3, 3));
-        state.players[me].lost = 5;
+        state.players[me].lost = 3;
         let next = play(
             &state,
             Command::Reroll {
@@ -959,11 +874,11 @@ mod tests {
     }
 
     #[test]
-    fn placing_draws_back_to_seven_minus_the_lost_dice() {
+    fn placing_draws_back_to_five_minus_the_lost_dice() {
         let (state, _) = GameState::new(16);
         let me = state.to_move();
         let (next, events) = state.apply(Command::Place { die: 2, stone: 4 }).unwrap();
-        assert_eq!(next.hand(me).len(), 7);
+        assert_eq!(next.hand(me).len(), 5);
         assert_eq!(next.side(me, 4).dice, [state.hand(me)[2]]);
         assert!(matches!(
             events[..],
@@ -979,7 +894,7 @@ mod tests {
         ));
         assert_eq!(next.to_move(), 1 - me);
         assert_eq!(next.turn(), 2);
-        // After a reroll the hand comes back to 6, not 7.
+        // After a reroll the hand comes back to 4, not 5.
         let rolled = play(
             &state,
             Command::Reroll {
@@ -989,7 +904,7 @@ mod tests {
             },
         );
         let after = play(&rolled, Command::Place { die: 0, stone: 0 });
-        assert_eq!(after.hand(me).len(), 6);
+        assert_eq!(after.hand(me).len(), 4);
         assert_eq!(after.validate(), Ok(()));
     }
 
@@ -1012,9 +927,9 @@ mod tests {
         );
         assert_eq!(
             state
-                .apply(Command::Place { die: 7, stone: 0 })
+                .apply(Command::Place { die: 5, stone: 0 })
                 .unwrap_err(),
-            GameError::NoSuchDie { die: 7 }
+            GameError::NoSuchDie { die: 5 }
         );
         assert_eq!(
             state
@@ -1054,8 +969,8 @@ mod tests {
     #[test]
     fn two_complete_sides_are_a_duel_and_the_loser_cannot_claim() {
         let mut state = game([6, 1, 1, 1, 1, 1, 1, 1, 1], 0);
-        put(&mut state, 0, 0, &[d(5, 0), d(2, 1), d(1, 2)]); // pair? 6 5 2 1: sum
-        put(&mut state, 1, 0, &[d(6, 0), d(2, 1), d(3, 2)]); // pair of 6
+        put(&mut state, 0, 0, &[d(5, 0), d(2, 1), d(1, 2)]); // 6 5 2 1: sum
+        put(&mut state, 1, 0, &[d(2, 0), d(2, 1), d(3, 2)]); // pair of 2
         assert_eq!(state.formation_of(0, 0).unwrap().kind, FormationKind::Sum);
         assert_eq!(state.formation_of(1, 0).unwrap().kind, FormationKind::Pair);
         assert_eq!(state.claim_kind(1, 0), Some(false));
@@ -1119,25 +1034,18 @@ mod tests {
     #[test]
     fn the_proof_looks_at_what_the_other_side_can_become_not_at_the_hand() {
         let mut state = game([5; 9], 0);
-        put(&mut state, 0, 0, &[d(5, 0), d(5, 1), d(5, 2)]); // four of a kind, 20
-                                                             // The other side has a 1: no run or four of a kind is left, but a
-                                                             // flush is, and the four of a kind is above it.
+        // A flush of sum 21.
+        put(&mut state, 0, 0, &[d(6, 0), d(6, 0), d(4, 0)]);
+        // The other side has a 1: no run is left (1 and the stone 5 are too
+        // far apart), so the best it can be is a flush of a lower sum.
         put(&mut state, 1, 0, &[d(1, 0)]);
         assert_eq!(state.claim_kind(0, 0), Some(true));
-        // Even if the other hand holds the three missing 5s.
-        state.players[1].hand = vec![
-            d(5, 0),
-            d(5, 1),
-            d(5, 2),
-            d(1, 0),
-            d(1, 0),
-            d(1, 0),
-            d(1, 0),
-        ];
+        // Even if the other hand holds the missing dice of a run.
+        state.players[1].hand = vec![d(2, 0), d(3, 0), d(4, 0), d(6, 0), d(1, 0)];
         assert_eq!(state.claim_kind(0, 0), Some(true));
-        // With a 5 and a 6 on the other side a straight flush is still open.
+        // With a 4 on the other side a straight flush is still open.
         let mut open = game([5; 9], 0);
-        put(&mut open, 0, 0, &[d(5, 0), d(5, 1), d(5, 2)]);
+        put(&mut open, 0, 0, &[d(6, 0), d(6, 0), d(4, 0)]);
         put(&mut open, 1, 0, &[d(4, 0)]);
         assert_eq!(open.claim_kind(0, 0), None);
     }

@@ -48,10 +48,10 @@ function play(game, seed) {
   return view;
 }
 
-test("games with hands of 6, 7 and 8 end with winners", () => {
-  for (const size of [6, 7, 8]) {
+test("games with hands of 4, 5 and 6 end with winners", () => {
+  for (const size of [4, 5, 6]) {
     for (let seed = 1; seed <= 15; seed++) {
-      const game = size === 7 ? new Game(BigInt(seed)) : Game.withHandSize(size, BigInt(seed));
+      const game = size === 5 ? new Game(BigInt(seed)) : Game.withHandSize(size, BigInt(seed));
       const view = play(game, seed);
       assert.ok(view.winners.length >= 1);
       assert.equal(view.players[0].hand.length + view.players[0].lost, size);
@@ -65,7 +65,7 @@ test("the preparation, the view and the legal commands agree", () => {
   const events = json(game.openingEvents());
   assert.deepEqual(
     events.map((e) => e.kind),
-    ["stonesRolled", "drawn", "drawn", "turnStarted"],
+    ["stonesRolled", "drawn", "drawn", "drawn", "drawn", "turnStarted"],
   );
   const view = json(game.view());
   assert.equal(view.stones.length, 9);
@@ -73,7 +73,8 @@ test("the preparation, the view and the legal commands agree", () => {
     view.stones.map((s) => s.number),
     events[0].stones,
   );
-  assert.equal(view.players[0].hand.length, 7);
+  assert.equal(view.players[0].hand.length, 5);
+  assert.equal(view.players[0].hand[0].suit, 4, "the joker is the first die of the hand");
   assert.equal(view.canReroll, true);
   const legal = json(game.legalCommands());
   assert.ok(legal.some((c) => c.kind === "reroll"));
@@ -102,15 +103,23 @@ test("a reroll costs a die and the hand comes back one die short", () => {
   const reroll = transition.events[0];
   assert.equal(reroll.kind, "rerolled");
   assert.equal(reroll.rolled.length, 2);
-  assert.equal(transition.view.players[me].hand.length, 6);
+  assert.equal(transition.view.players[me].hand.length, 4);
   assert.equal(transition.view.canReroll, false);
   const placed = json(game.command(JSON.stringify({ kind: "place", die: 0, stone: 0 })));
   assert.deepEqual(
     placed.events.map((e) => e.kind),
     ["placed", "drawn", "turnStarted"],
   );
-  assert.equal(placed.view.players[me].hand.length, 6);
+  assert.equal(placed.view.players[me].hand.length, 4);
   assert.equal(placed.view.players[me].lost, 1);
+});
+
+test("the joker of the other hand cannot be rolled", () => {
+  const game = new Game(5n);
+  const me = json(game.view()).toMove;
+  // The joker is the first die of each hand.
+  assert.throws(() => game.command(JSON.stringify({ kind: "reroll", target: 1 - me, lost: 1, dice: 0b1 })));
+  game.command(JSON.stringify({ kind: "reroll", target: me, lost: 1, dice: 0b1 }));
 });
 
 test("illegal commands throw and change nothing", () => {

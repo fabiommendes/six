@@ -1,8 +1,6 @@
-//! The variant with a joker per player (`experiment::Variant::joker`). The
-//! variant is process-wide, so these checks live in a test binary of their
-//! own, in one test.
+//! The joker of each player (`regras/sia/01-componentes.md`): a die of the
+//! color of the stones that counts as any suit.
 
-use sia_engine::experiment::{set_variant, Variant};
 use sia_engine::{
     best_completion, formation, Command, Die, FormationKind, GameError, GameState, JOKER_SUIT,
 };
@@ -27,13 +25,8 @@ fn rolls_joker_of(state: &GameState, owner: usize, command: &Command) -> bool {
 
 #[test]
 fn the_joker_is_in_the_hand_counts_as_any_suit_and_is_safe_from_the_opponent() {
-    set_variant(Variant {
-        joker: true,
-        ..Variant::default()
-    });
-
     // Preparation: the hand is 4 dice of the bag and the joker.
-    let (state, _) = GameState::with_hand_size(5, 1);
+    let (state, _) = GameState::new(1);
     state.validate().unwrap();
     for p in 0..2 {
         assert_eq!(state.hand(p).len(), 5);
@@ -50,11 +43,12 @@ fn the_joker_is_in_the_hand_counts_as_any_suit_and_is_safe_from_the_opponent() {
     let without = best_completion(2, &[Die::new(1, 2), Die::new(6, 2)]);
     assert_eq!(with_joker, without);
 
-    // Games: the opponent never rolls a joker, the owner can, the joker
-    // is replaced by a die of the bag and no joker comes back.
+    // Games: the opponent never rolls a joker, the owner can, and a joker
+    // placed or lost is not replaced: no joker comes back.
     let mut owner_rolled = false;
+    let mut lost_joker = false;
     for seed in 0..60 {
-        let (mut state, _) = GameState::with_hand_size(5, seed);
+        let (mut state, _) = GameState::new(seed);
         let mut pick = seed;
         let mut placed = [false; 2];
         while !state.is_over() {
@@ -90,6 +84,12 @@ fn the_joker_is_in_the_hand_counts_as_any_suit_and_is_safe_from_the_opponent() {
                 .wrapping_mul(6364136223846793005)
                 .wrapping_add(1442695040888963407);
             let command = commands[(pick >> 33) as usize % commands.len()];
+            if let Command::Reroll { lost, .. } = command {
+                if state.hand(me)[lost].is_joker() {
+                    placed[me] = true;
+                    lost_joker = true;
+                }
+            }
             if let Command::Place { die, .. } = command {
                 if state.hand(me)[die].is_joker() {
                     placed[me] = true;
@@ -99,10 +99,15 @@ fn the_joker_is_in_the_hand_counts_as_any_suit_and_is_safe_from_the_opponent() {
             for (p, &was_placed) in placed.iter().enumerate() {
                 assert!(jokers(&state, p) <= 1);
                 if was_placed {
-                    assert_eq!(jokers(&state, p), 0, "a placed joker is not replaced");
+                    assert_eq!(
+                        jokers(&state, p),
+                        0,
+                        "a placed or lost joker is not replaced"
+                    );
                 }
             }
         }
     }
     assert!(owner_rolled, "the owner can roll the own joker");
+    assert!(lost_joker, "the owner can lose the own joker");
 }

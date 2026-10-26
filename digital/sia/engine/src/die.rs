@@ -3,14 +3,11 @@
 #[cfg(feature = "wire")]
 use serde::{Deserialize, Serialize};
 
-/// Suits of the bag. The stones have a fifth suit that counts as any.
+/// Suits of the bag: 0 to 3. The stones have a fifth suit that counts as any.
 pub const SUITS: u8 = 4;
 
-/// The suit that is wild in the variant with a wild suit.
-pub const WILD_SUIT: u8 = 3;
-
-/// The suit of the joker of the variant with a joker per player (see
-/// [`crate::experiment`]): outside the bag, it counts as any suit.
+/// The suit of the joker, outside the bag: the color of the stones. Every
+/// player has one, and it counts as any suit in a flush.
 pub const JOKER_SUIT: u8 = 4;
 
 /// A die with a number and a suit. Rolling a die changes the number only.
@@ -29,26 +26,13 @@ impl Die {
         Die { value, suit }
     }
 
-    /// Whether the die is of the wild suit: the suit 3 in the variant with a
-    /// wild suit (see [`crate::experiment`]).
-    pub fn is_wild_suit(&self) -> bool {
-        self.suit == WILD_SUIT && crate::experiment::wild_suit()
-    }
-
-    /// Whether the die is the joker of its player (variant with a joker).
+    /// Whether the die is the joker of its player: it counts as any suit.
     pub fn is_joker(&self) -> bool {
         self.suit == JOKER_SUIT
     }
 
-    /// Whether the die counts as any suit in a flush: of the wild suit, or
-    /// the joker.
-    pub fn is_wild(&self) -> bool {
-        self.is_wild_suit() || self.is_joker()
-    }
-
     /// Whether the number and the suit are in range.
     pub fn is_valid(&self) -> bool {
-        (1..=6).contains(&self.value)
-            && (self.suit < SUITS || (self.is_joker() && crate::experiment::joker()))
+        (1..=6).contains(&self.value) && self.suit <= JOKER_SUIT
     }
 }

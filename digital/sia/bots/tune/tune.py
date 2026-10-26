@@ -11,9 +11,10 @@ Each candidate (a vector of weights) plays one `sia-bots batch` against the
 opponent; its fitness is its mean share of the win over those games. Every
 candidate of a generation plays the same deals, and each generation plays
 new ones. Rerunning the same command resumes from the last finished
-generation. `flags` in the config are passed on to `sia-bots batch` (the rule
-variants, e.g. `["--stone-only-sequences"]`). The config format is in `example.json`; adapted from the tuner
-of the Rio (`~/git/games/rio/digital/tools/tune.py`).
+generation. `flags` in the config are passed on to `sia-bots batch`. The rules have no
+variants any more (the configs `fase-*.json` of the earlier phases used flags
+that no longer exist and cannot be rerun). The config format is in
+`example.json`; adapted from the tuner of the Rio (`~/git/games/rio/digital/tools/tune.py`).
 
 Output directory:
 
@@ -98,7 +99,7 @@ def load_config(path: Path) -> Config:
         seed=raw.get("seed", 0),
         sigma=raw.get("sigma", 0.25),
         threads=raw.get("threads", 6),
-        hand_size=raw.get("hand_size", 7),
+        hand_size=raw.get("hand_size", 5),
         flags=tuple(raw.get("flags", [])),
         binary=Path(raw.get("binary", DIGITAL / "target" / "release" / "sia-bots")),
         out=Path(raw["out"]),

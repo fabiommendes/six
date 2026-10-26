@@ -19,7 +19,7 @@ viram exceção em JavaScript e não mudam a partida.
 
 | Método | Devolve |
 |---|---|
-| `new Game(seed: bigint)` | partida nova: marcos rolados, mãos de 7 dados, primeiro jogador sorteado |
+| `new Game(seed: bigint)` | partida nova: marcos rolados, mãos de 5 dados (o coringa e 4 da bolsa), primeiro jogador sorteado |
 | `Game.withHandSize(size: number, seed: bigint)` | o mesmo com mãos de 2 a 10 dados, só para experimento |
 | `Game.fromState(json: string)` | partida a partir de um `State`; recusa estados que o motor não alcança |
 | `openingEvents(): string` | `Event[]` da preparação |
