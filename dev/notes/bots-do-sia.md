@@ -617,3 +617,80 @@ Nada disto foi aplicado em `regras/`; é para o designer decidir.
 4. Alternativa não testada para a quadra: rolar de novo custar mais (por
    exemplo, perder um dado e não poder rolar a própria mão duas vezes
    seguidas). É o próximo teste, agora que (b) foi medida.
+
+## Regra adotada (2026-10-26)
+
+O designer decidiu a variante (b) com mão de 5 e o coringa (g), a
+configuração medida como "(b)/5 + (g)". Ela é a regra de `regras/sia/` e o
+padrão do motor, sem flags. As seções acima são o histórico das variantes e
+citam flags (`--stone-only-sequences`, `--joker`, `--hand-size` com 7 e
+outras) que o motor não tem mais; as seções "Regra padrão" e "Propostas de
+regra" falam de uma regra que deixou de existir.
+
+- Formação: 3 dados do jogador e o marco; o marco conta só para a sequência
+  e o naipe (o naipe dele vale como qualquer naipe). Trinca e par olham só os
+  3 dados. Sem quadra nem dois pares. Ordem: sequência de naipe, sequência,
+  naipe, trinca, par, soma.
+- Desempate: maior soma dos 4 números (o marco entra na soma, como o código
+  faz: `stone + 3 dados`), depois o lado completado primeiro.
+- Mão de 5: o coringa e 4 dados da bolsa. Repor completa até 5 menos os
+  perdidos, só com dados dos 4 naipes da bolsa.
+- Coringa: dado do naipe dos marcos (`JOKER_SUIT`), número rolado na
+  preparação. O dono pode rolá-lo e perdê-lo; o adversário não pode rolá-lo.
+  O que o código faz com o coringa perdido: ele só sai da mão (a mão perde um
+  dado, `lost` sobe) e não volta como coringa, porque a bolsa só sorteia os 4
+  naipes. Foi mantido e registrado em `regras/sia/01-componentes.md` como
+  Proposta; o designer precisa confirmar.
+- Chances de cada formação com 3 dados ao acaso, recalculadas por
+  enumeração (marco de 1 a 6, números de 1 a 6, 4 naipes, sem coringa):
+  sequência de naipe 0,35%, sequência 5,2%, naipe 5,9%, trinca 2,6%, par 39%,
+  soma 47%. A trinca, mais rara que o naipe, fica abaixo dele, pela ordem
+  decidida.
+
+### O que saiu do motor
+
+`experiment` (os átomos globais e a struct `Variant`), as variantes (a) a
+(f) e `second_bonus`/`first_turn_without_reroll`, o comando
+`PlaceOnOpponent` e o erro `PlaceOnOpponentClosed`, `WILD_SUIT` e
+`suit_with_wild`, e os parâmetros `gives` dos bots. O tamanho da mão
+(`GameState::with_hand_size`, `--hand-size`) ficou como parâmetro de
+experimento, dentro do estado; o padrão é 5. `FormationKind` tem 6 valores
+(`FourOfAKind` e `TwoPairs` saíram dos tipos TypeScript). O jogo salvo da web
+passou para a chave `sia.partida.v2`.
+
+### Pesos padrão
+
+`weights/default.json` agora é o `best.json` da fase `gb5`
+(`tune/fase-gb5.json`: CMA-ES de 30 gerações, 12 candidatos, 150 sementes,
+mão de 5, regra decidida), validado em 4000 partidas (sementes 600000)
+contra os pesos à mão: **+305 Elo [+290, +321]**.
+
+| Peso | Antes (fase 1, mão de 7) | Agora (gb5) |
+|---|---|---|
+| `adjacent` | 0,21 | 0,00 |
+| `prob` | 1,47 | 0,28 |
+| `sure` | 0,08 | 0,67 |
+| `neighbors` | 0,81 | 0,00 |
+| `placed` | -0,30 | -0,11 |
+| `lost` | -0,53 | -0,85 |
+| `hand` | 0,42 | 0,48 |
+| `opp_hand` | -1,43 | -1,98 |
+
+### Níveis da web, medidos de novo
+
+Pesos novos, sementes 600000, rotação de assentos, nativo.
+
+| Lote | Partidas | Resultado | Elo | ms por decisão |
+|---|---|---|---|---|
+| fácil (`greedy:noise=2`) x médio (`greedy`) | 2000 | 69 a 1931 (3,5% [2,7; 4,3]) | -579 [-626, -541] | 3,0 e 2,5 |
+| fácil x `random` | 600 | 575 a 25 (95,8% [93,9; 97,2]) | +545 [+485, +632] | 3,8 e 0,00 |
+| difícil (`pimc`) x médio | 200 | 158 a 42 (79,0% [72,8; 84,1]) | +230 [+176, +297] | 114 (máx. 486) e 2,1 |
+
+- O fácil ainda perde 96,5% das partidas para o médio: o degrau fácil-médio
+  (579 Elo) é o maior dos três. Antes (sem coringa, mão de 7) eram -460 Elo.
+  Se o designer quiser o fácil mais perto do médio, é subir o `noise` da
+  especificação em `digital/sia/web/src/bot/levels.ts`; não mudei.
+- O difícil contra o médio é +230, como o `pimc` x `greedy` anterior (+234).
+- Tempo do `pimc` no WASM (`just sia-wasm-test`, 3 decisões do começo da
+  partida): 163 ms por decisão (pior 176), com a máquina menos carregada que
+  nas medidas de 2026-10-21 (379 ms). Folga grande para o teto de 0,5 s.
