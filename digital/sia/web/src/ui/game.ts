@@ -729,8 +729,8 @@ function formationsCard(): string {
     (kind, i) => `<li><span class="pos">${i + 1}</span><div><b>${esc(FORMATION_NAMES[kind])}</b><span>${esc(FORMATION_RULES[kind])}</span></div></li>`,
   ).join("");
   return `<h2>Formações</h2>
-    <p class="sub">Da mais forte para a mais fraca. Cada lado vale pelos 3 dados do jogador mais o marco.</p>
+    <p class="sub">Da mais forte para a mais fraca. Cada lado vale pelos 3 dados do jogador mais o marco, mas o marco conta só para a sequência e para o naipe (o naipe dele e o coringa valem como qualquer naipe). Trinca e par olham só os 3 dados.</p>
     <ol>${rows}</ol>
-    <p class="tie-rule"><b>Desempate:</b> a formação do mesmo tipo com maior soma dos 4 números vence; se a soma empata, vence quem completou o lado primeiro.</p>
+    <p class="tie-rule"><b>Desempate:</b> a formação do mesmo tipo com maior soma dos 4 números (o marco incluído) vence; se a soma empata, vence quem completou o lado primeiro.</p>
     <p class="claim-rule"><b>Reivindicar:</b> com os dois lados de um marco completos, a melhor formação o toma. Antes disso, você o toma se nenhuma formação que o adversário ainda possa completar vence a sua. Quem toma o faz no seu turno, e a coluna vai para o seu lado.</p>`;
 }

@@ -194,7 +194,7 @@ export class Table3D {
   private hands: Die3D[][] = [[], []];
   private owners: (number | null)[] = Array.from({ length: STONES }, () => null);
   private view: View | null = null;
-  private handSize = 7;
+  private handSize = 5;
   private marks: TableMarks = NO_MARKS;
   private hovered: Pick | null = null;
   private arrangement: Arrangement = "wide";

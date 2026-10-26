@@ -9,11 +9,11 @@ const stones = (owners: (number | null)[]) => ({ stones: owners.map((owner) => (
 
 describe("formation names", () => {
   it("are those of the glossary, from the weakest to the strongest", () => {
-    expect(FORMATION_ORDER.map((k) => FORMATION_NAMES[k])).toEqual(["Soma", "Par", "Trinca", "Dois pares", "Naipe", "Sequência", "Quadra", "Sequência de naipe"]);
+    expect(FORMATION_ORDER.map((k) => FORMATION_NAMES[k])).toEqual(["Soma", "Par", "Trinca", "Naipe", "Sequência", "Sequência de naipe"]);
   });
 
   it("order like the engine does: kind first, then the sum", () => {
-    expect(strength("straightFlush")).toBe(7);
+    expect(strength("straightFlush")).toBe(5);
     expect(compareFormations({ kind: "pair", sum: 20 }, { kind: "threeOfAKind", sum: 5 })).toBeLessThan(0);
     expect(compareFormations({ kind: "pair", sum: 9 }, { kind: "pair", sum: 7 })).toBeGreaterThan(0);
     expect(compareFormations({ kind: "run", sum: 10 }, { kind: "run", sum: 10 })).toBe(0);
@@ -37,7 +37,7 @@ describe("sideText", () => {
   });
 
   it("tells an incomplete side by what is missing and what it can still be", () => {
-    expect(sideText(side([die(3)], null, { kind: "fourOfAKind", sum: 15 }))).toBe("Faltam 2, pode chegar a quadra");
+    expect(sideText(side([die(3)], null, { kind: "straightFlush", sum: 15 }))).toBe("Faltam 2, pode chegar a sequência de naipe");
     expect(sideText(side([], null))).toBe("Vazio");
   });
 });
@@ -79,13 +79,13 @@ describe("with the engine", () => {
 
 describe("the order of the formations for the cards", () => {
   it("lists them from the strongest, each with what it is", () => {
-    expect(FORMATIONS_BY_STRENGTH.map((k) => FORMATION_NAMES[k])).toEqual(["Sequência de naipe", "Quadra", "Sequência", "Naipe", "Dois pares", "Trinca", "Par", "Soma"]);
-    expect(FORMATION_RULES.fourOfAKind).toBe("4 números iguais");
+    expect(FORMATIONS_BY_STRENGTH.map((k) => FORMATION_NAMES[k])).toEqual(["Sequência de naipe", "Sequência", "Naipe", "Trinca", "Par", "Soma"]);
+    expect(FORMATION_RULES.run).toBe("4 números seguidos, com o marco");
   });
 
   it("says the place of a kind counting from the strongest", () => {
-    expect(rankText("straightFlush")).toBe("1ª de 8");
-    expect(rankText("threeOfAKind")).toBe("6ª de 8");
-    expect(rankText("sum")).toBe("8ª de 8");
+    expect(rankText("straightFlush")).toBe("1ª de 6");
+    expect(rankText("threeOfAKind")).toBe("4ª de 6");
+    expect(rankText("sum")).toBe("6ª de 6");
   });
 });

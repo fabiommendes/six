@@ -94,7 +94,7 @@ describe("hint", () => {
     expect(hint(view, REROLL_START, names)).toMatch(/perdido para sempre/);
     const lost = hint(view, { kind: "reroll", target: null, lost: 0, dice: [] }, names);
     expect(lost).toContain("perde o");
-    expect(lost).toContain("limitada a 6 dados");
+    expect(lost).toContain("limitada a 4 dados");
     const rolling = hint(view, { kind: "reroll", target: 1 - me, lost: 0, dice: [0, 1] }, names);
     expect(rolling).toContain(`da mão de ${names[1 - me]}`);
     expect(rolling).toContain("Rola 2 dados");
@@ -113,8 +113,8 @@ describe("small texts", () => {
   it("counts stones and dice in the hand", () => {
     expect(stonesCount(1)).toBe("1 marco");
     expect(stonesCount(3)).toBe("3 marcos");
-    expect(handText(7, 7, 0)).toBe("7 dados");
-    expect(handText(5, 7, 2)).toBe("5 de 5 dados (2 perdidos)");
+    expect(handText(5, 5, 0)).toBe("5 dados");
+    expect(handText(3, 5, 2)).toBe("3 de 3 dados (2 perdidos)");
   });
 
   it("announces the winner or the draw", () => {
@@ -136,14 +136,14 @@ describe("small texts", () => {
 
 describe("sideLines", () => {
   const die = (value: number) => ({ value, suit: 0 });
-  const potential = { kind: "fourOfAKind", sum: 15 } as const;
+  const potential = { kind: "straightFlush", sum: 15 } as const;
 
   it("reads a complete side by formation, place in the order and the sum as the tiebreak", () => {
-    expect(sideLines({ dice: [die(1), die(1), die(1)], formation: { kind: "threeOfAKind", sum: 14 }, potential })).toEqual({ title: "Trinca", note: "6ª de 8", tiebreak: "desempate: soma 14" });
+    expect(sideLines({ dice: [die(1), die(1), die(1)], formation: { kind: "threeOfAKind", sum: 14 }, potential })).toEqual({ title: "Trinca", note: "4ª de 6", tiebreak: "desempate: soma 14" });
   });
 
   it("reads an incomplete side by what is missing and what it can still be", () => {
-    expect(sideLines({ dice: [die(3)], formation: null, potential })).toEqual({ title: "Faltam 2 dados", note: "pode chegar a quadra", tiebreak: "" });
+    expect(sideLines({ dice: [die(3)], formation: null, potential })).toEqual({ title: "Faltam 2 dados", note: "pode chegar a sequência de naipe", tiebreak: "" });
     expect(sideLines({ dice: [die(3), die(3)], formation: null, potential }).title).toBe("Falta 1 dado");
     expect(sideLines({ dice: [], formation: null, potential })).toEqual({ title: "Vazio", note: "faltam 3 dados", tiebreak: "" });
   });

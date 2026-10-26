@@ -1,5 +1,5 @@
 import type { Die, EndReason, Event, SideView, View } from "../engine/game";
-import { formationText, FORMATION_NAMES, rankText, SIDE_SIZE, sideText, stoneLetter } from "./formation";
+import { formationText, FORMATION_NAMES, isJoker, rankText, SIDE_SIZE, sideText, stoneLetter } from "./formation";
 import { rerollPreview, type Selection } from "./selection";
 import { SUIT_NAMES } from "../ui/svg";
 
@@ -42,9 +42,10 @@ export const TOOLS = {
   results: "Resultado",
 } as const;
 
-/** "um 3 vermelho": a die in a sentence. */
+/** "3 vermelho": a die in a sentence; the joker reads "coringa 3". */
 export function dieText(die: Die): string {
-  return `${die.value} ${SUIT_NAMES[die.suit] === "dos marcos" ? "" : SUIT_NAMES[die.suit]}`.trim();
+  if (isJoker(die)) return `coringa ${die.value}`;
+  return `${die.value} ${SUIT_NAMES[die.suit]}`.trim();
 }
 
 const stone = (index: number, number?: number) => (number === undefined ? `marco ${stoneLetter(index)}` : `marco ${stoneLetter(index)} (${number})`);
@@ -75,7 +76,9 @@ export function eventText(event: Event, names: readonly string[], view?: Pick<Vi
     case "stonesRolled":
       return `Os marcos foram rolados: ${event.stones.join(" ")}.`;
     case "drawn":
-      return event.dice.length === 0 ? null : `${name(event.player)} tirou da bolsa: ${dice(event.dice)}.`;
+      if (event.dice.length === 0) return null;
+      if (event.dice.every(isJoker)) return `${name(event.player)} rolou o seu coringa: ${dice(event.dice)}.`;
+      return `${name(event.player)} tirou da bolsa: ${dice(event.dice)}.`;
     case "turnStarted":
       return null;
     case "rerolled": {
@@ -88,7 +91,7 @@ export function eventText(event: Event, names: readonly string[], view?: Pick<Vi
       return `${name(event.player)} reivindicou o ${stone(event.stone, number(event.stone))} com ${formationText(event.formation).toLowerCase()}.${how}`;
     }
     case "placed":
-      return `${name(event.player)} pôs o ${event.die.value} no ${stone(event.stone)}${event.completes ? ", completando o lado" : ""}.`;
+      return `${name(event.player)} pôs o ${isJoker(event.die) ? dieText(event.die) : event.die.value} no ${stone(event.stone)}${event.completes ? ", completando o lado" : ""}.`;
     case "passed":
       return `${name(event.player)} passou: nenhum marco tem lugar para um dado dele.`;
     case "awarded":
@@ -100,7 +103,11 @@ export function eventText(event: Event, names: readonly string[], view?: Pick<Vi
 
 /** A short line about an event for the prompt while it plays on the table. */
 export function happeningText(event: Event, names: readonly string[], view?: Pick<View, "stones">): string | null {
-  if (event.kind === "drawn") return event.dice.length === 0 ? null : `${names[event.player]} tira ${plural(event.dice.length, "dado", "dados")} da bolsa.`;
+  if (event.kind === "drawn") {
+    if (event.dice.length === 0) return null;
+    if (event.dice.every(isJoker)) return `${names[event.player]} rola o seu coringa.`;
+    return `${names[event.player]} tira ${plural(event.dice.length, "dado", "dados")} da bolsa.`;
+  }
   if (event.kind === "stonesRolled") return "Os marcos são rolados.";
   return eventText(event, names, view);
 }
@@ -153,7 +160,7 @@ export function stonesCount(n: number): string {
   return plural(n, "marco", "marcos");
 }
 
-/** "mão 6 de 7": the dice in a hand and how many the rules still allow. */
+/** "4 de 5 dados (1 perdido)": the dice in a hand and how many the rules still allow. */
 export function handText(hand: number, handSize: number, lost: number): string {
   const limit = handSize - lost;
   return lost === 0 ? `${hand} dados` : `${hand} de ${limit} dados (${plural(lost, "perdido", "perdidos")})`;

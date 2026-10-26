@@ -1,4 +1,5 @@
 import type { Command, Die, View } from "../engine/game";
+import { isJoker } from "./formation";
 
 /**
  * What the person to move has picked so far: nothing, a die of the hand to
@@ -68,6 +69,8 @@ function rerollClick(view: View, selection: Extract<Selection, { kind: "reroll" 
     // Rolling the other hand: another die of the own hand is the one to lose.
     return stay({ ...selection, lost: click.die });
   }
+  const picked = view.players[click.seat]?.hand[click.die];
+  if (picked && isJoker(picked)) return stay(selection, "O coringa do adversário não pode ser rolado.");
   const other = selection.target === click.seat ? selection.dice : [];
   return stay({ ...selection, target: click.seat, dice: toggle(other, click.die) });
 }

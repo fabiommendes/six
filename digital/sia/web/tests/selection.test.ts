@@ -3,7 +3,7 @@ import type { View } from "../src/engine/game";
 import { SiaGame } from "../src/engine/game";
 import { click, diceMask, NONE, placeTargets, REROLL_START, rerollCommand, rerollPreview, rerollStart, selectedDie, type Selection } from "../src/logic/selection";
 
-/** A fresh game and its view: both hands have 7 dice and every stone is open. */
+/** A fresh game and its view: both hands have 5 dice, the first of them the joker and every stone is open. */
 function fresh(seed = 4n): { game: SiaGame; view: View } {
   const game = SiaGame.create(seed);
   return { game, view: game.view() };
@@ -15,13 +15,13 @@ describe("putting a die", () => {
   it("takes a die of the hand, then a stone, and makes a place command", () => {
     const { game, view } = fresh();
     const me = view.toMove;
-    const picked = click(view, NONE, { kind: "hand", seat: me, die: 3 });
-    expect(picked.selection).toEqual({ kind: "die", die: 3 });
+    const picked = click(view, NONE, { kind: "hand", seat: me, die: 0 });
+    expect(picked.selection).toEqual({ kind: "die", die: 0 });
     expect(picked.command).toBeNull();
     expect(placeTargets(view, picked.selection)).toHaveLength(9);
     const done = click(view, picked.selection, { kind: "side", seat: me, stone: 5 });
-    expect(done.command).toEqual({ kind: "place", die: 3, stone: 5 });
-    expect(game.legalCommands()).toContainEqual({ kind: "place", die: 3, stone: 5 });
+    expect(done.command).toEqual({ kind: "place", die: 0, stone: 5 });
+    expect(game.legalCommands()).toContainEqual({ kind: "place", die: 0, stone: 5 });
     expect(done.selection).toEqual(NONE);
   });
 
@@ -97,10 +97,21 @@ describe("rerolling", () => {
     const me = view.toMove;
     const other = 1 - me;
     let selection: Selection = click(view, REROLL_START, { kind: "hand", seat: me, die: 1 }).selection;
-    selection = click(view, selection, { kind: "hand", seat: other, die: 0 }).selection;
+    selection = click(view, selection, { kind: "hand", seat: other, die: 1 }).selection;
     selection = click(view, selection, { kind: "hand", seat: other, die: 3 }).selection;
-    expect(selection).toMatchObject({ lost: 1, target: other, dice: [0, 3] });
+    expect(selection).toMatchObject({ lost: 1, target: other, dice: [1, 3] });
     expect(() => game.command(rerollCommand(selection)!)).not.toThrow();
+  });
+
+  it("does not pick the joker of the other hand to roll, but does pick the own", () => {
+    const { view } = fresh();
+    const me = view.toMove;
+    const start = click(view, REROLL_START, { kind: "hand", seat: me, die: 1 }).selection;
+    const refused = click(view, start, { kind: "hand", seat: 1 - me, die: 0 });
+    expect(refused.selection).toEqual(start);
+    expect(refused.note).toMatch(/coringa/);
+    const own = click(view, start, { kind: "hand", seat: me, die: 0 });
+    expect(own.selection).toMatchObject({ target: me, dice: [0] });
   });
 
   it("switching to the other hand clears the dice picked, and a picked die can be dropped", () => {
@@ -134,7 +145,7 @@ describe("rerolling", () => {
     const hand = view.players[me]!.hand;
     const preview = rerollPreview(view, reroll({ lost: 0, target: me, dice: [1, 2] }))!;
     expect(preview.lost).toEqual(hand[0]);
-    expect(preview.handLimit).toBe(6);
+    expect(preview.handLimit).toBe(4);
     expect(preview.rolled).toEqual([hand[1], hand[2]]);
     expect(rerollPreview(view, NONE)).toBeNull();
     expect(rerollPreview(view, REROLL_START)!.lost).toBeNull();

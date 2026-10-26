@@ -1,34 +1,36 @@
-import type { Formation, FormationKind, SideView, View } from "../engine/game";
+import type { Die, Formation, FormationKind, SideView, View } from "../engine/game";
 
 /** The kinds of formation from the weakest to the strongest, as the engine orders them. */
-export const FORMATION_ORDER: readonly FormationKind[] = ["sum", "pair", "threeOfAKind", "twoPairs", "flush", "run", "fourOfAKind", "straightFlush"];
+export const FORMATION_ORDER: readonly FormationKind[] = ["sum", "pair", "threeOfAKind", "flush", "run", "straightFlush"];
 
 /** The names of the formations, as `regras/sia/GLOSSARY.md` writes them. */
 export const FORMATION_NAMES: Readonly<Record<FormationKind, string>> = {
   sum: "Soma",
   pair: "Par",
   threeOfAKind: "Trinca",
-  twoPairs: "Dois pares",
   flush: "Naipe",
   run: "Sequência",
-  fourOfAKind: "Quadra",
   straightFlush: "Sequência de naipe",
 };
 
 /** What each formation is, as `regras/sia/04-formacoes.md` says it. */
 export const FORMATION_RULES: Readonly<Record<FormationKind, string>> = {
   sum: "qualquer outra",
-  pair: "2 números iguais",
-  threeOfAKind: "3 números iguais",
-  twoPairs: "2 números, 2 dados de cada",
+  pair: "2 dos 3 dados do jogador com o mesmo número",
+  threeOfAKind: "os 3 dados do jogador com o mesmo número",
   flush: "os 3 dados do jogador do mesmo naipe",
-  run: "4 números seguidos",
-  fourOfAKind: "4 números iguais",
-  straightFlush: "4 números seguidos, com os 3 dados do jogador do mesmo naipe",
+  run: "4 números seguidos, com o marco",
+  straightFlush: "4 números seguidos, com o marco, e os 3 dados do jogador do mesmo naipe",
 };
 
 /** Dice on a side of a stone, when it is complete. */
 export const SIDE_SIZE = 3;
+
+/** The suit of the joker: the color of the stones. It counts as any suit. */
+export const JOKER_SUIT = 4;
+
+/** Whether the die is the joker of its player. */
+export const isJoker = (die: Pick<Die, "suit">) => die.suit === JOKER_SUIT;
 
 /** Stones in the row. */
 export const STONES = 9;
@@ -36,7 +38,7 @@ export const STONES = 9;
 /** The label of a stone in texts and on the board: A to I, from the left of the first player. */
 export const stoneLetter = (stone: number) => "ABCDEFGHI".charAt(stone);
 
-/** 0 for the weakest kind to 7 for the strongest. */
+/** 0 for the weakest kind to 5 for the strongest. */
 export function strength(kind: FormationKind): number {
   return FORMATION_ORDER.indexOf(kind);
 }
@@ -44,7 +46,7 @@ export function strength(kind: FormationKind): number {
 /** The kinds from the strongest to the weakest, as the table of the formations lists them. */
 export const FORMATIONS_BY_STRENGTH: readonly FormationKind[] = [...FORMATION_ORDER].reverse();
 
-/** The place of a kind in the order, counting from the strongest: "6ª de 8" for a three of a kind. */
+/** The place of a kind in the order, counting from the strongest: "5ª de 6" for a three of a kind. */
 export function rankText(kind: FormationKind): string {
   return `${FORMATION_ORDER.length - strength(kind)}ª de ${FORMATION_ORDER.length}`;
 }
