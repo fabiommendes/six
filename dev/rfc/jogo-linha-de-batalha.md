@@ -24,6 +24,10 @@ generala, então o jogo passa para dados sem perder a estrutura.
 
 ## Proposal
 
+> A regra decidida em 2026-10-26 (ver Decisions) mudou formações, mão e
+> coringa. O texto abaixo é a proposta original; a regra em vigor está em
+> `regras/sia/`.
+
 Premissas desta fase: 5 naipes (cores) de dados, e nenhum limite de dados
 por naipe. O kit final sai depois de o jogo ser validado.
 
@@ -157,11 +161,33 @@ Do designer, em 2026-10-21:
 - Quem rola escolhe quais dados da mão rolar, inclusive na do adversário.
 - O nome é *Sia*.
 
+Do designer, em 2026-10-26, depois de medir variantes com bots (ver
+`dev/notes/bots-do-sia.md`):
+
+- A formação de um lado são os 3 dados do jogador mais o marco, mas o marco
+  conta só para a sequência e para o naipe (o naipe dele vale como qualquer
+  naipe). Trinca e par contam só os 3 dados do jogador. Não existem quadra
+  nem dois pares.
+- Ordem, da mais forte: sequência de naipe, sequência, naipe, trinca, par,
+  soma. O desempate continua: maior soma dos 4 números (o marco incluído),
+  depois o lado completado primeiro.
+- A mão tem 5 dados: no começo, 4 da bolsa e o coringa; repor completa até 5
+  menos os perdidos.
+- Cada jogador tem um coringa: um dado da cor dos marcos que vale como
+  qualquer naipe, com o número rolado na preparação. O dono pode rolá-lo de
+  novo e pode escolhê-lo como o dado perdido ao rolar de novo; o adversário
+  não pode rolá-lo. O kit passa a pedir 2 dados a mais da cor dos marcos.
+- O resto fica como está: rolar de novo custa um dado da mão, na própria
+  mão ou na do adversário, antes de pôr; reivindicar com prova; fim.
+
 ## Open questions
 
 - A ordem das formações se mantém no jogo de verdade? Com seleção, a chance
   de cada formação muda, e só um lote de bots ou partidas na mesa dizem.
-  Sequência e naipe estão perto, e dois pares e trinca também.
+  Sequência e naipe estão perto, e a trinca, mais rara, fica abaixo do
+  naipe.
+- O coringa perdido ao rolar de novo sai da partida (a bolsa não tem a cor
+  dele). O designer confirma?
 - O desempate do fim, se os dois tiverem o mesmo número de marcos.
 - O nome *Sia* (gaélico escocês; o *Schotten Totten* é, pelo nome, um jogo
   de clãs escoceses) ainda precisa ser conferido no BoardGameGeek. O risco

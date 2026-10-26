@@ -9,15 +9,39 @@ tags: [sia, regras, componentes]
 Do kit físico (ver [../kit.md](../kit.md)), o Sia usa:
 
 - 9 dados de um **naipe**, que são os **marcos**;
+- 2 dados desse mesmo naipe, que são os **coringas**, um por jogador;
 - uma **bolsa** com dados dos outros 4 naipes, de onde os dados saem sem que se
   veja qual;
 - o tabuleiro de 11 por 11 casas do Seks.
 
-Um **naipe** é uma cor de dado. O jogo tem 5 naipes: um é o dos marcos, e os
-outros 4 são os da bolsa.
+Um **naipe** é uma cor de dado. O jogo tem 5 naipes: um é o dos marcos e dos
+coringas, e os outros 4 são os da bolsa.
 
 > **Proposta:** a bolsa não tem limite de dados. No físico, o kit decide
 > depois quantos dados cada naipe tem. No digital, a bolsa nunca acaba.
+
+## O coringa
+
+Cada jogador tem um **coringa**: um dado da cor dos marcos que vale como
+qualquer naipe na formação de naipe. O número dele é rolado na preparação e
+vale normalmente.
+
+- O coringa começa na mão do jogador e é um dado da mão como os outros: o
+  dono pode pô-lo num lado, rolá-lo de novo e escolhê-lo como o dado que
+  perde ao rolar de novo.
+- O adversário **não** pode rolar o coringa, quando rola a mão do dono. Se a
+  mão do dono só tem o coringa, não há o que rolar nela.
+- Posto num lado, o coringa fica ali com o número que mostra, como qualquer
+  dado.
+- O jogador não ganha outro coringa. Um coringa posto ou perdido não é
+  reposto, e o jogador segue sem ele até o fim.
+
+> **Proposta:** o coringa perdido ao rolar de novo sai da partida: ele não
+> volta para a bolsa, porque a bolsa só tem dados dos 4 naipes. Os outros
+> dados perdidos voltam para ela.
+
+> **Design:** o coringa deixa a formação de naipe possível sem depender da
+> sorte da bolsa, e é uma razão para o dono guardá-lo ou gastá-lo.
 
 ## O tabuleiro
 

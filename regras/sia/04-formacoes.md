@@ -6,36 +6,43 @@ tags: [sia, regras, formacoes, reivindicacao]
 
 # Formações
 
-A **formação** de um lado são os 3 dados do jogador e o marco: 4 dados. O
-marco entra com o seu número, e o seu naipe vale como qualquer naipe. Por
-isso, para fazer a formação de naipe bastam os 3 dados do jogador serem do
-mesmo naipe.
+A **formação** de um lado são os 3 dados do jogador e o marco: 4 dados, mas
+o marco só conta para a sequência e para o naipe.
+
+- **Sequência:** o marco entra com o seu número, e os 4 números têm de ser
+  seguidos.
+- **Naipe:** o naipe do marco vale como qualquer naipe, então bastam os 3
+  dados do jogador serem do mesmo naipe. O coringa também vale como qualquer
+  naipe.
+- **Trinca e par:** contam só os 3 dados do jogador. Um dado igual ao marco
+  não faz par nem trinca.
+
+Não existem quadra nem dois pares.
 
 ## Ordem das formações
 
 Da mais forte para a mais fraca:
 
-| Formação | O que é |
-|---|---|
-| Sequência de naipe | 4 números seguidos, com os 3 dados do jogador do mesmo naipe |
-| Quadra | 4 números iguais |
-| Sequência | 4 números seguidos: 1 2 3 4, 2 3 4 5 ou 3 4 5 6 |
-| Naipe | os 3 dados do jogador do mesmo naipe |
-| Dois pares | dois números, dois dados de cada |
-| Trinca | 3 números iguais |
-| Par | 2 números iguais |
-| Soma | qualquer outra |
+| Formação | O que é | Chance com 3 dados ao acaso |
+|---|---|---|
+| Sequência de naipe | 4 números seguidos com o marco, e os 3 dados do jogador do mesmo naipe | 0,35% |
+| Sequência | 4 números seguidos com o marco: 1 2 3 4, 2 3 4 5 ou 3 4 5 6 | 5,2% |
+| Naipe | os 3 dados do jogador do mesmo naipe | 5,9% |
+| Trinca | os 3 dados do jogador com o mesmo número | 2,6% |
+| Par | 2 dos 3 dados do jogador com o mesmo número | 39% |
+| Soma | qualquer outra | 47% |
 
-Cada formação conta só pela mais forte que os 4 dados fazem. Uma quadra não
-é também uma trinca, e uma sequência de naipe não é também um naipe.
+Cada formação conta só pela mais forte que o lado faz. Uma sequência de
+naipe não é também uma sequência nem um naipe, e três dados do mesmo número
+e do mesmo naipe são um naipe, e não uma trinca.
 
-> **Detalhe:** com 4 números iguais, a formação é a quadra, e não dois pares.
-> A trinca é 3 números iguais com o quarto diferente. O par é 2 números
-> iguais com os outros dois diferentes entre si e do par.
+> **Detalhe:** as chances valem para um marco de número qualquer, 3 dados de
+> número ao acaso e 3 dados de naipes ao acaso entre os 4 da bolsa, sem o
+> coringa. A trinca é mais rara que o naipe e fica abaixo dele: é a ordem
+> que o designer decidiu.
 
-> **Playtest:** a ordem segue a raridade com dados ao acaso, com a sequência
-> de naipe acima da quadra, como no pôquer. Só playtests e lotes de bots
-> dizem se ela se mantém.
+> **Playtest:** a ordem foi decidida em 2026-10-26. Só playtests e lotes de
+> bots dizem se ela se mantém.
 
 ## Desempate
 
@@ -69,6 +76,10 @@ Há dois casos.
 > tomá-lo. O vencedor pode esperar para reivindicar quando quiser, enquanto o
 > marco não for tomado. Até lá, o marco ainda aceita dados de um lado
 > incompleto, mas não de um lado completo.
+
+> **Detalhe:** o coringa que o adversário ainda pode pôr não muda a prova:
+> ele vale como o naipe de que o lado precisa, e a prova já supõe esse naipe
+> quando os dados do lado são do mesmo.
 
 > **Detalhe:** a prova não olha a mão do adversário nem a bolsa. Um dado que
 > o adversário tem na mão não limita o que ele pode pôr.
