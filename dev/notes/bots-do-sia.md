@@ -473,6 +473,125 @@ pontos.
   lugar e dá peso demais à sorte dos coringas.
 - Nada disto foi aplicado em `regras/`.
 
+## Um coringa por jogador (g)
+
+Pedido do designer. Medições de 2026-10-26, com o mesmo método da seção
+anterior (mão de 5, pesos calibrados por CMA-ES em 30 gerações de 12
+candidatos e 150 sementes, `greedy` contra `greedy` com 4000 partidas, `pimc`
+contra `pimc` com 300; sementes de lote 900000, 910000, 920000, 800000 e
+810000). A calibração do (g) usou sementes novas (700000) e a validação,
+também novas (600000, 4000 partidas, contra os pesos à mão): (g) sobre (c)/5
++242 Elo (o (c)/5 sem coringa dá +233 nas mesmas sementes) e (g) sobre (b)/5
++305 (o (b)/5 dá +272). Arquivos em `tune/fase-gc5.json`, `tune/fase-gb5.json`,
+`tune/runs/fase-g{c,b}5/` e `tune/runs/medicoes-g/`.
+
+### Variante (g), `--joker`
+
+- Cada jogador começa com 1 dado coringa (cor dos marcos) na mão, com o
+  número rolado na preparação, e 4 dados da bolsa. Ele vale como qualquer
+  naipe na formação; o número vale normalmente. Uma vez posto, a mão é
+  reposta só com dados da bolsa, que continua com os 4 naipes comuns.
+- O adversário não pode rolar o coringa ao rolar a mão do dono (o comando é
+  recusado e as jogadas legais e os bots o excluem). O dono pode rolá-lo e
+  pode escolhê-lo como o dado perdido.
+- A prova de reivindicação não muda: ela já supõe que os dados que faltam ao
+  adversário têm qualquer número e qualquer naipe, o que cobre o coringa dele.
+  Um teste confere que a melhor formação possível com um coringa no lado é a
+  mesma de um dado do naipe certo.
+- Os bots tratam o coringa como um dado de naipe que serve a qualquer
+  formação; o resto da avaliação é o mesmo.
+
+### Tabela, `greedy` contra `greedy`, 4000 partidas
+
+As linhas sem coringa são as da seção anterior. "Sorte" é a medida abaixo
+(partilha das aberturas em que o assento decide, calibrado contra pesos à mão).
+
+| Configuração | Lados: 1ª e 2ª formação | Reivindicações: 1ª | `places=1` (Elo) | Sem rolar (Elo) | Turnos | Fim: 5 marcos / 3 vizinhos / sem lugar (%) | 1º vence | Rolagens (própria/adversário) | Dados perdidos | Com 1 dado | Sorte |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| (c)/5 | naipe 32%, sequência 22% | sequência 38% | -135 [-147, -124] | -21 [-32, -10] | 47,0 | 29/55/16 | 45,5% | 5,66 (1,25/4,42) | 2,83 | 38% | 32,6% |
+| (c)/5 + (g) | naipe 30%, sequência 22% | sequência 37% | -126 [-138, -115] | -12 [-22, -1] | 47,2 | 30/54/15 | 48,6% | 5,65 (0,58/5,08) | 2,83 | 39% | 32,1% |
+| (b)/5 | sequência 35%, naipe 28% | sequência 46% | -231 [-245, -218] | -17 [-28, -6] | 46,5 | 30/54/16 | 48,8% | 4,94 (0,95/3,99) | 2,47 | 29% | 28,9% |
+| (b)/5 + (g) | sequência 33%, naipe 32% | sequência 42% | -256 [-270, -242] | -25 [-36, -15] | 46,1 | 32/53/15 | 49,2% | 5,73 (1,36/4,37) | 2,87 | 40% | 25,8% |
+
+### Tabela, `pimc` contra `pimc`, 300 partidas
+
+Intervalo do "1º vence" de uns 5,6 pontos.
+
+| Configuração | Lados: 1ª e 2ª formação | Reivindicações: 1ª | Sem rolar (Elo) | Turnos | Fim: 5 marcos / 3 vizinhos / sem lugar (%) | 1º vence | Rolagens (própria/adversário) | Dados perdidos | Com 1 dado |
+|---|---|---|---|---|---|---|---|---|---|
+| (c)/5 | quadra 29%, sequência 23% | sequência 39% | -66 [-107, -26] | 47,6 | 24/59/17 | 56,7% | 3,47 (1,30/2,17) | 1,74 | 14% |
+| (c)/5 + (g) | quadra 27%, naipe 22% | sequência 34% | -120 [-164, -80] | 47,8 | 29/51/20 | 47,3% | 4,42 (1,74/2,68) | 2,21 | 25% |
+| (b)/5 | sequência 33%, naipe 29% | sequência 46% | -108 [-150, -68] | 49,6 | 31/49/20 | 44,0% | 4,41 (1,89/2,51) | 2,20 | 18% |
+| (b)/5 + (g) | sequência 34%, naipe 30% | sequência 44% | -37 [-77, +2] | 48,6 | 28/58/14 | 46,7% | 3,09 (1,36/1,73) | 1,54 | 7% |
+
+### Medidas extras do coringa
+
+Por jogador, em cada partida:
+
+| Configuração | Coringa posto | Turno médio em que é posto | Rolado pelo dono (por coringa) | Perdido pelo dono | Formação do lado onde fica, no fim |
+|---|---|---|---|---|---|
+| (c)/5 + (g), `greedy` | 99,2% | 3,0 | 0,00 | 0,8% | naipe 46%, quadra 19%, sequência 17%, seq. de naipe 10% |
+| (c)/5 + (g), `pimc` | 98,0% | 4,6 | 0,00 | 2,0% | naipe 35%, quadra 26%, sequência 19%, seq. de naipe 9% |
+| (b)/5 + (g), `greedy` | 98,3% | 4,8 | 0,00 | 1,6% | naipe 47%, sequência 24%, seq. de naipe 23% |
+| (b)/5 + (g), `pimc` | 99,3% | 5,2 | 0,00 | 0,7% | naipe 36%, seq. de naipe 35%, sequência 22% |
+
+- Os bots põem o coringa nos primeiros turnos e nunca o rolam. Ele funciona
+  como um dado bom do início, não como uma decisão. A regra de o dono poder
+  rolá-lo ficou sem uso nos bots. Só 1% a 2% são perdidos.
+- O lado do coringa termina em naipe ou sequência de naipe em 44% (`pimc`,
+  (c)) a 71% (`pimc`, (b)) dos casos (em (c)/5 sem coringa, 36% de todos os
+  lados): é o dado que ajuda o naipe.
+
+### Medida de sorte
+
+O quanto o resultado depende dos dados tirados: tomo as 2000 aberturas da
+validação (sementes 600000), cada uma jogada nos dois assentos pelo bot
+calibrado contra o bot de pesos à mão. Se o mesmo bot vence as duas partidas,
+quem decidiu foi a habilidade; se cada bot vence a partida em que está no
+mesmo assento, quem decidiu foi a abertura (os dados). A coluna "Sorte" é a
+fração das aberturas do segundo tipo: 0% se só a habilidade decidisse, 50% se
+só os dados decidissem. É uma medida grosseira: a habilidade
+relativa dos bots também entra e muda um pouco entre as configurações (de
++233 a +305 Elo), e o intervalo é de uns ±2 pontos.
+
+- (c)/5: 32,6%, com coringa 32,1%. Sem diferença.
+- (b)/5: 28,9%, com coringa 25,8%. O coringa não aumenta a sorte; a diferença
+  é do tamanho do intervalo, e o (g) sobre (b) tem Elo maior (+305 contra
+  +272), o que explica boa parte dela.
+- Não medi o efeito do número que sai no coringa.
+
+### Leitura
+
+- **Formação dominante.** Não muda: (c)/5 continua com o naipe e a sequência
+  na frente (30% e 22% dos lados) e (b)/5 com a sequência e o naipe (33% e
+  32%). A diferença de (b) para (c) das seções anteriores continua.
+- **Onde pôr o dado.** (c) -126 contra -135; (b) -256 contra -231. Dentro do
+  erro de medida (uns ±12).
+- **Turnos, fim, dados perdidos, rolagens.** Iguais, dentro do intervalo. A
+  proporção de rolagens no adversário sobe em (c) (5,08 contra 4,42), e as
+  rolagens da própria mão caem de 1,25 para 0,58.
+- **Vantagem do primeiro.** (c)/5 sobe de 45,5% para 48,6% com o coringa
+  (intervalo ±1,5), e fica mais perto de 50%; em (b)/5 não muda (48,8% e
+  49,2%). Com o `pimc`, 47,3% e 46,7% (±5,6).
+- **Sorte.** Sem diferença que a medida separe do ruído.
+- Limite: 30 gerações de calibração, como as anteriores; os bots nunca rolam o
+  coringa, então a regra de rolagem do dono não foi posta à prova por eles.
+
+### Recomendação
+
+- O coringa não resolve nem estraga nada do que medimos: formação, onde pôr
+  o dado, duração, fim e sorte ficam onde estavam. O único ganho é no (c)/5, em
+  que o primeiro jogador deixa de ter 45,5% e vai a 48,6% com o `greedy`
+  (sem confirmação no `pimc`). Custo: um dado diferente, com regra própria de
+  rolagem, que os bots nunca rolam.
+- Se o designer quiser o coringa por motivo de sensação (sempre ter um dado
+  flexível no início), a combinação é **(c)/5 + (g)**: mantém as propriedades
+  de (c)/5 e aproxima o primeiro dos 50%. (b)/5 + (g) não ganha nada sobre
+  (b)/5, e (b) já tem o custo de reescrever a quadra e os dois pares.
+- Sem esse motivo, o resultado é: não adotar (g), e a escolha continua entre
+  (c)/5 e (b)/5 da seção anterior.
+- Nada disto foi aplicado em `regras/`.
+
 ## Conclusões de design
 
 - O motor funciona: sem empates, partidas de 44 turnos com final variado, e

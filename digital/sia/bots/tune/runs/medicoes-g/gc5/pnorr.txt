@@ -1,0 +1,23 @@
+300 games, hand of 5
+ends: stones 101 (33.7%), neighbors 149 (49.7%), noRoom 50 (16.7%)
+turns: mean 47.3, median 48, p10 41, p90 53, max 54; commands 55.1
+first player wins 50.0% [44.4, 55.6]
+formation          claims  (proven)  awards   sides
+StraightFlush       7.0%    50.4%     2.8%     3.7%
+FourOfAKind        33.7%    58.5%    25.0%    28.3%
+Run                36.9%    32.2%    23.6%    21.1%
+Flush              16.9%    11.9%    30.6%    21.7%
+TwoPairs            3.0%     8.5%     5.6%     7.2%
+ThreeOfAKind        1.9%     5.6%     9.7%     9.2%
+Pair                0.7%     7.1%     2.8%     6.9%
+Sum                 0.0%     0.0%     0.0%     1.9%
+claims per game 6.47 (37% proven), awards at the end 0.24
+rerolls per game 2.18: own hand 0.67, other hand 1.51; 1.00 dice rolled each; dice lost per game 2.18
+jokers: placed 99.5% (mean turn 4.6), rolled by the owner 0.00 per joker, lost 0.5%
+formation of the side of the joker at the end: StraightFlush 9%; FourOfAKind 31%; Run 20%; Flush 30%; TwoPairs 4%; ThreeOfAKind 4%; Pair 1%; Sum 1%;
+variety: kinds per game 5.28 among sides, 3.27 among claims; entropy 2.61 bits of sides, 2.07 of claims
+lost per seat: mean 1.09; % of seats with 0..6,7+ lost: [56 11 11 10 12 0 0 0]
+rerolls by dice already lost: [263, 195, 127, 69, 0]
+@digital/sia/bots/tune/runs/medicoes-g/gc5/pnorr.json: 300 seats, wins 100.0 (33.3% [28.2, 38.8]), 2.93 stones, 50.97 ms per decision (max 135.4)
+@digital/sia/bots/tune/runs/medicoes-g/gc5/pimc.json: 300 seats, wins 200.0 (66.7% [61.2, 71.8]), 3.78 stones, 142.48 ms per decision (max 354.4)
+@digital/sia/bots/tune/runs/medicoes-g/gc5/pnorr.json vs @digital/sia/bots/tune/runs/medicoes-g/gc5/pimc.json: +100 =0 -200, Elo -120 [-164, -80]

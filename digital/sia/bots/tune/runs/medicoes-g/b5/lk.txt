@@ -1,0 +1,21 @@
+4000 games, hand of 5
+ends: stones 1045 (26.1%), neighbors 2192 (54.8%), noRoom 763 (19.1%)
+turns: mean 47.7, median 49, p10 39, p90 54, max 54; commands 56.8
+first player wins 48.3% [46.8, 49.8]
+formation          claims  (proven)  awards   sides
+StraightFlush      11.5%    54.9%    12.9%     7.3%
+FourOfAKind         0.0%     0.0%     0.0%     0.0%
+Run                46.0%    43.9%    40.6%    32.7%
+Flush              32.6%    33.2%    28.4%    28.3%
+TwoPairs            0.0%     0.0%     0.0%     0.0%
+ThreeOfAKind        4.5%    23.8%     7.7%    10.0%
+Pair                5.2%    11.3%     9.8%    16.7%
+Sum                 0.2%     0.0%     0.6%     4.9%
+claims per game 4.53 (39% proven), awards at the end 0.93
+rerolls per game 5.40: own hand 3.75, other hand 1.65; 1.00 dice rolled each; dice lost per game 5.40
+variety: kinds per game 4.63 among sides, 2.58 among claims; entropy 2.30 bits of sides, 1.84 of claims
+lost per seat: mean 2.70; % of seats with 0..6,7+ lost: [7 22 14 9 48 0 0 0]
+rerolls by dice already lost: [7439, 5707, 4599, 3853, 0]
+@digital/sia/bots/tune/runs/fase-b5/best.json: 4000 seats, wins 3310.0 (82.8% [81.5, 83.9]), 4.24 stones, 1.00 ms per decision (max 4.9)
+@digital/sia/bots/tune/maos.json: 4000 seats, wins 690.0 (17.2% [16.1, 18.5]), 1.22 stones, 0.96 ms per decision (max 6.1)
+@digital/sia/bots/tune/runs/fase-b5/best.json vs @digital/sia/bots/tune/maos.json: +3310 =0 -690, Elo +272 [+259, +287]
