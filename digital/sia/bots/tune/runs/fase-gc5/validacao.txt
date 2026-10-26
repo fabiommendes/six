@@ -1,0 +1,2 @@
+2000 deals (4000 games), hand of 5, --four-below-run-only --joker, seeds 600000, 30 generations
+@digital/sia/bots/tune/runs/fase-gc5/best.json vs @digital/sia/bots/tune/maos.json: +3205 =0 -795, Elo +242 [+229, +256]
