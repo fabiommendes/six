@@ -9,6 +9,6 @@ export type Die = {
  */
 value: number, 
 /**
- * 0 to 3.
+ * 0 to 3, or 4 for the joker.
  */
 suit: number, };

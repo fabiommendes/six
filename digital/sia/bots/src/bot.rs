@@ -211,7 +211,11 @@ pub fn reroll_candidates(state: &GameState, limit: usize) -> Vec<Command> {
                     dice: mask(&own[..k]),
                 });
             }
-            let theirs = order(&other_gain, None, true);
+            // The joker of the other player cannot be rolled.
+            let theirs: Vec<usize> = order(&other_gain, None, true)
+                .into_iter()
+                .filter(|&i| !state.hand(other)[i].is_joker())
+                .collect();
             if theirs.len() >= k {
                 commands.push(Command::Reroll {
                     target: other,

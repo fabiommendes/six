@@ -10,7 +10,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::command::{Command, EndReason, Event, GameError, Rolled};
-use crate::die::Die;
+use crate::die::{Die, JOKER_SUIT};
 use crate::formation::{best_completion, formation, Formation};
 use crate::rng::Rng;
 
@@ -131,11 +131,19 @@ impl GameState {
         let mut events = vec![Event::StonesRolled {
             stones: stones.to_vec(),
         }];
+        let experiment = crate::experiment::variant();
         for player in 0..PLAYERS {
+            if experiment.joker {
+                let joker = Die::new(state.rng.roll(), JOKER_SUIT);
+                state.players[player].hand.push(joker);
+                events.push(Event::Drawn {
+                    player,
+                    dice: vec![joker],
+                });
+            }
             state.refill(player, &mut events);
         }
         state.to_move = usize::from(state.rng.coin());
-        let experiment = crate::experiment::variant();
         if experiment.second_bonus > 0 {
             let second = 1 - state.to_move;
             state.hand_bonus[second] = experiment.second_bonus;
@@ -454,6 +462,15 @@ impl GameState {
                 if target == me && dice >> lost & 1 == 1 {
                     return Err(GameError::LostRolled);
                 }
+                if target != me
+                    && self.players[target]
+                        .hand
+                        .iter()
+                        .enumerate()
+                        .any(|(i, d)| d.is_joker() && dice >> i & 1 == 1)
+                {
+                    return Err(GameError::BadRoll);
+                }
                 let mut rolled = Vec::new();
                 for index in 0..hand {
                     if dice >> index & 1 == 1 {
@@ -537,7 +554,7 @@ impl GameState {
                 if die >= self.players[me].hand.len() {
                     return Err(GameError::NoSuchDie { die });
                 }
-                let wild = self.players[me].hand[die].is_wild();
+                let wild = self.players[me].hand[die].is_wild_suit();
                 if !wild && !self.can_give_dearly() {
                     return Err(GameError::PlaceOnOpponentClosed);
                 }
@@ -647,7 +664,7 @@ impl GameState {
         let dearly = self.can_give_dearly();
         {
             for die in first_of_each(hand, None) {
-                if !hand[die].is_wild() && !dearly {
+                if !hand[die].is_wild_suit() && !dearly {
                     continue;
                 }
                 for stone in 0..STONES {
@@ -670,7 +687,7 @@ impl GameState {
                 // Groups of equal dice among the dice that can be rolled.
                 let mut groups: Vec<Vec<usize>> = Vec::new();
                 for (i, die) in hand.iter().enumerate() {
-                    if Some(i) == skip {
+                    if Some(i) == skip || (target != me && die.is_joker()) {
                         continue;
                     }
                     match groups.iter_mut().find(|g| hand[g[0]] == *die) {

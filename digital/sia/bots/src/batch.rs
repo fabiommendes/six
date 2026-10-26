@@ -72,6 +72,22 @@ pub struct RerollRecord {
     pub rolled: usize,
 }
 
+/// What happened to the joker of a seat (variant with a joker).
+#[derive(Clone, Copy, Debug, Default, Serialize)]
+pub struct JokerRecord {
+    /// The turn in which the owner put it on a side; `None` if it was never
+    /// put (rolled away, lost or still in the hand at the end).
+    pub placed_turn: Option<u16>,
+    /// The stone where it was put.
+    pub stone: Option<usize>,
+    /// Kind of the formation of that side at the end, if complete.
+    pub kind: Option<usize>,
+    /// Times the owner rolled it.
+    pub rolled: u16,
+    /// The owner lost it by rerolling.
+    pub lost: bool,
+}
+
 /// One game, as a line of the JSONL file.
 #[derive(Clone, Debug, Serialize)]
 pub struct Record {
@@ -103,6 +119,8 @@ pub struct Record {
     /// Wild dice put on the own side and on the side of the opponent.
     pub wild_own: u16,
     pub wild_given: u16,
+    /// The joker of each seat; empty without the variant.
+    pub jokers: Vec<JokerRecord>,
     /// Milliseconds per decision of each seat: mean and maximum.
     pub mean_ms: Vec<f64>,
     pub max_ms: Vec<f64>,
@@ -135,9 +153,14 @@ pub fn play(bots: &[String], seed: u64, rotation: usize, hand_size: u8) -> Resul
     let mut gives = vec![0u16; bots.len()];
     let mut wild_drawn = vec![0u16; bots.len()];
     let (mut wild_own, mut wild_given) = (0u16, 0u16);
+    let mut jokers = if sia_engine::experiment::variant().joker {
+        vec![JokerRecord::default(); bots.len()]
+    } else {
+        Vec::new()
+    };
     for event in &start {
         if let Event::Drawn { player, dice } = event {
-            wild_drawn[*player] += dice.iter().filter(|d| d.is_wild()).count() as u16;
+            wild_drawn[*player] += dice.iter().filter(|d| d.is_wild_suit()).count() as u16;
         }
     }
     while !state.is_over() {
@@ -178,8 +201,14 @@ pub fn play(bots: &[String], seed: u64, rotation: usize, hand_size: u8) -> Resul
                     );
                 }
                 Event::Placed { player, die, .. } => {
+                    if die.is_joker() {
+                        if let Command::Place { stone, .. } = command {
+                            jokers[player].placed_turn = Some(turn);
+                            jokers[player].stone = Some(stone);
+                        }
+                    }
                     let given = matches!(command, Command::PlaceOnOpponent { .. });
-                    match (given, die.is_wild()) {
+                    match (given, die.is_wild_suit()) {
                         (true, true) => wild_given += 1,
                         (true, false) => gives[player] += 1,
                         (false, true) => wild_own += 1,
@@ -187,15 +216,27 @@ pub fn play(bots: &[String], seed: u64, rotation: usize, hand_size: u8) -> Resul
                     }
                 }
                 Event::Drawn { player, dice } => {
-                    wild_drawn[player] += dice.iter().filter(|d| d.is_wild()).count() as u16;
+                    wild_drawn[player] += dice.iter().filter(|d| d.is_wild_suit()).count() as u16;
                 }
-                Event::Rerolled { target, rolled, .. } => rerolls.push(RerollRecord {
-                    seat,
-                    turn,
-                    other: target != seat,
-                    lost_before,
-                    rolled: rolled.len(),
-                }),
+                Event::Rerolled {
+                    target,
+                    rolled,
+                    lost,
+                    ..
+                } => {
+                    if !jokers.is_empty() {
+                        jokers[target].rolled +=
+                            rolled.iter().filter(|r| r.from.is_joker()).count() as u16;
+                        jokers[seat].lost |= lost.is_joker();
+                    }
+                    rerolls.push(RerollRecord {
+                        seat,
+                        turn,
+                        other: target != seat,
+                        lost_before,
+                        rolled: rolled.len(),
+                    });
+                }
                 _ => {}
             }
         }
@@ -207,6 +248,12 @@ pub fn play(bots: &[String], seed: u64, rotation: usize, hand_size: u8) -> Resul
         .flat_map(|p| (0..sia_engine::STONES).map(move |s| (p, s)))
         .filter_map(|(p, s)| state.formation_of(p, s).map(|f| f.kind.index()))
         .collect();
+    for (seat, joker) in jokers.iter_mut().enumerate() {
+        joker.kind = joker
+            .stone
+            .and_then(|stone| state.formation_of(seat, stone))
+            .map(|f| f.kind.index());
+    }
     Ok(Record {
         seed,
         rotation,
@@ -230,6 +277,7 @@ pub fn play(bots: &[String], seed: u64, rotation: usize, hand_size: u8) -> Resul
         wild_drawn,
         wild_own,
         wild_given,
+        jokers,
         mean_ms: spent
             .iter()
             .map(|&(total, _, n)| total / f64::from(n.max(1)))
@@ -487,6 +535,35 @@ pub fn report(records: &[Record]) -> String {
             100.0 * more_wins as f64 / decided.len().max(1) as f64,
             decided.len()
         );
+    }
+    if records.iter().any(|r| !r.jokers.is_empty()) {
+        let jokers: Vec<&JokerRecord> = records.iter().flat_map(|r| &r.jokers).collect();
+        let k = jokers.len() as f64;
+        let placed: Vec<&JokerRecord> = jokers
+            .iter()
+            .copied()
+            .filter(|j| j.placed_turn.is_some())
+            .collect();
+        let _ = writeln!(
+            out,
+            "jokers: placed {:.1}% (mean turn {:.1}), rolled by the owner {:.2} per joker, lost {:.1}%",
+            100.0 * placed.len() as f64 / k,
+            placed.iter().map(|j| f64::from(j.placed_turn.unwrap_or(0))).sum::<f64>()
+                / placed.len().max(1) as f64,
+            jokers.iter().map(|j| f64::from(j.rolled)).sum::<f64>() / k,
+            100.0 * jokers.iter().filter(|j| j.lost).count() as f64 / k,
+        );
+        let kinds: Vec<usize> = placed.iter().filter_map(|j| j.kind).collect();
+        let mut line = String::from("formation of the side of the joker at the end:");
+        for kind in (0..FormationKind::ALL.len()).rev() {
+            let count = kinds.iter().filter(|&&x| x == kind).count();
+            line += &format!(
+                " {:?} {:.0}%;",
+                FormationKind::ALL[kind],
+                100.0 * count as f64 / kinds.len().max(1) as f64
+            );
+        }
+        let _ = writeln!(out, "{line}");
     }
     let _ = writeln!(out, "{}", variety_line(records));
     let _ = writeln!(out, "{}", lost_line(records));

@@ -32,6 +32,12 @@ pub struct Variant {
     /// proportions 2:2:2:1. A wild die counts as any suit in a flush, and can
     /// be put on the side of the opponent at no cost.
     pub wild_suit: bool,
+    /// Each player has a joker of his own: a die that counts as any suit,
+    /// rolled in the preparation and part of the starting hand (the hand
+    /// starts with the joker and `hand_size - 1` dice of the bag). Once
+    /// placed it is not replaced by another joker. The opponent cannot roll
+    /// it when rolling the hand; the owner can, and can lose it.
+    pub joker: bool,
     /// A new move instead of placing a die: put a die of the own hand on the
     /// side of the opponent. The hand is not refilled for it (the hand
     /// limit drops by one, like a die lost by rerolling).
@@ -48,6 +54,7 @@ static STONE_ONLY: AtomicU8 = AtomicU8::new(0);
 static THREE_DICE: AtomicU8 = AtomicU8::new(0);
 static FLUSH_BELOW_RUN: AtomicU8 = AtomicU8::new(0);
 static WILD_SUIT: AtomicU8 = AtomicU8::new(0);
+static JOKER: AtomicU8 = AtomicU8::new(0);
 static PLACE_ON_OPPONENT: AtomicU8 = AtomicU8::new(0);
 static SECOND_BONUS: AtomicU8 = AtomicU8::new(0);
 static FIRST_NO_REROLL: AtomicU8 = AtomicU8::new(0);
@@ -60,6 +67,7 @@ pub fn set_variant(variant: Variant) {
     THREE_DICE.store(variant.three_dice_formations.into(), Ordering::Relaxed);
     FLUSH_BELOW_RUN.store(variant.flush_below_run.into(), Ordering::Relaxed);
     WILD_SUIT.store(variant.wild_suit.into(), Ordering::Relaxed);
+    JOKER.store(variant.joker.into(), Ordering::Relaxed);
     PLACE_ON_OPPONENT.store(variant.place_on_opponent.into(), Ordering::Relaxed);
     SECOND_BONUS.store(variant.second_bonus, Ordering::Relaxed);
     FIRST_NO_REROLL.store(variant.first_turn_without_reroll.into(), Ordering::Relaxed);
@@ -74,6 +82,7 @@ pub fn variant() -> Variant {
         three_dice_formations: THREE_DICE.load(Ordering::Relaxed) != 0,
         flush_below_run: FLUSH_BELOW_RUN.load(Ordering::Relaxed) != 0,
         wild_suit: WILD_SUIT.load(Ordering::Relaxed) != 0,
+        joker: JOKER.load(Ordering::Relaxed) != 0,
         place_on_opponent: PLACE_ON_OPPONENT.load(Ordering::Relaxed) != 0,
         second_bonus: SECOND_BONUS.load(Ordering::Relaxed),
         first_turn_without_reroll: FIRST_NO_REROLL.load(Ordering::Relaxed) != 0,
@@ -106,4 +115,8 @@ pub(crate) fn flush_below_run() -> bool {
 
 pub(crate) fn wild_suit() -> bool {
     WILD_SUIT.load(Ordering::Relaxed) != 0
+}
+
+pub(crate) fn joker() -> bool {
+    JOKER.load(Ordering::Relaxed) != 0
 }

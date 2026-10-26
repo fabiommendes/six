@@ -117,7 +117,7 @@ fn build(stone: u8, numbers: &[u8], state: usize) -> Dist {
             .map(|(i, &n)| match state {
                 0 => Die::new(n, (i % 2) as u8),
                 1 => Die::new(n, flush_suit),
-                _ => Die::new(n, sia_engine::WILD_SUIT),
+                _ => Die::new(n, sia_engine::JOKER_SUIT),
             })
             .collect()
     };
@@ -162,7 +162,9 @@ fn table() -> &'static Vec<Option<Box<Dist>>> {
     static TABLE: OnceLock<Vec<Option<Box<Dist>>>> = OnceLock::new();
     TABLE.get_or_init(|| {
         let mut table: Vec<Option<Box<Dist>>> = vec![None; 7 * 343 * SUIT_STATES];
-        let wild = sia_engine::experiment::variant().wild_suit;
+        let variant = sia_engine::experiment::variant();
+        // A side of wild dice only: the suit of the wild suit or the joker.
+        let wild = variant.wild_suit || variant.joker;
         for stone in 1..=6u8 {
             for a in 0..=6u8 {
                 for b in a..=6u8 {
