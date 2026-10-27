@@ -1,0 +1,19 @@
+300 games, hand of 6
+ends: stones 94 (31.3%), neighbors 150 (50.0%), noRoom 56 (18.7%)
+turns: mean 49.8, median 50, p10 45, p90 54, max 54; commands 61.0
+first player wins 43.3% [37.8, 49.0]
+formation          claims  (proven)  awards   sides
+StraightFlush      25.9%    48.4%     7.1%    14.2%
+ThreeOfAKind       52.6%    26.7%    42.9%    35.9%
+Run                13.5%    10.4%    26.2%    18.8%
+Flush               6.7%     4.5%    16.7%    15.5%
+Pair                1.2%     0.0%     7.1%    10.9%
+Sum                 0.1%     0.0%     0.0%     4.7%
+claims per game 6.65 (28% proven), awards at the end 0.28
+rerolls per game 5.42: own hand 2.00, other hand 3.42; 1.00 dice rolled each; dice lost per game 5.42
+jokers: placed 98.3% (mean turn 4.6), rolled by the owner 0.00 per joker, lost 1.7%
+formation of the side of the joker at the end: StraightFlush 28%; ThreeOfAKind 41%; Run 10%; Flush 16%; Pair 4%; Sum 2%;
+variety: kinds per game 4.89 among sides, 2.91 among claims; entropy 2.36 bits of sides, 1.73 of claims
+lost per seat: mean 2.71; % of seats with 0..6,7+ lost: [8 16 25 17 16 18]
+rerolls by dice already lost: [550, 454, 306, 206, 110]
+@digital/sia/bots/tune/runs/medicoes-h/d6/pimc.json: 600 seats, wins 300.0 (50.0% [46.0, 54.0]), 3.46 stones, 97.12 ms per decision (max 275.0)

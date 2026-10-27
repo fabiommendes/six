@@ -1,0 +1,21 @@
+4000 games, hand of 6
+ends: stones 1125 (28.1%), neighbors 2216 (55.4%), noRoom 659 (16.5%)
+turns: mean 46.2, median 48, p10 36, p90 53, max 54; commands 56.5
+first player wins 48.2% [46.7, 49.8]
+formation          claims  (proven)  awards   sides
+StraightFlush      14.7%    54.9%    17.6%    10.5%
+Run                46.3%    42.1%    40.6%    34.4%
+Flush              33.2%    35.2%    29.0%    32.3%
+ThreeOfAKind        2.6%    19.2%     5.4%     6.9%
+Pair                3.1%     8.7%     7.1%    11.4%
+Sum                 0.1%     0.0%     0.3%     4.4%
+claims per game 4.55 (40% proven), awards at the end 0.80
+rerolls per game 6.51: own hand 4.45, other hand 2.06; 1.00 dice rolled each; dice lost per game 6.51
+jokers: placed 98.5% (mean turn 4.5), rolled by the owner 0.06 per joker, lost 1.4%
+formation of the side of the joker at the end: StraightFlush 23%; Run 24%; Flush 49%; ThreeOfAKind 2%; Pair 2%; Sum 1%;
+variety: kinds per game 4.40 among sides, 2.53 among claims; entropy 2.22 bits of sides, 1.75 of claims
+lost per seat: mean 3.25; % of seats with 0..6,7+ lost: [4 17 16 14 11 38]
+rerolls by dice already lost: [7673, 6351, 5039, 3913, 3060]
+@digital/sia/bots/tune/runs/fase-hc6/best.json: 4000 seats, wins 3286.0 (82.2% [80.9, 83.3]), 4.21 stones, 0.71 ms per decision (max 5.1)
+@digital/sia/bots/tune/maos.json: 4000 seats, wins 714.0 (17.9% [16.7, 19.1]), 1.13 stones, 0.79 ms per decision (max 5.1)
+@digital/sia/bots/tune/runs/fase-hc6/best.json vs @digital/sia/bots/tune/maos.json: +3286 =0 -714, Elo +265 [+251, +280]

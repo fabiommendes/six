@@ -1,0 +1,21 @@
+1200 games, hand of 6
+ends: stones 293 (24.4%), neighbors 768 (64.0%), noRoom 139 (11.6%)
+turns: mean 46.8, median 47, p10 41, p90 53, max 54; commands 53.6
+first player wins 49.8% [46.9, 52.6]
+formation          claims  (proven)  awards   sides
+StraightFlush       4.1%    53.4%     3.0%     1.9%
+ThreeOfAKind       20.7%    49.9%    13.1%    10.3%
+Run                20.9%    34.8%    18.5%    12.2%
+Flush              23.0%    26.2%    20.4%    16.1%
+Pair               27.7%    17.7%    38.2%    35.2%
+Sum                 3.5%     0.0%     6.7%    24.3%
+claims per game 4.21 (31% proven), awards at the end 0.63
+rerolls per game 3.50: own hand 1.41, other hand 2.09; 1.90 dice rolled each; dice lost per game 3.50
+jokers: placed 97.2% (mean turn 7.3), rolled by the owner 0.03 per joker, lost 2.3%
+formation of the side of the joker at the end: StraightFlush 3%; ThreeOfAKind 14%; Run 9%; Flush 34%; Pair 21%; Sum 18%;
+variety: kinds per game 4.62 among sides, 2.94 among claims; entropy 2.27 bits of sides, 2.30 of claims
+lost per seat: mean 1.75; % of seats with 0..6,7+ lost: [20 30 23 14 8 5]
+rerolls by dice already lost: [1925, 1199, 640, 309, 123]
+greedy:noise=1: 1200 seats, wins 1197.0 (99.8% [99.3, 99.9]), 4.58 stones, 3.27 ms per decision (max 12.0)
+random: 1200 seats, wins 3.0 (0.2% [0.1, 0.7]), 0.26 stones, 0.00 ms per decision (max 0.1)
+greedy:noise=1 vs random: +1197 =0 -3, Elo +1040 [+909, +inf]

@@ -1,0 +1,19 @@
+4000 games, hand of 6
+ends: stones 1288 (32.2%), neighbors 2234 (55.9%), noRoom 478 (11.9%)
+turns: mean 46.6, median 47, p10 41, p90 51, max 54; commands 60.0
+first player wins 48.0% [46.4, 49.5]
+formation          claims  (proven)  awards   sides
+StraightFlush      19.6%    58.1%     6.0%    11.5%
+ThreeOfAKind       56.7%    51.4%    36.9%    41.9%
+Run                15.3%    19.6%    26.3%    21.9%
+Flush               6.6%    10.7%    20.6%    14.2%
+Pair                1.7%     9.8%    10.0%     8.2%
+Sum                 0.0%     0.0%     0.3%     2.3%
+claims per game 6.19 (44% proven), awards at the end 0.17
+rerolls per game 8.11: own hand 3.55, other hand 4.56; 1.64 dice rolled each; dice lost per game 8.11
+jokers: placed 97.7% (mean turn 4.8), rolled by the owner 0.02 per joker, lost 2.2%
+formation of the side of the joker at the end: StraightFlush 25%; ThreeOfAKind 42%; Run 16%; Flush 16%; Pair 1%; Sum 1%;
+variety: kinds per game 4.40 among sides, 2.80 among claims; entropy 2.19 bits of sides, 1.70 of claims
+lost per seat: mean 4.06; % of seats with 0..6,7+ lost: [1 4 9 14 22 51]
+rerolls by dice already lost: [7956, 7664, 6930, 5812, 4082]
+@digital/sia/bots/tune/runs/medicoes-h/d6/greedy.json: 8000 seats, wins 4000.0 (50.0% [48.9, 51.1]), 3.18 stones, 1.85 ms per decision (max 9.8)

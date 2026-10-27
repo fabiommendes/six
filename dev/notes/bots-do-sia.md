@@ -694,3 +694,150 @@ Pesos novos, sementes 600000, rotação de assentos, nativo.
 - Tempo do `pimc` no WASM (`just sia-wasm-test`, 3 decisões do começo da
   partida): 163 ms por decisão (pior 176), com a máquina menos carregada que
   nas medidas de 2026-10-21 (379 ms). Folga grande para o teto de 0,5 s.
+
+## Ordem pela chance e mão de 6 (2026-10-27)
+
+O designer decidiu duas mudanças sobre a regra adotada: (1) ordem das
+formações pela chance com 3 dados ao acaso, com a trinca acima da sequência
+e do naipe (sequência de naipe, trinca, sequência, naipe, par, soma); (2)
+mão de 6 (o coringa e 5 dados da bolsa). Pediu para ver se a ordem nova "não
+distorce muito as estratégias". Medido antes de mudar o padrão.
+
+### Chances recalculadas
+
+Por enumeração (marco de 1 a 6, 3 dados de 1 a 6, 4 naipes, sem coringa).
+A ordem pela chance é a que o designer decidiu. Com a trinca acima do naipe,
+três dados iguais do mesmo naipe contam como trinca, e as chances mudam um
+pouco:
+
+| Formação | Ordem antiga | Ordem nova |
+|---|---|---|
+| Sequência de naipe | 0,35% | 0,35% |
+| Trinca | 2,60% | 2,78% |
+| Sequência | 5,21% | 5,21% |
+| Naipe | 5,90% | 5,73% |
+| Par | 39,06% | 39,06% |
+| Soma | 46,88% | 46,88% |
+
+Na ordem nova a trinca (2,8%) continua mais rara que a sequência (5,2%) e que
+o naipe (5,7%), então a ordem pela chance é a decidida.
+
+### Método
+
+Quatro configurações, cada uma com pesos calibrados por CMA-ES (30 gerações,
+12 candidatos, 150 sementes 700000, partindo dos pesos padrão anteriores,
+`greedy:cands=4,rerolls=2` contra os pesos à mão) e validada em 4000 partidas
+nas sementes 600000, que a busca não usou:
+
+| | Ordem | Mão | Fase | Validação contra os pesos à mão |
+|---|---|---|---|---|
+| A | antiga | 5 | `gb5` (regra adotada) | +305 [+290, +321] |
+| B | nova | 5 | `hb5` | +235 [+222, +248] |
+| C | antiga | 6 | `hc6` | +265 [+251, +280] |
+| D | nova | 6 | `hd6` | +222 [+209, +235] |
+
+As quatro foram calibradas, e cada medida usa os pesos da própria
+configuração. A (`gb5`) é a medição da seção anterior, com as mesmas
+sementes (900000, 910000, 920000, 800000, 810000, 600000); B, C e D usam os
+mesmos lotes e o binário do motor com a ordem e a mão certas (a ordem antiga
+só existe no binário anterior ao commit `c76ca0a`; não houve flag no motor).
+Arquivos: `tune/fase-h{b5,c6,d6}.json`, `tune/runs/fase-h*/`,
+`tune/runs/medicoes-h/`.
+
+Os pesos achados são bem diferentes entre as quatro (por exemplo `prob` vai
+de 0,02 em C a 1,34 em D), sinal de que a superfície é plana e a busca de 30
+gerações não separa pesos parecidos. Os Elo de validação não são comparáveis
+entre linhas (o bot à mão é o mesmo, mas o jogo muda).
+
+### Tabela, `greedy` contra `greedy`, 4000 partidas
+
+"Sorte" como na seção do coringa; o valor de A é o de (b)/5 + (g) daquela
+seção, medido com os mesmos lotes.
+
+| | Lados: 1ª e 2ª formação | Reivindicações: 1ª | `places=1` (Elo) | Sem rolar (Elo) | Turnos | Fim: 5 marcos / 3 vizinhos / sem lugar (%) | 1º vence | Rolagens (própria/adversário) | Dados perdidos | Com 1 dado | Sorte |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| A (antiga, 5) | sequência 33%, naipe 32% | sequência 42% | -256 [-270, -242] | -25 [-36, -15] | 46,1 | 32/53/15 | 49,2% | 5,73 (1,36/4,37) | 2,87 | 40% | 25,8% |
+| B (nova, 5) | trinca 38%, sequência 23% | trinca 54% | -109 [-121, -98] | -21 [-32, -11] | 46,2 | 30/55/15 | 47,0% | 5,83 (1,54/4,29) | 2,92 | 42% | 34,2% |
+| C (antiga, 6) | sequência 34%, naipe 30% | sequência 43% | -257 [-272, -244] | -25 [-36, -14] | 46,4 | 30/54/16 | 48,4% | 7,48 (2,15/5,33) | 3,74 | 40% | 31,6% |
+| D (nova, 6) | trinca 42%, sequência 22% | trinca 57% | -111 [-122, -99] | -60 [-71, -49] | 46,6 | 32/56/12 | 48,0% | 8,11 (3,55/4,56) | 4,06 | 51% | 34,8% |
+
+Intervalo do "1º vence": uns 1,5 ponto. "Dados perdidos" é por jogador (a
+coluna de rolagens é por partida, com um dado perdido por rolagem). "Com 1
+dado" é a fração de jogadores que termina com 1 dado na mão.
+
+### Tabela, `pimc` contra `pimc`, 300 partidas
+
+Intervalo do "1º vence": uns 5,6 pontos.
+
+| | Lados: 1ª e 2ª formação | Reivindicações: 1ª | Sem rolar (Elo) | Turnos | Fim: 5 marcos / 3 vizinhos / sem lugar (%) | 1º vence | Rolagens (própria/adversário) | Com 1 dado |
+|---|---|---|---|---|---|---|---|---|
+| A | sequência 34%, naipe 30% | sequência 44% | -37 [-77, +2] | 48,6 | 28/58/14 | 46,7% | 3,09 (1,36/1,73) | 7% |
+| B | trinca 35%, sequência 19% | trinca 54% | -113 [-156, -73] | 49,4 | 33/50/17 | 46,7% | 3,23 (1,12/2,11) | 10% |
+| C | sequência 35%, naipe 27% | sequência 49% | -83 [-124, -43] | 48,9 | 31/54/15 | 48,7% | 3,58 (1,55/2,03) | 4% |
+| D | trinca 36%, sequência 19% | trinca 53% | -90 [-132, -50] | 49,8 | 31/50/19 | 43,3% | 5,42 (2,00/3,42) | 18% |
+
+### Leitura
+
+- **A ordem nova distorce, e muito, a formação buscada.** Com a trinca no
+  topo, ela passa a ser a formação mais comum: 38% a 42% dos lados e 54% a
+  57% das reivindicações (`greedy`), contra 33% da sequência e 42% a 43% das
+  reivindicações na ordem antiga. É o mesmo problema da quadra do padrão
+  antigo (ver "Conclusões de design"): uma formação que não depende do marco
+  e que se monta rolando de novo vira a que um jogador bom busca. A
+  sequência cai para 22% a 23% e o naipe para 14% a 15% dos lados. O `pimc`
+  confirma: trinca em 35% a 36% dos lados e 53% a 54% das reivindicações.
+- **O que a ordem nova melhora.** Onde pôr o dado deixa de pesar tanto:
+  `places=1` vai de -256 para -109 (B) e -111 (D): a trinca não depende do
+  marco, então escolher o marco onde pôr o dado vale a metade. Em A e C essa
+  escolha vale uns 250 Elo, que era o ponto que as variantes anteriores
+  tentavam aumentar.
+- **Sem distorção:** turnos (46 a 47), fim da partida, vitória do primeiro
+  (47% a 49%, ±1,5) e o
+  número de rolagens em B (5,8 contra 5,7).
+- **Sorte.** B e D ficam em 34% a 35% contra 26% a 32% das outras. A
+  diferença vem em parte de os pesos de A, B, C e D terem forças diferentes
+  contra o bot à mão (+222 a +305 Elo), então é sinal fraco, mas vai no
+  sentido de mais sorte: a trinca depende do número dos dados que saem.
+- **A mão de 6 em relação à de 5.** As rolagens sobem de 5,7 para 7,5 (ordem
+  antiga) e de 5,8 para 8,1 (ordem nova); as rolagens na própria mão sobem
+  de 1,4 para 2,2 e de 1,5 para 3,6. Os dados perdidos sobem na mesma
+  proporção. A fração de jogadores que termina com 1 dado **não cai**: 40%
+  em A e C, 42% em B e **51% em D**; com o `pimc`, 7% a 10% com mão de 5 e
+  4% (C) a 18% (D) com mão de 6. Sem rolar o Elo é -25 em A, B e C e -60
+  em D. A mão de 6 não resolve a limitação de partidas que acabam com 1
+  dado: com a ordem antiga ela é neutra, com a nova piora. O jogo apenas
+  rola mais e perde mais dados (4,1 contra 2,9 por jogador, em D contra A).
+
+### Níveis da web, pesos `hd6`, mão de 6 e ordem nova
+
+Binário nativo, sementes 600000, rotação de assentos.
+
+| Lote | Partidas | Resultado | Elo | ms por decisão |
+|---|---|---|---|---|
+| fácil (`greedy:noise=1`) x médio (`greedy`) | 2000 | 428 a 3572 de 4000 lugares (10,7% [9,8; 11,7]) | -369 [-387, -352] | 2,7 e 2,2 |
+| fácil `noise=1` x `random` | 600 | 1197 a 3 de 1200 lugares (99,8%) | +1040 [+909, +inf] | 3,3 |
+| fácil `noise=2` (o nível antigo) x médio | 2000 | 80 a 3920 (2,0%) | -676 [-719, -641] | 2,1 |
+| difícil (`pimc`) x médio | 200 | 319 a 81 de 400 lugares (79,8% [75,5; 83,4]) | +238 [+198, +284] | 105 (máx. 522) e 1,8 |
+
+- O fácil com `noise=1` perde 89% dos lugares para o médio (-369 Elo; era
+  -579 com `noise=2` e mão de 5). Com `noise=2` a mudança de regra levaria o
+  degrau a -676, por isso o `noise=1`. O degrau fácil-médio ainda é o maior
+  do conjunto, mas ganha 99,8% do `random`.
+- O difícil contra o médio é +238, igual a antes (+230).
+- Tempo do `pimc` no WASM (`just sia-wasm-test`, 3 decisões do começo da
+  partida): 192 ms por decisão (pior 196). Mais jogadas com mão de 6 e ainda
+  abaixo de 400 ms.
+
+### Recomendação
+
+- Aplicada em `regras/sia/` e no motor a regra decidida (D). Pelas medidas,
+  a ordem nova troca o problema de lugar: a trinca vira a formação
+  dominante (42% dos lados, 57% das reivindicações), como a quadra era. Em
+  troca, a escolha do marco onde pôr o dado pesa menos (-111 contra -256).
+- A mão de 6 não faz o jogo acabar menos com 1 dado (51% em D). Se esse for
+  o problema, o tamanho da mão não o resolve: com mão de 5 eram 40% a 42%, e
+  com mão de 6 ficam em 40% (ordem antiga) e 51% (nova).
+- Para o designer decidir: manter a trinca no topo (a ordem pela chance),
+  ou voltar a pô-la abaixo da sequência, que na medição A e C dá a mesma
+  duração e menos dominância (sequência 33% a 34%) a custo de a escolha do
+  marco pesar 250 Elo.

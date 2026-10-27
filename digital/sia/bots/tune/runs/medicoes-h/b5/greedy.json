@@ -1,0 +1,1 @@
+{"bot": "greedy", "weights": {"owned": 1.0, "adjacent": 0.0055, "prob": 0.6775, "sure": 0.4468, "neighbors": 0.0102, "placed": -0.3575, "lost": -0.9672, "hand": 0.3851, "opp_hand": -1.9976}}

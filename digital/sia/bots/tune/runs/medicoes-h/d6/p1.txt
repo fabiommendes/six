@@ -1,0 +1,21 @@
+4000 games, hand of 6
+ends: stones 1232 (30.8%), neighbors 2268 (56.7%), noRoom 500 (12.5%)
+turns: mean 46.3, median 47, p10 40, p90 51, max 54; commands 59.4
+first player wins 49.0% [47.5, 50.6]
+formation          claims  (proven)  awards   sides
+StraightFlush      16.7%    58.4%     6.2%     9.4%
+ThreeOfAKind       57.0%    53.1%    37.1%    41.9%
+Run                16.1%    16.5%    26.5%    19.4%
+Flush               8.2%     9.2%    19.4%    17.5%
+Pair                2.0%     5.2%    10.5%     9.9%
+Sum                 0.0%     0.0%     0.4%     2.0%
+claims per game 6.15 (44% proven), awards at the end 0.20
+rerolls per game 7.82: own hand 3.61, other hand 4.21; 1.64 dice rolled each; dice lost per game 7.82
+jokers: placed 97.1% (mean turn 4.8), rolled by the owner 0.02 per joker, lost 2.7%
+formation of the side of the joker at the end: StraightFlush 18%; ThreeOfAKind 41%; Run 13%; Flush 26%; Pair 1%; Sum 0%;
+variety: kinds per game 4.41 among sides, 2.85 among claims; entropy 2.19 bits of sides, 1.73 of claims
+lost per seat: mean 3.91; % of seats with 0..6,7+ lost: [1 5 11 15 22 47]
+rerolls by dice already lost: [7925, 7503, 6647, 5476, 3746]
+@digital/sia/bots/tune/runs/medicoes-h/d6/p1.json: 4000 seats, wins 1384.0 (34.6% [33.1, 36.1]), 2.63 stones, 0.37 ms per decision (max 3.0)
+@digital/sia/bots/tune/runs/medicoes-h/d6/greedy.json: 4000 seats, wins 2616.0 (65.4% [63.9, 66.9]), 3.72 stones, 1.83 ms per decision (max 9.7)
+@digital/sia/bots/tune/runs/medicoes-h/d6/p1.json vs @digital/sia/bots/tune/runs/medicoes-h/d6/greedy.json: +1384 =0 -2616, Elo -111 [-122, -99]
