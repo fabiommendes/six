@@ -1,0 +1,2 @@
+2000 deals (4000 games), hand of 5, seeds 600000, 30 generations
+@digital/sia/bots/tune/runs/fase-hb5/best.json vs @digital/sia/bots/tune/maos.json: +3177 =0 -823, Elo +235 [+222, +248]

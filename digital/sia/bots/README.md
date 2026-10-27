@@ -62,12 +62,15 @@ sobre os marcos, vistos de um assento; a unidade dos pesos é o marco.
   formações, rolagens) e o Elo.
 - `just sia-tune CONFIG`: calibração por CMA-ES, como a do Liu
   (`tune/tune.py`, formato em `tune/example.json`). As configurações
-  `tune/fase-*.json` anteriores à regra decidida usam flags de variantes que
+  `tune/fase-*.json` anteriores à regra decidida (até `gb5`) usam flags de variantes que
   o motor não tem mais (`--joker`, `--stone-only-sequences` e outras): ficam
   como registro e não rodam de novo.
 
 ## Pesos padrão
 
-`weights/default.json` vem da fase `gb5` (`tune/fase-gb5.json`,
-`tune/runs/fase-gb5/`), calibrada na regra decidida: mão de 5, o marco conta
-só para sequência e naipe, um coringa por jogador.
+`weights/default.json` vem da fase `hd6` (`tune/fase-hd6.json`,
+`tune/runs/fase-hd6/`), calibrada na regra de 2026-10-27: mão de 6, a trinca
+acima da sequência e do naipe, o marco só para sequência e naipe, um coringa
+por jogador. Validação: +222 Elo sobre os pesos à mão. As fases `hb5` (ordem
+nova, mão de 5) e `hc6` (ordem antiga, mão de 6; só roda com o binário do
+commit anterior ao `c76ca0a`) são as comparações da nota.

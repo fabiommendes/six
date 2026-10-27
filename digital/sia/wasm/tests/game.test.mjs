@@ -103,14 +103,14 @@ test("a reroll costs a die and the hand comes back one die short", () => {
   const reroll = transition.events[0];
   assert.equal(reroll.kind, "rerolled");
   assert.equal(reroll.rolled.length, 2);
-  assert.equal(transition.view.players[me].hand.length, 4);
+  assert.equal(transition.view.players[me].hand.length, 5);
   assert.equal(transition.view.canReroll, false);
   const placed = json(game.command(JSON.stringify({ kind: "place", die: 0, stone: 0 })));
   assert.deepEqual(
     placed.events.map((e) => e.kind),
     ["placed", "drawn", "turnStarted"],
   );
-  assert.equal(placed.view.players[me].hand.length, 4);
+  assert.equal(placed.view.players[me].hand.length, 5);
   assert.equal(placed.view.players[me].lost, 1);
 });
 

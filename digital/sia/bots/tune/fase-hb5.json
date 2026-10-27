@@ -1,0 +1,59 @@
+{
+  "bot": "greedy:cands=4,rerolls=2",
+  "weights": {
+    "adjacent": {
+      "init": 0.0004,
+      "min": 0.0,
+      "max": 2.0
+    },
+    "prob": {
+      "init": 0.2846,
+      "min": 0.0,
+      "max": 4.0
+    },
+    "sure": {
+      "init": 0.672,
+      "min": 0.0,
+      "max": 2.0
+    },
+    "neighbors": {
+      "init": 0.0017,
+      "min": 0.0,
+      "max": 4.0
+    },
+    "placed": {
+      "init": -0.1063,
+      "min": -0.5,
+      "max": 0.5
+    },
+    "lost": {
+      "init": -0.849,
+      "min": -3.0,
+      "max": 0.0
+    },
+    "hand": {
+      "init": 0.4785,
+      "min": 0.0,
+      "max": 2.0
+    },
+    "opp_hand": {
+      "init": -1.9802,
+      "min": -2.0,
+      "max": 0.0
+    }
+  },
+  "fixed": {
+    "owned": 1.0
+  },
+  "opponent": "@digital/sia/bots/tune/maos.json",
+  "seeds": 150,
+  "population": 12,
+  "generations": 30,
+  "seed": 700000,
+  "sigma": 0.25,
+  "threads": 6,
+  "hand_size": 5,
+  "binary": "digital/sia/bots/tune/runs/sia-bots-h",
+  "out": "digital/sia/bots/tune/runs/fase-hb5",
+  "flags": []
+}
