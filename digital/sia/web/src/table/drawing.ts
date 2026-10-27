@@ -1,4 +1,4 @@
-import { COLORS, lightPips, STONE_SUIT, SUIT_COLORS } from "../ui/svg";
+import { COLORS, lightPips, starPoints, STONE_SUIT, SUIT_COLORS } from "../ui/svg";
 import { PIPS } from "../ui/pips";
 import type { FrameLayout } from "./layout";
 import { strip, type MotifKind } from "./motif";
@@ -70,6 +70,10 @@ function drawGlyph(ctx: CanvasRenderingContext2D, suit: number, cx: number, cy: 
       ctx.lineTo(cx - r * 1.2, cy);
       ctx.closePath();
       break;
+    case STONE_SUIT:
+      starPoints(cx, cy, r * 1.5, r * 0.65).forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+      ctx.closePath();
+      break;
     default:
       return;
   }
@@ -79,7 +83,7 @@ function drawGlyph(ctx: CanvasRenderingContext2D, suit: number, cx: number, cy: 
 /** The grey of a die that is out of the game: no suit color, the pips stay dark. */
 export const OUT_COLOR = "#A4A29C";
 
-/** A face of a die in the color of its suit, with the mark of the suit in a corner (none for the stones); `gray` draws it out of the game. */
+/** A face of a die in the color of its suit, with the mark of the suit in a corner (a star for the joker, none for the stones); `gray` draws it out of the game. */
 export function drawDieFace(value: number, suit: number, px: number, gray = false): HTMLCanvasElement {
   const canvas = makeCanvas(px);
   const ctx = context(canvas);

@@ -3,7 +3,7 @@ import type { View } from "../src/engine/game";
 import { SiaGame } from "../src/engine/game";
 import { click, diceMask, NONE, placeTargets, REROLL_START, rerollCommand, rerollPreview, rerollStart, selectedDie, type Selection } from "../src/logic/selection";
 
-/** A fresh game and its view: both hands have 5 dice, the first of them the joker and every stone is open. */
+/** A fresh game and its view: both hands have 6 dice, the first of them the joker and every stone is open. */
 function fresh(seed = 4n): { game: SiaGame; view: View } {
   const game = SiaGame.create(seed);
   return { game, view: game.view() };
@@ -145,7 +145,7 @@ describe("rerolling", () => {
     const hand = view.players[me]!.hand;
     const preview = rerollPreview(view, reroll({ lost: 0, target: me, dice: [1, 2] }))!;
     expect(preview.lost).toEqual(hand[0]);
-    expect(preview.handLimit).toBe(4);
+    expect(preview.handLimit).toBe(5);
     expect(preview.rolled).toEqual([hand[1], hand[2]]);
     expect(rerollPreview(view, NONE)).toBeNull();
     expect(rerollPreview(view, REROLL_START)!.lost).toBeNull();

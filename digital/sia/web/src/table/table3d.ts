@@ -35,7 +35,7 @@ import {
 } from "three";
 import type { Command, Die, Event, Formation, View } from "../engine/game";
 import { formationText, stoneLetter } from "../logic/formation";
-import { COLORS, seatColor, STONE_SUIT } from "../ui/svg";
+import { COLORS, seatColor, STONE_FACE } from "../ui/svg";
 import { Die3D, DieAssets, orientation } from "./dice";
 import { drawBoard, drawLabel, drawMark, drawTrayTop, drawWood, shade, type MarkKind } from "./drawing";
 import {
@@ -513,7 +513,7 @@ export class Table3D {
     this.clearDice();
     this.owners = view.stones.map((s) => s.owner);
     view.stones.forEach((stone, i) => {
-      this.stones[i] = this.newDie(STONE_SUIT, stone.number, this.targetOfStone(i));
+      this.stones[i] = this.newDie(STONE_FACE, stone.number, this.targetOfStone(i));
       for (const seat of [0, 1]) {
         stone.sides[seat]?.dice.forEach((die, k) => {
           this.sides[seat]![i]!.push(this.newDie(die.suit, die.value, this.targetOfSide(seat, i, k), seatAngle(seat)));
@@ -965,7 +965,7 @@ export class Table3D {
     for (let i = 0; i < numbers.length; i++) {
       const value = numbers[i]!;
       const to = this.targetOfStone(i);
-      const die = new Die3D(STONE_SUIT, value, this.assets);
+      const die = new Die3D(STONE_FACE, value, this.assets);
       die.root.position.set(to.x + (Math.random() - 0.5) * 2, 4.5, to.z + 5.5 * (i % 2 ? 1 : -1));
       die.tumbler.quaternion.random();
       this.world.add(die.root);

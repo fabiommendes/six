@@ -2,7 +2,7 @@ import { BOT_LEVELS, isBotLevelId } from "../bot/levels";
 import type { SeatBot } from "../logic/save";
 import { ACTIONS, DEFAULT_NAMES, botName } from "../logic/texts";
 import { esc } from "./dom";
-import { brandMark, dieIcon, seatColor, SUIT_COLORS } from "./svg";
+import { brandMark, dieIcon, seatColor, STONE_FACE } from "./svg";
 
 export interface StartChoice {
   readonly names: string[];
@@ -88,7 +88,7 @@ export function showStart(host: HTMLElement, options: StartOptions): void {
     const resume = options.saved
       ? `<button type="button" class="resume" data-resume>${ACTIONS.resume}<span>${esc(options.saved.join(" e "))}</span></button>`
       : "";
-    const dice = SUIT_COLORS.map((_, suit) => dieIcon(suit === 4 ? 6 : suit + 2, 26, suit)).join("");
+    const dice = [0, 1, 2, 3, STONE_FACE].map((suit) => dieIcon(suit === STONE_FACE ? 6 : suit + 2, 26, suit)).join("");
     host.innerHTML = `<div class="start-wrap"><div class="start">
       <div class="brand">${brandMark(26)}<span>SIX</span></div>
       <h1>Sia</h1>

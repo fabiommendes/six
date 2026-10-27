@@ -15,7 +15,7 @@ export interface Saved {
 /** The part of `Storage` the save needs, so tests can pass a map. */
 export type SaveStore = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
-const KEY = "sia.partida.v2";
+const KEY = "sia.partida.v3";
 
 export function save(store: SaveStore, saved: Saved): void {
   try {

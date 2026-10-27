@@ -10,11 +10,17 @@ export const COLORS = {
   sia: "#46607A",
 } as const;
 
-/** The suit of the stones (the fifth): it counts as any suit. The suits of the bag are 0 to 3. */
+/**
+ * The fifth suit, the color of the stones and of the jokers: it counts as any suit. The suits of the bag
+ * are 0 to 3. A die of a hand or of a side with this suit is a joker, and is drawn with a star in the corner.
+ */
 export const STONE_SUIT = 4;
 
+/** How a stone is drawn: the color of the fifth suit with no mark, so that it is not taken for a joker. */
+export const STONE_FACE = 5;
+
 /** The body color of each suit: red, blue, yellow and green for the bag, graphite for the stones. */
-export const SUIT_COLORS = ["#B83A2E", "#2B62B8", "#E3B323", "#3E8A43", "#34383D"] as const;
+export const SUIT_COLORS = ["#B83A2E", "#2B62B8", "#E3B323", "#3E8A43", "#34383D", "#34383D"] as const;
 
 /** Names of the suits, for texts. */
 export const SUIT_NAMES = ["vermelho", "azul", "amarelo", "verde", "dos marcos"] as const;
@@ -30,6 +36,18 @@ export const lightPips = (suit: number) => suit !== 2;
 /** Round to two decimals, for compact SVG. */
 const f = (n: number) => +n.toFixed(2);
 
+/** The suit that gets the star: the fifth, on the dice that are not stones. */
+const JOKER_MARK = STONE_SUIT;
+
+/** The 10 points of a star with 5 arms, centred at (cx, cy), the first one up. */
+export function starPoints(cx: number, cy: number, outer: number, inner: number): [number, number][] {
+  return Array.from({ length: 10 }, (_, i) => {
+    const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+    const radius = i % 2 === 0 ? outer : inner;
+    return [cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)];
+  });
+}
+
 /** A small shape that tells the suit apart without color: circle, square, triangle, diamond. */
 function glyph(suit: number, cx: number, cy: number, r: number, fill: string): string {
   switch (suit) {
@@ -41,6 +59,8 @@ function glyph(suit: number, cx: number, cy: number, r: number, fill: string): s
       return `<polygon points="${f(cx)},${f(cy - r)} ${f(cx + r)},${f(cy + r)} ${f(cx - r)},${f(cy + r)}" fill="${fill}"/>`;
     case 3:
       return `<polygon points="${f(cx)},${f(cy - r * 1.15)} ${f(cx + r * 1.15)},${f(cy)} ${f(cx)},${f(cy + r * 1.15)} ${f(cx - r * 1.15)},${f(cy)}" fill="${fill}"/>`;
+    case JOKER_MARK:
+      return `<polygon points="${starPoints(cx, cy, r * 1.5, r * 0.65).map(([x, y]) => `${f(x)},${f(y)}`).join(" ")}" fill="${fill}"/>`;
     default:
       return "";
   }

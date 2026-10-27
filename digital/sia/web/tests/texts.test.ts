@@ -94,7 +94,7 @@ describe("hint", () => {
     expect(hint(view, REROLL_START, names)).toMatch(/perdido para sempre/);
     const lost = hint(view, { kind: "reroll", target: null, lost: 0, dice: [] }, names);
     expect(lost).toContain("perde o");
-    expect(lost).toContain("limitada a 4 dados");
+    expect(lost).toContain("limitada a 5 dados");
     const rolling = hint(view, { kind: "reroll", target: 1 - me, lost: 0, dice: [0, 1] }, names);
     expect(rolling).toContain(`da mão de ${names[1 - me]}`);
     expect(rolling).toContain("Rola 2 dados");
@@ -139,7 +139,7 @@ describe("sideLines", () => {
   const potential = { kind: "straightFlush", sum: 15 } as const;
 
   it("reads a complete side by formation, place in the order and the sum as the tiebreak", () => {
-    expect(sideLines({ dice: [die(1), die(1), die(1)], formation: { kind: "threeOfAKind", sum: 14 }, potential })).toEqual({ title: "Trinca", note: "4ª de 6", tiebreak: "desempate: soma 14" });
+    expect(sideLines({ dice: [die(1), die(1), die(1)], formation: { kind: "threeOfAKind", sum: 14 }, potential })).toEqual({ title: "Trinca", note: "2ª de 6", tiebreak: "desempate: soma 14" });
   });
 
   it("reads an incomplete side by what is missing and what it can still be", () => {

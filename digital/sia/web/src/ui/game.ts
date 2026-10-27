@@ -21,7 +21,7 @@ import {
 import { Sounds } from "../table/sound";
 import { NO_MARKS, Table3D, type Pick, type TableMarks } from "../table/table3d";
 import { esc, need } from "./dom";
-import { brandMark, dieIcon, emptySlot, seatColor, STONE_SUIT } from "./svg";
+import { brandMark, dieIcon, emptySlot, seatColor, STONE_FACE } from "./svg";
 
 /** Lines of the history kept. */
 const LOG_LINES = 80;
@@ -625,7 +625,7 @@ export class GameScreen {
         const style = owner !== null ? ` style="--owner:${seatColor(owner)}"` : "";
         const ribbon = can ? '<b class="ribbon">Reivindicar</b>' : owner !== null ? `<b class="ribbon taken" title="Tomado por ${esc(this.names[owner]!)}">Tomado</b>` : "";
         return `<button type="button" class="${classes.join(" ")}" data-stone="${i}"${style} aria-label="Marco ${stoneLetter(i)}, número ${stone.number}">
-          <header><span class="letter">${stoneLetter(i)}</span>${this.preparing ? emptySlot(22) : dieIcon(stone.number, 22, STONE_SUIT)}${ribbon}</header>
+          <header><span class="letter">${stoneLetter(i)}</span>${this.preparing ? emptySlot(22) : dieIcon(stone.number, 22, STONE_FACE)}${ribbon}</header>
           ${side(i, far)}${side(i, near)}
         </button>`;
       })

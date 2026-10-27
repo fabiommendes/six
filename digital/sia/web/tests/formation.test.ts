@@ -9,7 +9,7 @@ const stones = (owners: (number | null)[]) => ({ stones: owners.map((owner) => (
 
 describe("formation names", () => {
   it("are those of the glossary, from the weakest to the strongest", () => {
-    expect(FORMATION_ORDER.map((k) => FORMATION_NAMES[k])).toEqual(["Soma", "Par", "Trinca", "Naipe", "Sequência", "Sequência de naipe"]);
+    expect(FORMATION_ORDER.map((k) => FORMATION_NAMES[k])).toEqual(["Soma", "Par", "Naipe", "Sequência", "Trinca", "Sequência de naipe"]);
   });
 
   it("order like the engine does: kind first, then the sum", () => {
@@ -79,13 +79,13 @@ describe("with the engine", () => {
 
 describe("the order of the formations for the cards", () => {
   it("lists them from the strongest, each with what it is", () => {
-    expect(FORMATIONS_BY_STRENGTH.map((k) => FORMATION_NAMES[k])).toEqual(["Sequência de naipe", "Sequência", "Naipe", "Trinca", "Par", "Soma"]);
+    expect(FORMATIONS_BY_STRENGTH.map((k) => FORMATION_NAMES[k])).toEqual(["Sequência de naipe", "Trinca", "Sequência", "Naipe", "Par", "Soma"]);
     expect(FORMATION_RULES.run).toBe("4 números seguidos, com o marco");
   });
 
   it("says the place of a kind counting from the strongest", () => {
     expect(rankText("straightFlush")).toBe("1ª de 6");
-    expect(rankText("threeOfAKind")).toBe("4ª de 6");
+    expect(rankText("threeOfAKind")).toBe("2ª de 6");
     expect(rankText("sum")).toBe("6ª de 6");
   });
 });

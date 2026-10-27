@@ -1,7 +1,7 @@
 import type { Die, Formation, FormationKind, SideView, View } from "../engine/game";
 
 /** The kinds of formation from the weakest to the strongest, as the engine orders them. */
-export const FORMATION_ORDER: readonly FormationKind[] = ["sum", "pair", "threeOfAKind", "flush", "run", "straightFlush"];
+export const FORMATION_ORDER: readonly FormationKind[] = ["sum", "pair", "flush", "run", "threeOfAKind", "straightFlush"];
 
 /** The names of the formations, as `regras/sia/GLOSSARY.md` writes them. */
 export const FORMATION_NAMES: Readonly<Record<FormationKind, string>> = {
@@ -46,7 +46,7 @@ export function strength(kind: FormationKind): number {
 /** The kinds from the strongest to the weakest, as the table of the formations lists them. */
 export const FORMATIONS_BY_STRENGTH: readonly FormationKind[] = [...FORMATION_ORDER].reverse();
 
-/** The place of a kind in the order, counting from the strongest: "5ª de 6" for a three of a kind. */
+/** The place of a kind in the order, counting from the strongest: "2ª de 6" for a three of a kind. */
 export function rankText(kind: FormationKind): string {
   return `${FORMATION_ORDER.length - strength(kind)}ª de ${FORMATION_ORDER.length}`;
 }

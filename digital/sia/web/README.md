@@ -54,11 +54,12 @@ o azul-ardósia `#46607A` da moldura e das marcas é provisório.
   estreita). A bolsa fica na mesa: uma bolsa de tecido, com cordão e
   a boca franzida e aberta; os dados saem por ela e o dado perdido volta
   para ela. Quantos dados cada jogador perdeu
-  aparece no cartão dele ("mão: 5 de 5 dados (2 perdidos)").
+  aparece no cartão dele ("mão: 6 de 6 dados (2 perdidos)").
 - Naipes: vermelho, azul, amarelo e verde nos dados da bolsa, grafite nos
   marcos e nos coringas (o coringa é o primeiro dado da mão de cada jogador;
   o adversário não pode escolhê-lo para rolar). Cada face tem também uma marca no canto (círculo, quadrado,
-  triângulo, losango), para o naipe não depender só da cor.
+  triângulo, losango), para o naipe não depender só da cor. O coringa tem uma
+  estrela no canto, para não se confundir com um marco.
 - Cartão das formações (HTML, à esquerda, sob os cartões dos jogadores): as 6
   formações da mais forte para a mais fraca, o que cada uma é, a regra de que
   o marco conta só para a sequência e o naipe, o desempate (maior soma dos 4
@@ -66,7 +67,7 @@ o azul-ardósia `#46607A` da moldura e das marcas é provisório.
   reivindicar. Em tela
   estreita fica escondido atrás do botão "Formações" da barra de cima.
 - Cartas dos marcos (HTML, acima da mesa): para cada lado, o nome da formação
-  e o lugar dela na ordem ("Trinca", "4ª de 6"), com a soma dita como
+  e o lugar dela na ordem ("Trinca", "2ª de 6"), com a soma dita como
   desempate ("desempate: soma 14"). Um lado incompleto diz o que falta
   ("Faltam 2 dados") e até onde pode chegar ("pode chegar a sequência de naipe"). Um
   marco que pode ser reivindicado ganha a borda pulsante, o rótulo
@@ -112,7 +113,7 @@ o azul-ardósia `#46607A` da moldura e das marcas é provisório.
 
 ## Notas
 
-- Os níveis dos bots (fácil, médio, difícil) são `greedy:noise=2`, `greedy` e
+- Os níveis dos bots (fácil, médio, difícil) são `greedy:noise=1`, `greedy` e
   `pimc`; não foram calibrados contra pessoas.
 - O manual ainda não tem capítulo do Sia, então a interface não tem link de
   regras.
