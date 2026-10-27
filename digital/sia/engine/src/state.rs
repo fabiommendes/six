@@ -18,9 +18,9 @@ pub const PLAYERS: usize = 2;
 pub const STONES: usize = 9;
 /// Dice of one side of a stone.
 pub const SIDE_DICE: usize = 3;
-/// Dice in a hand at the start of the game: the joker and 4 dice of the bag.
-pub const DEFAULT_HAND_SIZE: u8 = 5;
-/// The hand sizes the engine accepts (the rules say 5; the others are for
+/// Dice in a hand at the start of the game: the joker and 5 dice of the bag.
+pub const DEFAULT_HAND_SIZE: u8 = 6;
+/// The hand sizes the engine accepts (the rules say 6; the others are for
 /// experiments).
 pub const HAND_SIZES: std::ops::RangeInclusive<u8> = 2..=10;
 /// Stones that win the game.
@@ -89,14 +89,14 @@ pub struct GameState {
 }
 
 impl GameState {
-    /// A new game with hands of 5 dice (the joker and 4 of the bag): the
+    /// A new game with hands of 6 dice (the joker and 5 of the bag): the
     /// preparation done and the events of it.
     pub fn new(seed: u64) -> (GameState, Vec<Event>) {
         GameState::with_hand_size(DEFAULT_HAND_SIZE, seed)
     }
 
     /// A new game with hands of `hand_size` dice (2 to 10), for
-    /// experiments. The rules say 5.
+    /// experiments. The rules say 6.
     ///
     /// # Panics
     ///
@@ -675,12 +675,12 @@ mod tests {
     }
 
     #[test]
-    fn the_preparation_rolls_the_stones_and_deals_the_joker_and_four_dice() {
+    fn the_preparation_rolls_the_stones_and_deals_the_joker_and_five_dice() {
         let (state, events) = GameState::new(7);
         assert_eq!(state.validate(), Ok(()));
         assert!(state.stones.iter().all(|n| (1..=6).contains(n)));
         for p in 0..PLAYERS {
-            assert_eq!(state.hand(p).len(), 5);
+            assert_eq!(state.hand(p).len(), 6);
             assert!(state.hand(p).iter().all(Die::is_valid));
             // The joker comes first, with a rolled number; the rest is bag.
             assert_eq!(state.hand(p)[0].suit, JOKER_SUIT);
@@ -688,9 +688,9 @@ mod tests {
         }
         assert!(matches!(events[0], Event::StonesRolled { .. }));
         assert!(matches!(&events[1], Event::Drawn { player: 0, dice } if dice.len() == 1));
-        assert!(matches!(&events[2], Event::Drawn { player: 0, dice } if dice.len() == 4));
+        assert!(matches!(&events[2], Event::Drawn { player: 0, dice } if dice.len() == 5));
         assert!(matches!(&events[3], Event::Drawn { player: 1, dice } if dice.len() == 1));
-        assert!(matches!(&events[4], Event::Drawn { player: 1, dice } if dice.len() == 4));
+        assert!(matches!(&events[4], Event::Drawn { player: 1, dice } if dice.len() == 5));
         assert!(matches!(events[5], Event::TurnStarted { turn: 1, .. }));
         assert_eq!(state.turn(), 1);
         assert_eq!(state.step(), Step::Reroll);
@@ -721,7 +721,7 @@ mod tests {
             })
             .unwrap();
         assert_eq!(next.player(me).lost, 1);
-        assert_eq!(next.hand(me).len(), 4);
+        assert_eq!(next.hand(me).len(), 5);
         assert_eq!(next.step(), Step::Claim);
         // The hand without the lost die; indexes 1 and 2 may have new numbers.
         let after = next.hand(me);
@@ -759,8 +759,8 @@ mod tests {
                 dice: 0b1_0100,
             },
         );
-        assert_eq!(next.hand(me).len(), 4);
-        assert_eq!(next.hand(1 - me).len(), 5);
+        assert_eq!(next.hand(me).len(), 5);
+        assert_eq!(next.hand(1 - me).len(), 6);
         assert_eq!(next.player(1 - me).lost, 0);
         for i in [0, 1, 3] {
             assert_eq!(next.hand(1 - me)[i], other_before[i]);
@@ -781,12 +781,12 @@ mod tests {
             GameError::BadRoll
         );
         assert_eq!(
-            state.apply(reroll(me, 0, 1 << 5)).unwrap_err(),
+            state.apply(reroll(me, 0, 1 << 6)).unwrap_err(),
             GameError::BadRoll
         );
         assert_eq!(
-            state.apply(reroll(me, 5, 1)).unwrap_err(),
-            GameError::NoSuchDie { die: 5 }
+            state.apply(reroll(me, 6, 1)).unwrap_err(),
+            GameError::NoSuchDie { die: 6 }
         );
         assert_eq!(
             state.apply(reroll(2, 0, 1)).unwrap_err(),
@@ -809,10 +809,10 @@ mod tests {
         let (mut state, _) = GameState::new(14);
         let me = state.to_move();
         state.players[me].hand.truncate(1);
-        state.players[me].lost = 4;
+        state.players[me].lost = 5;
         // The one die of the other hand is not the joker, which cannot be rolled.
         state.players[1 - me].hand = vec![d(4, 1)];
-        state.players[1 - me].lost = 4;
+        state.players[1 - me].lost = 5;
         assert_eq!(state.validate(), Ok(()));
         for target in 0..2 {
             assert_eq!(
@@ -874,11 +874,11 @@ mod tests {
     }
 
     #[test]
-    fn placing_draws_back_to_five_minus_the_lost_dice() {
+    fn placing_draws_back_to_six_minus_the_lost_dice() {
         let (state, _) = GameState::new(16);
         let me = state.to_move();
         let (next, events) = state.apply(Command::Place { die: 2, stone: 4 }).unwrap();
-        assert_eq!(next.hand(me).len(), 5);
+        assert_eq!(next.hand(me).len(), 6);
         assert_eq!(next.side(me, 4).dice, [state.hand(me)[2]]);
         assert!(matches!(
             events[..],
@@ -894,7 +894,7 @@ mod tests {
         ));
         assert_eq!(next.to_move(), 1 - me);
         assert_eq!(next.turn(), 2);
-        // After a reroll the hand comes back to 4, not 5.
+        // After a reroll the hand comes back to 5, not 6.
         let rolled = play(
             &state,
             Command::Reroll {
@@ -904,7 +904,7 @@ mod tests {
             },
         );
         let after = play(&rolled, Command::Place { die: 0, stone: 0 });
-        assert_eq!(after.hand(me).len(), 4);
+        assert_eq!(after.hand(me).len(), 5);
         assert_eq!(after.validate(), Ok(()));
     }
 
@@ -927,9 +927,9 @@ mod tests {
         );
         assert_eq!(
             state
-                .apply(Command::Place { die: 5, stone: 0 })
+                .apply(Command::Place { die: 6, stone: 0 })
                 .unwrap_err(),
-            GameError::NoSuchDie { die: 5 }
+            GameError::NoSuchDie { die: 6 }
         );
         assert_eq!(
             state
@@ -1034,10 +1034,11 @@ mod tests {
     #[test]
     fn the_proof_looks_at_what_the_other_side_can_become_not_at_the_hand() {
         let mut state = game([5; 9], 0);
-        // A flush of sum 21.
-        put(&mut state, 0, 0, &[d(6, 0), d(6, 0), d(4, 0)]);
+        // A three of a kind of sum 23.
+        put(&mut state, 0, 0, &[d(6, 0), d(6, 1), d(6, 2)]);
         // The other side has a 1: no run is left (1 and the stone 5 are too
-        // far apart), so the best it can be is a flush of a lower sum.
+        // far apart), so the best it can be is a three of a kind of a lower
+        // sum.
         put(&mut state, 1, 0, &[d(1, 0)]);
         assert_eq!(state.claim_kind(0, 0), Some(true));
         // Even if the other hand holds the missing dice of a run.
@@ -1045,7 +1046,7 @@ mod tests {
         assert_eq!(state.claim_kind(0, 0), Some(true));
         // With a 4 on the other side a straight flush is still open.
         let mut open = game([5; 9], 0);
-        put(&mut open, 0, 0, &[d(6, 0), d(6, 0), d(4, 0)]);
+        put(&mut open, 0, 0, &[d(6, 0), d(6, 1), d(6, 2)]);
         put(&mut open, 1, 0, &[d(4, 0)]);
         assert_eq!(open.claim_kind(0, 0), None);
     }

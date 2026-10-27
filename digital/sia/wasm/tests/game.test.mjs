@@ -51,7 +51,7 @@ function play(game, seed) {
 test("games with hands of 4, 5 and 6 end with winners", () => {
   for (const size of [4, 5, 6]) {
     for (let seed = 1; seed <= 15; seed++) {
-      const game = size === 5 ? new Game(BigInt(seed)) : Game.withHandSize(size, BigInt(seed));
+      const game = size === 6 ? new Game(BigInt(seed)) : Game.withHandSize(size, BigInt(seed));
       const view = play(game, seed);
       assert.ok(view.winners.length >= 1);
       assert.equal(view.players[0].hand.length + view.players[0].lost, size);
@@ -73,7 +73,7 @@ test("the preparation, the view and the legal commands agree", () => {
     view.stones.map((s) => s.number),
     events[0].stones,
   );
-  assert.equal(view.players[0].hand.length, 5);
+  assert.equal(view.players[0].hand.length, 6);
   assert.equal(view.players[0].hand[0].suit, 4, "the joker is the first die of the hand");
   assert.equal(view.canReroll, true);
   const legal = json(game.legalCommands());

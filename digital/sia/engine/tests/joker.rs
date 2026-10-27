@@ -25,11 +25,11 @@ fn rolls_joker_of(state: &GameState, owner: usize, command: &Command) -> bool {
 
 #[test]
 fn the_joker_is_in_the_hand_counts_as_any_suit_and_is_safe_from_the_opponent() {
-    // Preparation: the hand is 4 dice of the bag and the joker.
+    // Preparation: the hand is 5 dice of the bag and the joker.
     let (state, _) = GameState::new(1);
     state.validate().unwrap();
     for p in 0..2 {
-        assert_eq!(state.hand(p).len(), 5);
+        assert_eq!(state.hand(p).len(), 6);
         assert_eq!(jokers(&state, p), 1);
         assert!(state.hand(p).iter().all(|d| d.suit <= JOKER_SUIT));
     }

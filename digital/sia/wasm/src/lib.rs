@@ -38,7 +38,7 @@ impl Game {
 
 #[wasm_bindgen]
 impl Game {
-    /// A new game with hands of 5 dice (the joker and 4 of the bag): the
+    /// A new game with hands of 6 dice (the joker and 5 of the bag): the
     /// stones rolled, the hands dealt and the first player drawn. `seed`
     /// picks the dice.
     #[wasm_bindgen(constructor)]

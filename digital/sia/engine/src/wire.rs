@@ -180,7 +180,7 @@ mod tests {
         let (state, _) = GameState::new(9);
         let view = View::of(&state);
         assert_eq!(view.stones.len(), 9);
-        assert_eq!(view.players[0].hand.len(), 5);
+        assert_eq!(view.players[0].hand.len(), 6);
         assert!(view.open.iter().all(|&o| o));
         assert!(view.claimable.iter().all(|&c| !c));
         assert!(view.can_reroll && !view.can_pass);
