@@ -841,3 +841,18 @@ Binário nativo, sementes 600000, rotação de assentos.
   ou voltar a pô-la abaixo da sequência, que na medição A e C dá a mesma
   duração e menos dominância (sequência 33% a 34%) a custo de a escolha do
   marco pesar 250 Elo.
+
+## Decisão do designer: ordem antiga com mão de 6 (C)
+
+Em 2026-10-27 o designer escolheu a configuração C: a ordem antiga
+(sequência de naipe, sequência, naipe, trinca, par, soma) com a mão de 6. A
+ordem pela chance foi descartada porque a trinca dominava e a escolha do
+marco perdia peso (`places=1` de -256 para -111). Motor, regras e web voltam
+à ordem antiga e os pesos padrão passam a ser os da fase `hc6` (+265 Elo
+sobre os pesos à mão). Níveis medidos de novo com esses pesos (binário
+nativo, sementes 600000, rotação de assentos, arquivos em
+`tune/runs/medicoes-i/niveis/`): fácil (`greedy:noise=1`) x médio, 2000
+aberturas, 13,7% dos lugares, -320 Elo [-337, -305]; fácil x `random`, 600
+aberturas, 99,8%, +1111 Elo; difícil (`pimc`) x médio, 200 aberturas, 74,2%
+dos lugares, +184 Elo [+147, +225]. O fácil fica dentro do limite de -450
+Elo contra o médio. O `pimc` no WASM leva 166 ms por decisão (pior 190).
