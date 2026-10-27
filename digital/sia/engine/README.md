@@ -24,7 +24,7 @@ tudo o que vale, sem repetir dados iguais.
 ## Pontos
 
 - `formation` e `best_completion`: a ordem das formações (sequência de naipe,
-  trinca, sequência, naipe, par, soma) e a melhor formação
+  sequência, naipe, trinca, par, soma) e a melhor formação
   que um lado ainda pode virar (base da prova de reivindicação). O marco conta
   só para a sequência e para o naipe (e para a soma do desempate); trinca e par olham os 3 dados do
   jogador, e não há quadra nem dois pares. Como o naipe

@@ -1,7 +1,7 @@
 //! The formations (`regras/sia/04-formacoes.md`): the three dice of a side
 //! and the stone, ranked, and the best formation a side can still become.
-//! The order, from the strongest: straight flush, three of a kind, run,
-//! flush, pair, sum (the rarer with 3 dice at random, the stronger).
+//! The order, from the strongest: straight flush, run, flush, three of a
+//! kind, pair, sum.
 
 #[cfg(feature = "wire")]
 use serde::{Deserialize, Serialize};
@@ -18,9 +18,9 @@ use crate::die::JOKER_SUIT;
 pub enum FormationKind {
     Sum,
     Pair,
+    ThreeOfAKind,
     Flush,
     Run,
-    ThreeOfAKind,
     StraightFlush,
 }
 
@@ -29,9 +29,9 @@ impl FormationKind {
     pub const ALL: [FormationKind; 6] = [
         FormationKind::Sum,
         FormationKind::Pair,
+        FormationKind::ThreeOfAKind,
         FormationKind::Flush,
         FormationKind::Run,
-        FormationKind::ThreeOfAKind,
         FormationKind::StraightFlush,
     ];
 
@@ -81,9 +81,9 @@ pub fn formation(stone: u8, dice: &[Die]) -> Formation {
     let flush = is_flush(dice);
     let kind = match (run, flush, most) {
         (true, true, _) => FormationKind::StraightFlush,
-        (_, _, 3) => FormationKind::ThreeOfAKind,
         (true, false, _) => FormationKind::Run,
         (false, true, _) => FormationKind::Flush,
+        (false, false, 3) => FormationKind::ThreeOfAKind,
         (false, false, 2) => FormationKind::Pair,
         _ => FormationKind::Sum,
     };
@@ -150,10 +150,10 @@ mod tests {
 
     #[test]
     fn the_order_is_the_one_of_the_rules() {
-        assert!(StraightFlush > ThreeOfAKind);
-        assert!(ThreeOfAKind > Run);
+        assert!(StraightFlush > Run);
         assert!(Run > Flush);
-        assert!(Flush > Pair);
+        assert!(Flush > ThreeOfAKind);
+        assert!(ThreeOfAKind > Pair);
         assert!(Pair > Sum);
     }
 
@@ -186,9 +186,8 @@ mod tests {
     fn a_run_is_not_a_flush_and_the_joker_takes_any_suit() {
         // Flush with a pair: the flush wins over the pair.
         assert_eq!(kind(4, &[(4, 1), (2, 1), (4, 1)]).0, Flush);
-        // Three equal dice of one suit are still a three of a kind, which is
-        // above the flush.
-        assert_eq!(kind(4, &[(4, 1), (4, 1), (4, 1)]).0, ThreeOfAKind);
+        // Three equal dice of one suit are a flush, which is above the three.
+        assert_eq!(kind(4, &[(4, 1), (4, 1), (4, 1)]).0, Flush);
         // Run in one suit is a straight flush, not a flush.
         assert_eq!(kind(4, &[(5, 2), (6, 2), (3, 2)]).0, StraightFlush);
         // 1 2 3 4, 2 3 4 5 and 3 4 5 6 are runs, 1 2 3 5 is not.
@@ -264,11 +263,8 @@ mod tests {
         assert_eq!(best_completion(1, &side).kind, ThreeOfAKind);
         let side = dice(&[(1, 0), (2, 1)]);
         assert_eq!(best_completion(3, &side).kind, Run);
-        // With a joker the suit of the other die is kept, and the three of a
-        // kind is above the flush.
+        // With a joker the suit of the other die is kept.
         let side = dice(&[(1, 0), (1, JOKER_SUIT)]);
-        assert_eq!(best_completion(1, &side).kind, ThreeOfAKind);
-        let side = dice(&[(1, 0), (4, JOKER_SUIT)]);
-        assert_eq!(best_completion(6, &side).kind, Flush);
+        assert_eq!(best_completion(1, &side).kind, Flush);
     }
 }

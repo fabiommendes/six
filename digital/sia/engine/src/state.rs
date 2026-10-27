@@ -1034,11 +1034,10 @@ mod tests {
     #[test]
     fn the_proof_looks_at_what_the_other_side_can_become_not_at_the_hand() {
         let mut state = game([5; 9], 0);
-        // A three of a kind of sum 23.
-        put(&mut state, 0, 0, &[d(6, 0), d(6, 1), d(6, 2)]);
+        // A flush of sum 21.
+        put(&mut state, 0, 0, &[d(6, 0), d(6, 0), d(4, 0)]);
         // The other side has a 1: no run is left (1 and the stone 5 are too
-        // far apart), so the best it can be is a three of a kind of a lower
-        // sum.
+        // far apart), so the best it can be is a flush of a lower sum.
         put(&mut state, 1, 0, &[d(1, 0)]);
         assert_eq!(state.claim_kind(0, 0), Some(true));
         // Even if the other hand holds the missing dice of a run.
@@ -1046,7 +1045,7 @@ mod tests {
         assert_eq!(state.claim_kind(0, 0), Some(true));
         // With a 4 on the other side a straight flush is still open.
         let mut open = game([5; 9], 0);
-        put(&mut open, 0, 0, &[d(6, 0), d(6, 1), d(6, 2)]);
+        put(&mut open, 0, 0, &[d(6, 0), d(6, 0), d(4, 0)]);
         put(&mut open, 1, 0, &[d(4, 0)]);
         assert_eq!(open.claim_kind(0, 0), None);
     }
