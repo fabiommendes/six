@@ -68,9 +68,11 @@ sobre os marcos, vistos de um assento; a unidade dos pesos é o marco.
 
 ## Pesos padrão
 
-`weights/default.json` vem da fase `hd6` (`tune/fase-hd6.json`,
-`tune/runs/fase-hd6/`), calibrada na regra de 2026-10-27: mão de 6, a trinca
-acima da sequência e do naipe, o marco só para sequência e naipe, um coringa
-por jogador. Validação: +222 Elo sobre os pesos à mão. As fases `hb5` (ordem
-nova, mão de 5) e `hc6` (ordem antiga, mão de 6; só roda com o binário do
-commit anterior ao `c76ca0a`) são as comparações da nota.
+`weights/default.json` vem da fase `hc6` (`tune/fase-hc6.json`,
+`tune/runs/fase-hc6/`), calibrada na regra decidida em 2026-10-27: mão de 6,
+a ordem antiga (sequência de naipe, sequência, naipe, trinca, par, soma), o
+marco só para sequência e naipe, um coringa por jogador. Validação: +265 Elo
+sobre os pesos à mão. A fase `hc6` roda no binário atual. As fases `hd6` e
+`hb5` calibraram a ordem pela chance (trinca acima da sequência e do naipe),
+descartada: só rodam com o binário do commit `c76ca0a`, e ficam como registro
+da comparação da nota.
