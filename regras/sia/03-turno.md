@@ -59,11 +59,11 @@ O passo é obrigatório, se houver lugar.
 
 ## 4. Repor
 
-O jogador tira dados da bolsa, rola cada um e os põe na mão, até ter 5 dados
+O jogador tira dados da bolsa, rola cada um e os põe na mão, até ter 6 dados
 menos os que perdeu na partida. Se já tem esse número, não tira nenhum.
 
-> **Detalhe:** com 0 dados perdidos, a mão volta a 5 depois de pôr um dado.
-> Com 2 perdidos, a mão volta a 3, e assim por diante.
+> **Detalhe:** com 0 dados perdidos, a mão volta a 6 depois de pôr um dado.
+> Com 2 perdidos, a mão volta a 4, e assim por diante.
 
 > **Detalhe:** a bolsa só tem os 4 naipes, então a reposição nunca devolve
 > um coringa. Quem pôs ou perdeu o coringa repõe só com dados da bolsa.

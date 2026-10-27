@@ -180,12 +180,23 @@ Do designer, em 2026-10-26, depois de medir variantes com bots (ver
 - O resto fica como está: rolar de novo custa um dado da mão, na própria
   mão ou na do adversário, antes de pôr; reivindicar com prova; fim.
 
+Do designer, em 2026-10-27, depois de medir a ordem e a mão com bots (ver
+`dev/notes/bots-do-sia.md`):
+
+- Ordem das formações pela chance com 3 dados ao acaso, da mais forte:
+  sequência de naipe (0,35%), trinca (2,8%), sequência (5,2%), naipe
+  (5,7%), par (39%), soma. A trinca sobe para acima da sequência e do naipe,
+  e três dados iguais do mesmo naipe contam como trinca.
+- A mão tem 6 dados: no começo, 5 da bolsa e o coringa; repor completa até 6
+  menos os perdidos. Substitui a mão de 5 de 2026-10-26.
+- Ficam como estão: o coringa perdido sai da partida (Proposta) e o kit com
+  11 dados da cor dos marcos.
+
 ## Open questions
 
 - A ordem das formações se mantém no jogo de verdade? Com seleção, a chance
   de cada formação muda, e só um lote de bots ou partidas na mesa dizem.
-  Sequência e naipe estão perto, e a trinca, mais rara, fica abaixo do
-  naipe.
+  Sequência e naipe estão perto (5,2% e 5,7%).
 - O coringa perdido ao rolar de novo sai da partida (a bolsa não tem a cor
   dele). O designer confirma?
 - O desempate do fim, se os dois tiverem o mesmo número de marcos.

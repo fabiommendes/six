@@ -37,8 +37,8 @@ Ver também: Marco, Naipe
 
 Os 3 dados de um jogador de um lado de um marco, mais o marco: 4 dados, mas
 o marco só conta para a sequência e para o naipe. Vale pelo tipo mais forte
-que fazem. Do mais forte ao mais fraco: sequência de naipe, sequência,
-naipe, trinca, par e soma.
+que fazem. Do mais forte ao mais fraco: sequência de naipe, trinca,
+sequência, naipe, par e soma.
 
 en: formation
 Ver também: Lado, Marco
@@ -66,9 +66,9 @@ Não usar: bandeira, fronteira, território
 
 ## Mão
 
-Os dados que um jogador guarda para pôr depois. Começa com 5 (o coringa e 4
+Os dados que um jogador guarda para pôr depois. Começa com 6 (o coringa e 5
 da bolsa), fica à vista dos dois, e ganha dados da bolsa no fim de cada
-turno, até 5 menos os dados perdidos.
+turno, até 6 menos os dados perdidos.
 
 en: hand
 Ver também: Rolar de novo, Bolsa, Coringa
@@ -87,7 +87,7 @@ Não usar: cor
 ## Naipe (formação)
 
 Formação em que os 3 dados do jogador são do mesmo naipe. Fica abaixo da
-sequência e acima da trinca.
+sequência e acima do par.
 
 en: flush
 Ver também: Naipe, Sequência de naipe
@@ -96,7 +96,7 @@ Não usar: cor
 ## Par
 
 Formação com 2 dos 3 dados do jogador com o mesmo número, sem formação mais
-forte. O marco não conta.
+forte. O marco não conta. Fica abaixo do naipe e acima da soma.
 
 en: pair
 Ver também: Formação, Trinca
@@ -148,7 +148,7 @@ Ver também: Formação
 ## Trinca
 
 Formação com os 3 dados do jogador com o mesmo número. O marco não conta.
-Fica abaixo do naipe e acima do par.
+Fica abaixo só da sequência de naipe, mesmo se os 3 dados forem do mesmo naipe.
 
 en: three of a kind
 Ver também: Formação, Par

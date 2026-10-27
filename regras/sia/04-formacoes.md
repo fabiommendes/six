@@ -26,23 +26,25 @@ Da mais forte para a mais fraca:
 | Formação | O que é | Chance com 3 dados ao acaso |
 |---|---|---|
 | Sequência de naipe | 4 números seguidos com o marco, e os 3 dados do jogador do mesmo naipe | 0,35% |
+| Trinca | os 3 dados do jogador com o mesmo número | 2,8% |
 | Sequência | 4 números seguidos com o marco: 1 2 3 4, 2 3 4 5 ou 3 4 5 6 | 5,2% |
-| Naipe | os 3 dados do jogador do mesmo naipe | 5,9% |
-| Trinca | os 3 dados do jogador com o mesmo número | 2,6% |
+| Naipe | os 3 dados do jogador do mesmo naipe | 5,7% |
 | Par | 2 dos 3 dados do jogador com o mesmo número | 39% |
 | Soma | qualquer outra | 47% |
 
 Cada formação conta só pela mais forte que o lado faz. Uma sequência de
 naipe não é também uma sequência nem um naipe, e três dados do mesmo número
-e do mesmo naipe são um naipe, e não uma trinca.
+e do mesmo naipe são uma trinca, e não um naipe.
 
 > **Detalhe:** as chances valem para um marco de número qualquer, 3 dados de
 > número ao acaso e 3 dados de naipes ao acaso entre os 4 da bolsa, sem o
-> coringa. A trinca é mais rara que o naipe e fica abaixo dele: é a ordem
-> que o designer decidiu.
+> coringa. A ordem segue a chance: quanto mais rara, mais forte. Como a
+> trinca vale mais que o naipe, três dados iguais do mesmo naipe contam como
+> trinca, e por isso o naipe sozinho tem 5,7%, e não 5,9%.
 
-> **Playtest:** a ordem foi decidida em 2026-10-26. Só playtests e lotes de
-> bots dizem se ela se mantém.
+> **Playtest:** a ordem foi decidida em 2026-10-27 (a trinca subiu para
+> acima da sequência e do naipe). Só playtests e lotes de bots dizem se ela
+> se mantém.
 
 ## Desempate
 
