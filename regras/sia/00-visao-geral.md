@@ -20,7 +20,7 @@ de um marco.
 Vence quem toma 5 marcos, ou 3 marcos vizinhos.
 
 > **Playtest:** o designer decidiu esta regra em 2026-10-26 e a ajustou em
-> 2026-10-27 (ordem das formações e mão de 6), depois de medir variantes
+> 2026-10-27 (mão de 6; a ordem das formações ficou), depois de medir variantes
 > com bots, e ela ainda não foi jogada na mesa. A mão de 6
 > dados e a ordem das formações podem mudar nos playtests.
 

@@ -146,6 +146,10 @@ que faltam.
 - **Sem a reivindicação antecipada**: todo marco se resolve só com os dois
   lados completos. É mais simples de ensinar, mas tira o ritmo do jogo e o
   peso de completar primeiro.
+- **Ordem pela chance** (trinca acima da sequência e do naipe, e três dados
+  iguais do mesmo naipe contando como trinca). Medida e descartada em
+  2026-10-27: a trinca passa a dominar as reivindicações e a escolha do
+  marco perde peso (o peso de `places` na calibração cai de -256 para -111).
 
 ## Decisions
 
@@ -183,10 +187,11 @@ Do designer, em 2026-10-26, depois de medir variantes com bots (ver
 Do designer, em 2026-10-27, depois de medir a ordem e a mão com bots (ver
 `dev/notes/bots-do-sia.md`):
 
-- Ordem das formações pela chance com 3 dados ao acaso, da mais forte:
-  sequência de naipe (0,35%), trinca (2,8%), sequência (5,2%), naipe
-  (5,7%), par (39%), soma. A trinca sobe para acima da sequência e do naipe,
-  e três dados iguais do mesmo naipe contam como trinca.
+- A ordem pela chance foi medida e descartada: a trinca dominava e a escolha
+  do lugar perdia peso. Fica a ordem de 2026-10-26, da mais forte:
+  sequência de naipe (0,35%), sequência (5,2%), naipe (5,9%), trinca
+  (2,6%), par (39%), soma. Três dados iguais do mesmo naipe contam como
+  naipe.
 - A mão tem 6 dados: no começo, 5 da bolsa e o coringa; repor completa até 6
   menos os perdidos. Substitui a mão de 5 de 2026-10-26.
 - Ficam como estão: o coringa perdido sai da partida (Proposta) e o kit com
@@ -196,7 +201,8 @@ Do designer, em 2026-10-27, depois de medir a ordem e a mão com bots (ver
 
 - A ordem das formações se mantém no jogo de verdade? Com seleção, a chance
   de cada formação muda, e só um lote de bots ou partidas na mesa dizem.
-  Sequência e naipe estão perto (5,2% e 5,7%).
+  Sequência e naipe estão perto (5,2% e 5,9%), e a trinca, mais rara, fica
+  abaixo do naipe.
 - O coringa perdido ao rolar de novo sai da partida (a bolsa não tem a cor
   dele). O designer confirma?
 - O desempate do fim, se os dois tiverem o mesmo número de marcos.
