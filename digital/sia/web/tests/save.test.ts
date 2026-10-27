@@ -28,17 +28,17 @@ describe("save", () => {
 
   it("ignores a broken save", () => {
     const store = memory();
-    store.setItem("sia.partida.v3", "{not json");
+    store.setItem("sia.partida.v4", "{not json");
     expect(load(store)).toBeNull();
-    store.setItem("sia.partida.v3", JSON.stringify({ names: [1], state: {} }));
+    store.setItem("sia.partida.v4", JSON.stringify({ names: [1], state: {} }));
     expect(load(store)).toBeNull();
-    store.setItem("sia.partida.v3", JSON.stringify({ names: ["A", "B"], bots: [null, "genius"], state: {} }));
+    store.setItem("sia.partida.v4", JSON.stringify({ names: ["A", "B"], bots: [null, "genius"], state: {} }));
     expect(load(store)).toBeNull();
   });
 
   it("reads a save from before the bots as people only", () => {
     const store = memory();
-    store.setItem("sia.partida.v3", JSON.stringify({ names: ["A", "B"], state: SiaGame.create(3n).state() }));
+    store.setItem("sia.partida.v4", JSON.stringify({ names: ["A", "B"], state: SiaGame.create(3n).state() }));
     expect(load(store)!.bots).toEqual([null, null]);
   });
 });

@@ -139,7 +139,7 @@ describe("sideLines", () => {
   const potential = { kind: "straightFlush", sum: 15 } as const;
 
   it("reads a complete side by formation, place in the order and the sum as the tiebreak", () => {
-    expect(sideLines({ dice: [die(1), die(1), die(1)], formation: { kind: "threeOfAKind", sum: 14 }, potential })).toEqual({ title: "Trinca", note: "2ª de 6", tiebreak: "desempate: soma 14" });
+    expect(sideLines({ dice: [die(1), die(1), die(1)], formation: { kind: "threeOfAKind", sum: 14 }, potential })).toEqual({ title: "Trinca", note: "4ª de 6", tiebreak: "desempate: soma 14" });
   });
 
   it("reads an incomplete side by what is missing and what it can still be", () => {

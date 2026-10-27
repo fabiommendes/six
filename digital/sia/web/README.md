@@ -67,7 +67,7 @@ o azul-ardósia `#46607A` da moldura e das marcas é provisório.
   reivindicar. Em tela
   estreita fica escondido atrás do botão "Formações" da barra de cima.
 - Cartas dos marcos (HTML, acima da mesa): para cada lado, o nome da formação
-  e o lugar dela na ordem ("Trinca", "2ª de 6"), com a soma dita como
+  e o lugar dela na ordem ("Trinca", "4ª de 6"), com a soma dita como
   desempate ("desempate: soma 14"). Um lado incompleto diz o que falta
   ("Faltam 2 dados") e até onde pode chegar ("pode chegar a sequência de naipe"). Um
   marco que pode ser reivindicado ganha a borda pulsante, o rótulo
