@@ -67,6 +67,17 @@ impl Rng {
     pub fn binary(&mut self, dice: u8) -> u8 {
         (0..dice).map(|_| u8::from(self.coin())).sum()
     }
+
+    /// The roll of a turn: the binary dice, rolled again while every one
+    /// shows 0.
+    pub fn turn_roll(&mut self, dice: u8) -> u8 {
+        loop {
+            let roll = self.binary(dice);
+            if roll > 0 {
+                return roll;
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -80,6 +91,21 @@ mod tests {
         let text = String::from(rng);
         assert_eq!(Rng::try_from(text).unwrap(), rng);
         assert!(Rng::try_from("xyz".to_string()).is_err());
+    }
+
+    #[test]
+    fn a_turn_never_rolls_0() {
+        let mut rng = Rng::new(5);
+        let mut counts = [0u32; 5];
+        for _ in 0..150_000 {
+            counts[rng.turn_roll(4) as usize] += 1;
+        }
+        // 0, 4, 6, 4, 1 in 15.
+        assert_eq!(counts[0], 0);
+        for (count, weight) in counts[1..].iter().zip([4, 6, 4, 1]) {
+            let expected = 10_000 * weight;
+            assert!(count.abs_diff(expected) < expected / 20, "{counts:?}");
+        }
     }
 
     #[test]

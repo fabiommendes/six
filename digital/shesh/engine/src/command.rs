@@ -19,7 +19,7 @@ pub enum Command {
     Enter { value: u8 },
     /// Moves the die on square `from` (1 to 17) forward by the roll.
     Move { from: u8 },
-    /// Only when no die can move, or the roll is 0.
+    /// Only when no die can move.
     Pass,
 }
 

@@ -79,15 +79,11 @@ test("the first view has the six dice in each reserve and legal moves", () => {
     assert.equal(dice(player), 6);
     assert.equal(player.points, 0);
   }
-  assert.ok(view.roll >= 0 && view.roll <= 4);
+  assert.ok(view.roll >= 1 && view.roll <= 4);
   assert.equal(view.turn, 1);
-  if (view.roll === 0) {
-    assert.deepEqual(view.moves.map((m) => m.command), [{ kind: "pass" }]);
-  } else {
-    // Only the smallest die enters.
-    assert.deepEqual(view.moves.map((m) => m.command), [{ kind: "enter", value: 1 }]);
-    assert.deepEqual(view.moves[0].events[0], { kind: "entered", player: view.toMove, value: 1, square: view.roll });
-  }
+  // Only the smallest die enters.
+  assert.deepEqual(view.moves.map((m) => m.command), [{ kind: "enter", value: 1 }]);
+  assert.deepEqual(view.moves[0].events[0], { kind: "entered", player: view.toMove, value: 1, square: view.roll });
 });
 
 test("a play returns the events and the new view", () => {

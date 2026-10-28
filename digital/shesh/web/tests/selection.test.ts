@@ -81,13 +81,11 @@ describe("selection", () => {
   it("explains a die that cannot move", () => {
     for (let seed = 1n; seed < 100n; seed++) {
       const game = SheshGame.create(seed);
-      const view = game.view();
-      if (view.roll === 0) continue;
       const bot = new SheshBot("greedy", 1);
       for (let i = 0; i < 30 && game.view().end === null; i++) game.command(bot.choose(game));
       bot.free();
       const now = game.view();
-      if (now.end !== null || now.roll === 0) continue;
+      if (now.end !== null) continue;
       const me = now.players[now.toMove]!;
       const movable = new Set(sources(now).flatMap((s) => (s.kind === "square" ? [s.square] : [])));
       const stuck = me.track.findIndex((v, square) => v > 0 && square >= 1 && square <= 17 && !movable.has(square));
@@ -101,15 +99,22 @@ describe("selection", () => {
   });
 
   it("does nothing when the only move is to pass", () => {
-    for (let seed = 1n; seed < 200n; seed++) {
+    for (let seed = 1n; seed < 50n; seed++) {
       const game = SheshGame.create(seed);
-      if (game.view().roll !== 0) continue;
-      const view = game.view();
-      expect(mustPass(view)).toBe(true);
-      expect(sources(view)).toEqual([]);
-      expect(click(view, NONE, { kind: "reserve", value: 1 })).toEqual({ selection: null, command: null, note: null });
-      return;
+      const bot = new SheshBot("greedy", 1);
+      for (let i = 0; i < 300 && game.view().end === null; i++) {
+        const view = game.view();
+        if (view.moves.length === 1 && view.moves[0]!.command.kind === "pass") {
+          bot.free();
+          expect(mustPass(view)).toBe(true);
+          expect(sources(view)).toEqual([]);
+          expect(click(view, NONE, { kind: "reserve", value: 1 })).toEqual({ selection: null, command: null, note: null });
+          return;
+        }
+        game.command(bot.choose(game));
+      }
+      bot.free();
     }
-    throw new Error("no roll of 0");
+    throw new Error("no position where the only move is to pass");
   });
 });

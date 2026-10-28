@@ -92,7 +92,7 @@ impl GameState {
         for counts in &mut reserve {
             counts[0] = 0;
         }
-        let roll = rng.binary(BINARY_DICE);
+        let roll = rng.turn_roll(BINARY_DICE);
         GameState {
             board: [[0; EXIT as usize + 1]; PLAYERS],
             reserve,
@@ -118,10 +118,13 @@ impl GameState {
         self.turn
     }
 
-    /// A copy whose current roll is `roll` (0 to 4), for bots that search
+    /// A copy whose current roll is `roll` (1 to 4), for bots that search
     /// over the rolls instead of reading the generator.
     pub fn with_roll(&self, roll: u8) -> GameState {
-        assert!(roll <= BINARY_DICE, "four binary dice roll 0 to 4");
+        assert!(
+            (1..=BINARY_DICE).contains(&roll),
+            "a turn rolls 1 to 4: all zeros roll again"
+        );
         GameState {
             roll,
             ..self.clone()
@@ -164,8 +167,8 @@ impl GameState {
         if self.to_move >= PLAYERS {
             return Err("the player to move is out of range".into());
         }
-        if self.roll > BINARY_DICE {
-            return Err(format!("roll {} outside 0 to {BINARY_DICE}", self.roll));
+        if !(1..=BINARY_DICE).contains(&self.roll) {
+            return Err(format!("roll {} outside 1 to {BINARY_DICE}", self.roll));
         }
         if self.turn == 0 {
             return Err("the turn starts at 1".into());
@@ -282,7 +285,7 @@ impl GameState {
                 next.to_move = 1 - player;
             }
             next.turn += 1;
-            next.roll = next.rng.binary(BINARY_DICE);
+            next.roll = next.rng.turn_roll(BINARY_DICE);
             events.push(Event::Rolled {
                 player: next.to_move,
                 roll: next.roll,
@@ -418,7 +421,7 @@ mod tests {
             }
             assert_eq!(state.dice(player), 6);
         }
-        assert!(state.roll() <= 4);
+        assert!((1..=4).contains(&state.roll()));
     }
 
     #[test]
@@ -435,9 +438,15 @@ mod tests {
     }
 
     #[test]
-    fn a_roll_of_zero_passes() {
-        let state = position(0, [&[(6, 2)], &[]]);
-        assert_eq!(state.legal_commands(), vec![Command::Pass]);
+    fn the_turns_never_roll_0() {
+        let mut state = GameState::new(9);
+        for _ in 0..500 {
+            assert!((1..=BINARY_DICE).contains(&state.roll()));
+            if state.end().is_some() {
+                state = GameState::new(u64::from(state.turn()));
+            }
+            state = state.apply(state.legal_commands()[0]).unwrap().0;
+        }
     }
 
     #[test]

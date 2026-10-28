@@ -74,22 +74,12 @@ describe("texts", () => {
   });
 
   it("tells what to do in each state of the turn", () => {
-    let zero = false;
-    let rolled = false;
-    for (let seed = 1n; seed < 60n && !(zero && rolled); seed++) {
+    for (let seed = 1n; seed < 20n; seed++) {
       const view = SheshGame.create(seed).view();
-      const text = hint(view, null, NAMES);
-      if (view.roll === 0) {
-        zero = true;
-        expect(text).toMatch(/Passe a vez/);
-      } else {
-        rolled = true;
-        expect(text).toMatch(new RegExp(`deram ${view.roll}`));
-        expect(hint(view, view.moves[0]!, NAMES)).toMatch(/Toque no destino/);
-      }
+      expect(hint(view, null, NAMES)).toMatch(new RegExp(`deram ${view.roll}`));
+      expect(hint(view, view.moves[0]!, NAMES)).toMatch(/Toque no destino/);
       expect(hint(view, null, NAMES, true)).toMatch(/pensando/);
     }
-    expect(zero && rolled).toBe(true);
   });
 
   it("names the end of the game and the winner", () => {

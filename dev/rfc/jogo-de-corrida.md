@@ -56,8 +56,9 @@ Cada jogador põe os seus 6 dados na **reserva**, mostrando os valores de 1 a
 
 ### Turno
 
-1. O jogador rola os 4 dados binários e soma: o resultado vai de 0 a 4, com
-   a distribuição dos dados tetraédricos do Ur. Com 0, ele passa.
+1. O jogador rola os 4 dados binários e soma: o resultado vai de 1 a 4. Se
+   todos derem 0, ele rola de novo, até sair um número diferente de 0. No
+   Ur, os dados tetraédricos dão de 0 a 4, e com 0 o jogador passa.
 2. Ele move um dado seu exatamente esse número de casas, ou entra com um dado
    da reserva na casa de mesmo número.
 3. **Ordem de entrada**: da reserva, entra sempre o dado de menor valor.
@@ -145,6 +146,8 @@ terminar na roseta ocupada pelo adversário.
   quem tem mais pontos; no empate, quem encerrou.
 - 2026-10-28, designer, depois das medições: sem lance extra, e a única
   roseta é a casa vermelha do centro; a entrada continua em ordem.
+- 2026-10-28, designer: se os 4 dados binários derem 0, o jogador rola de
+  novo até sair um número diferente de 0.
 
 ## Open questions
 
@@ -205,6 +208,14 @@ uma porcentagem é de uns 0,6 ponto.
   alonga a partida: 139 turnos, contra uns 99 turnos normais mais 25 extras.
 - A entrada em ordem tira de 2 a 3 pontos de habilidade. Ela simplifica a
   decisão de entrada.
+
+### Rolar de novo com todos os dados em 0
+
+Com a regra atual (sem lance extra, entrada em ordem), lotes de 6.000
+partidas. Rolar de novo quando todos os dados dão 0 elimina o turno parado
+que acontecia em 1 de cada 16 turnos: os passes caem de 10 para 1,4 por partida entre dois
+expectimax, e a partida cai de 139 para 134 turnos. O expectimax vence o
+guloso em 63,1% (antes, 62,2%), e o primeiro jogador vence 52,1%.
 
 ## Outcome
 

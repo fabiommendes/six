@@ -6,7 +6,8 @@ import type { Rules } from "./Rules";
 
 export type View = { players: Array<PlayerView>, rules: Rules, toMove: number, 
 /**
- * The sum of the four binary dice of the turn, 0 to 4.
+ * The sum of the four binary dice of the turn, 1 to 4 (all zeros roll
+ * again).
  */
 roll: number, turn: number, 
 /**

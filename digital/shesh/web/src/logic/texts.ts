@@ -77,7 +77,7 @@ export function eventText(event: Event, names: readonly string[], view?: Pick<Vi
   const name = (i: number) => names[i] ?? "";
   switch (event.kind) {
     case "rolled":
-      return event.roll === 0 ? `${name(event.player)} rolou os dados binários: 0.` : `${name(event.player)} rolou os dados binários: ${event.roll}.`;
+      return `${name(event.player)} rolou os dados binários: ${event.roll}.`;
     case "entered":
       return `${name(event.player)} entrou com o dado ${event.value} na casa ${event.square}.`;
     case "moved":
@@ -183,7 +183,6 @@ export function hint(view: View, chosen: Move | null, names: readonly string[], 
   if (view.end !== null) return endText(view.end, names, view);
   if (bot) return `${names[view.toMove]} está pensando…`;
   const roll = view.roll;
-  if (roll === 0) return "Os dados binários deram 0: não dá para jogar. Passe a vez.";
   if (view.moves.length === 1 && view.moves[0]!.command.kind === "pass") return `Os dados binários deram ${roll}, mas nenhum dado pode andar ${squaresText(roll)}. Passe a vez.`;
   if (chosen) return `${moveText(view, chosen)}. Toque no destino, no dado de novo ou em Jogar.`;
   const entry = view.rules.orderedEntry ? " Da reserva entra sempre o menor dado." : "";
@@ -209,7 +208,7 @@ export function diceText(reserve: number, track: number): string {
 
 /** The rules in a few lines, for the card on the screen. */
 export const RULES_CARD: readonly { readonly title: string; readonly text: string }[] = [
-  { title: "Turno", text: "Role os 4 dados binários e some: 0 a 4. Mova um dado seu exatamente essa quantidade de casas, ou entre com um dado da reserva na casa de mesmo número. Com 0 você passa. Se puder jogar, é obrigado." },
+  { title: "Turno", text: "Role os 4 dados binários e some: 1 a 4. Se todos derem 0, role de novo. Mova um dado seu exatamente essa quantidade de casas, ou entre com um dado da reserva na casa de mesmo número. Se puder jogar, é obrigado." },
   { title: "Entrada", text: "Da reserva entra sempre o dado de menor valor." },
   { title: "Fundir", text: "Um dado que termina numa casa com outro seu funde com ele: fica um dado só, com a soma. O que passa de 6 se perde." },
   { title: "Comer", text: "Em casa de adversário, na pista do meio: se o seu dado é menor ou igual, os dois voltam para as reservas. Se é maior, o dado dele volta, o seu fica com o valor reduzido pelo dele e você ganha na reserva um dado com o valor do comido." },

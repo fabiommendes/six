@@ -61,7 +61,8 @@ pub struct View {
     pub players: Vec<PlayerView>,
     pub rules: Rules,
     pub to_move: usize,
-    /// The sum of the four binary dice of the turn, 0 to 4.
+    /// The sum of the four binary dice of the turn, 1 to 4 (all zeros roll
+    /// again).
     pub roll: u8,
     pub turn: u16,
     /// The legal moves of the player to move, empty when the game is over.

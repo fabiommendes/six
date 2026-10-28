@@ -89,6 +89,7 @@ fn expected(state: &GameState, player: usize) -> f64 {
     ROLLS
         .iter()
         .enumerate()
+        .skip(1)
         .map(|(roll, chance)| {
             let rolled = state.with_roll(roll as u8);
             let best = rolled
@@ -110,8 +111,9 @@ const RESERVE: f64 = 0.3;
 const PROGRESS: f64 = 0.7;
 /// The worth of rolling again.
 const EXTRA_TURN: f64 = 0.5;
-/// The chances of the rolls 0 to 4 of four binary dice.
-const ROLLS: [f64; 5] = [1.0 / 16.0, 4.0 / 16.0, 6.0 / 16.0, 4.0 / 16.0, 1.0 / 16.0];
+/// The chances of the rolls 0 to 4 of a turn: four binary dice, rolled
+/// again when all show 0.
+const ROLLS: [f64; 5] = [0.0, 4.0 / 15.0, 6.0 / 15.0, 4.0 / 15.0, 1.0 / 15.0];
 
 /// The worth of the position for `player` minus its worth for the other,
 /// in points: points made count 1, a point on the board between `RESERVE`
