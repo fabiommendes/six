@@ -23,6 +23,9 @@ mod command;
 mod rng;
 mod state;
 
+#[cfg(feature = "wire")]
+pub mod wire;
+
 pub use command::{Command, EndReason, Event, GameError};
 pub use rng::Rng;
 pub use state::{

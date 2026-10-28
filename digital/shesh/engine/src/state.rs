@@ -7,6 +7,9 @@
 
 use std::ops::RangeInclusive;
 
+#[cfg(feature = "wire")]
+use serde::{Deserialize, Serialize};
+
 use crate::command::{Command, EndReason, Event, GameError};
 use crate::rng::Rng;
 
@@ -27,6 +30,9 @@ pub const BINARY_DICE: u8 = 4;
 /// The open questions of the RFC, as switches for experiments. The default
 /// is the proposal.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "wire", derive(Serialize, Deserialize, ts_rs::TS))]
+#[cfg_attr(feature = "wire", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "wire", ts(export))]
 pub struct Rules {
     /// A die that stops on a rosette rolls again. Off in the rules: then
     /// only the center rosette, on the shared lane, does anything.
@@ -51,6 +57,9 @@ impl Default for Rules {
 
 /// A game: `Clone`, and every command returns a new state.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "wire", derive(Serialize, Deserialize, ts_rs::TS))]
+#[cfg_attr(feature = "wire", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "wire", ts(export, rename = "State"))]
 pub struct GameState {
     /// `board[player][square]`: the value of the die there, 0 when empty.
     /// Index 0 and `EXIT` are never used.
@@ -147,6 +156,44 @@ impl GameState {
     pub fn dice(&self, player: usize) -> u8 {
         let on_board = self.board[player].iter().filter(|&&v| v != 0).count() as u8;
         on_board + self.reserve[player].iter().sum::<u8>()
+    }
+
+    /// Checks that a state read from outside (a saved game) is one the
+    /// engine could have reached.
+    pub fn validate(&self) -> Result<(), String> {
+        if self.to_move >= PLAYERS {
+            return Err("the player to move is out of range".into());
+        }
+        if self.roll > BINARY_DICE {
+            return Err(format!("roll {} outside 0 to {BINARY_DICE}", self.roll));
+        }
+        if self.turn == 0 {
+            return Err("the turn starts at 1".into());
+        }
+        for player in 0..PLAYERS {
+            let board = &self.board[player];
+            if board[0] != 0 || board[EXIT as usize] != 0 {
+                return Err(format!("player {player}: a die off the track"));
+            }
+            if board.iter().any(|&v| v > MAX_VALUE) {
+                return Err(format!("player {player}: a die above {MAX_VALUE}"));
+            }
+            if self.reserve[player][0] != 0 {
+                return Err(format!("player {player}: a die of value 0 in the reserve"));
+            }
+            if self.points[player] > POINTS_TO_WIN + MAX_VALUE {
+                return Err(format!("player {player}: too many points"));
+            }
+        }
+        for square in SHARED {
+            if self.board[0][square as usize] != 0
+                && self.board[1][square as usize] != 0
+                && self.end.is_none()
+            {
+                return Err(format!("square {square}: dice of both players"));
+            }
+        }
+        Ok(())
     }
 
     /// The commands the player to move may play; `Pass` only when no
@@ -335,7 +382,7 @@ impl GameState {
             return;
         };
         self.end = Some(reason);
-        events.push(Event::Ended(reason));
+        events.push(Event::Ended { reason });
     }
 }
 

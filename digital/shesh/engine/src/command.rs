@@ -4,8 +4,14 @@
 //! The engine rolls the binary dice at the start of every turn; the player
 //! then moves one die by the roll, or passes when no die can move.
 
+#[cfg(feature = "wire")]
+use serde::{Deserialize, Serialize};
+
 /// A play of the player to move, with the roll of the turn.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "wire", derive(Serialize, Deserialize, ts_rs::TS))]
+#[cfg_attr(feature = "wire", serde(tag = "kind", rename_all = "camelCase"))]
+#[cfg_attr(feature = "wire", ts(export))]
 pub enum Command {
     /// Puts the die of value `value` from the reserve on the square of the
     /// roll. With the ordered entry (the rules), only the smallest die of
@@ -19,6 +25,9 @@ pub enum Command {
 
 /// Why a game ended.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "wire", derive(Serialize, Deserialize, ts_rs::TS))]
+#[cfg_attr(feature = "wire", serde(tag = "kind", rename_all = "camelCase"))]
+#[cfg_attr(feature = "wire", ts(export))]
 pub enum EndReason {
     /// The player reached 12 points.
     Points { player: usize },
@@ -39,6 +48,9 @@ impl EndReason {
 /// Something that happened, in order, for an interface or a statistic.
 /// `square` is always in the numbering of the track of `player`.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "wire", derive(Serialize, Deserialize, ts_rs::TS))]
+#[cfg_attr(feature = "wire", serde(tag = "kind", rename_all = "camelCase"))]
+#[cfg_attr(feature = "wire", ts(export))]
 pub enum Event {
     /// The start of a turn and its roll.
     Rolled {
@@ -104,7 +116,9 @@ pub enum Event {
     Passed {
         player: usize,
     },
-    Ended(EndReason),
+    Ended {
+        reason: EndReason,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

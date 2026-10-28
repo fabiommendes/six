@@ -291,6 +291,51 @@ shesh-batch a b *flags:
     cd digital && CARGO_BUILD_JOBS=4 cargo build --release -q -p shesh-bots
     cd digital && {{seks_limits}} ./target/release/shesh-bots batch --bots {{a}},{{b}} {{flags}}
 
+# Regenera os tipos TypeScript do motor do Shesh em digital/shesh/wasm/types (ts-rs)
+[group('shesh')]
+shesh-types:
+    rm -rf digital/shesh/wasm/types
+    cd digital && TS_RS_EXPORT_DIR="$PWD/shesh/wasm/types" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p shesh-engine --features wire --lib export_bindings
+
+# Falha se digital/shesh/wasm/types está desatualizado em relação ao motor do Shesh
+[group('shesh')]
+shesh-types-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    cd digital
+    TS_RS_EXPORT_DIR="$tmp" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p shesh-engine --features wire --lib export_bindings
+    diff -r "$tmp" shesh/wasm/types || { echo "tipos desatualizados: rode just shesh-types" >&2; exit 1; }
+
+# Gera o pacote WebAssembly do motor do Shesh em digital/shesh/wasm/pkg
+[group('shesh')]
+shesh-wasm:
+    cd digital && CARGO_BUILD_JOBS=4 nice -n 19 wasm-pack build shesh/wasm --target web --release
+
+# Gera o pacote WebAssembly do Shesh e joga partidas inteiras pelo Game e pelo Bot no Node
+[group('shesh')]
+shesh-wasm-test: shesh-wasm
+    nice -n 19 node --test digital/shesh/wasm/tests/game.test.mjs digital/shesh/wasm/tests/bot.test.mjs
+
+# Instala as dependências da interface web do Shesh (pnpm)
+[group('shesh')]
+shesh-web-install:
+    cd digital/shesh/web && nice -n 19 pnpm install --frozen-lockfile --prefer-offline
+
+# Serve a interface web do Shesh em desenvolvimento (pede `just shesh-wasm` antes)
+[group('shesh')]
+shesh-web-dev:
+    cd digital/shesh/web && node scripts/check-wasm.mjs --warn && pnpm dev --open
+
+# Tipos, testes e build da interface web do Shesh, em digital/shesh/web/dist (pede `just shesh-wasm` antes)
+[group('shesh')]
+shesh-web-check: shesh-web-install
+    cd digital/shesh/web && node scripts/check-wasm.mjs
+    cd digital/shesh/web && nice -n 19 pnpm typecheck
+    cd digital/shesh/web && nice -n 19 pnpm test
+    cd digital/shesh/web && nice -n 19 pnpm build
+
 # --- Verificações -----------------------------------------------------------
 
 # Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu, e motor, bots, WASM e interface web do Sia

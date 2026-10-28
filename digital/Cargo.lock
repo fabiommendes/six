@@ -169,6 +169,20 @@ dependencies = [
 [[package]]
 name = "shesh-engine"
 version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "ts-rs",
+]
+
+[[package]]
+name = "shesh-wasm"
+version = "0.1.0"
+dependencies = [
+ "shesh-bots",
+ "shesh-engine",
+ "wasm-bindgen",
+]
 
 [[package]]
 name = "sia-bots"

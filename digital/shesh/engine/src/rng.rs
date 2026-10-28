@@ -1,11 +1,49 @@
 //! The rolls of a game: SplitMix64, seeded once when the game starts.
 //!
 //! The generator is part of the state, so a replay rolls the same numbers
-//! again.
+//! again. Its state crosses JSON as 16 hexadecimal digits, because a `u64`
+//! does not fit a JSON number in JavaScript.
+
+#[cfg(feature = "wire")]
+use serde::{Deserialize, Serialize};
 
 /// A seeded generator of rolls.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "wire", derive(ts_rs::TS))]
+#[cfg_attr(feature = "wire", ts(export, as = "String"))]
 pub struct Rng(u64);
+
+#[cfg(feature = "wire")]
+impl Serialize for Rng {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&String::from(*self))
+    }
+}
+
+#[cfg(feature = "wire")]
+impl<'de> Deserialize<'de> for Rng {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Rng, D::Error> {
+        Rng::try_from(String::deserialize(deserializer)?).map_err(serde::de::Error::custom)
+    }
+}
+
+impl From<Rng> for String {
+    fn from(rng: Rng) -> String {
+        format!("{:016x}", rng.0)
+    }
+}
+
+impl TryFrom<String> for Rng {
+    type Error = String;
+
+    fn try_from(text: String) -> Result<Rng, String> {
+        let bad = || format!("rng state must be 16 hexadecimal digits, got {text:?}");
+        if text.len() != 16 {
+            return Err(bad());
+        }
+        u64::from_str_radix(&text, 16).map(Rng).map_err(|_| bad())
+    }
+}
 
 impl Rng {
     pub fn new(seed: u64) -> Rng {
@@ -34,6 +72,15 @@ impl Rng {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_state_round_trips_as_text() {
+        let mut rng = Rng::new(u64::MAX - 3);
+        rng.coin();
+        let text = String::from(rng);
+        assert_eq!(Rng::try_from(text).unwrap(), rng);
+        assert!(Rng::try_from("xyz".to_string()).is_err());
+    }
 
     #[test]
     fn four_binary_dice_follow_the_binomial() {
