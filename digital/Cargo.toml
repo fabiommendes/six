@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["seks/engine", "seks/bots", "seks/wasm", "liu/engine", "liu/bots", "liu/wasm", "sia/engine", "sia/bots", "sia/wasm"]
+members = ["seks/engine", "seks/bots", "seks/wasm", "liu/engine", "liu/bots", "liu/wasm", "sia/engine", "sia/bots", "sia/wasm", "shesh/engine", "shesh/bots"]
 
 [workspace.package]
 edition = "2021"
@@ -26,4 +26,10 @@ opt-level = 2
 opt-level = 2
 
 [profile.dev.package.sia-bots]
+opt-level = 2
+
+[profile.dev.package.shesh-engine]
+opt-level = 2
+
+[profile.dev.package.shesh-bots]
 opt-level = 2

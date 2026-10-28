@@ -53,6 +53,9 @@ Nível 1 do ADR 0002 do tooling-root:
   fim, duração, formações e rolagens) e `just sia-tune CONFIG` (calibração
   por CMA-ES). Detalhes em `digital/sia/bots/README.md` e
   `dev/notes/bots-do-sia.md`.
+- Shesh (protótipo, regras em `dev/rfc/jogo-de-corrida.md`): `just
+  shesh-engine-test` (motor) e `just shesh-batch A B` (lote entre dois bots,
+  com variantes de regra por flag).
 - Manual: `just manual` (site e PDF), `just manual-serve`, `just manual-check`
   (trechos do manual cujas fontes em `regras/` mudaram). Detalhes em
   `manual/README.md`.
@@ -81,6 +84,7 @@ Nível 1 do ADR 0002 do tooling-root:
 | `digital/sia/bots/` | Bots do Sia (`sia-bots`): aleatório, guloso e PIMC, lotes e calibração |
 | `digital/sia/wasm/` | `sia-wasm`: o motor (`Game`) e o bot (`Bot`) do Sia em WebAssembly e os tipos TypeScript |
 | `digital/sia/web/` | Interface web do Sia (Vite, TypeScript e Three.js): mesa em 3D sobre o tabuleiro do Seks, dois jogadores no mesmo aparelho, contra bot ou bot contra bot |
+| `digital/shesh/` | Protótipo do Shesh, o jogo de corrida: motor (`shesh-engine`) e bots (`shesh-bots`) em Rust, sem interface |
 | `arte/` | Identidade visual (ADR 0005); `esbocos/` guarda as quatro direções esboçadas, como referência |
 | `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` e `esbocos/` (temporários) ficam fora do git |
 

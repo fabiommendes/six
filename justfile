@@ -278,6 +278,19 @@ site: seks-wasm seks-web-install liu-wasm liu-web-install sia-wasm sia-web-insta
 site-serve port="8080": site
     python3 -m http.server -d out/site -b 127.0.0.1 {{port}}
 
+# --- Shesh (protótipo) -------------------------------------------------------
+
+# Testes do motor do Shesh em Rust
+[group('shesh')]
+shesh-engine-test:
+    cd digital && cargo test -p shesh-engine
+
+# Lote entre dois bots do Shesh, cada semente nos dois assentos (ex.: just shesh-batch expecti greedy --games 2000 --extra-turn)
+[group('shesh')]
+shesh-batch a b *flags:
+    cd digital && CARGO_BUILD_JOBS=4 cargo build --release -q -p shesh-bots
+    cd digital && {{seks_limits}} ./target/release/shesh-bots batch --bots {{a}},{{b}} {{flags}}
+
 # --- Verificações -----------------------------------------------------------
 
 # Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu, e motor, bots, WASM e interface web do Sia

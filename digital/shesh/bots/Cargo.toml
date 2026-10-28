@@ -1,0 +1,8 @@
+[package]
+name = "shesh-bots"
+version = "0.1.0"
+edition.workspace = true
+description = "Bots of the Shesh race game and bot-versus-bot batches (prototype)"
+
+[dependencies]
+shesh-engine = { path = "../engine" }
