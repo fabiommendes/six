@@ -24,7 +24,8 @@ Nível 1 do ADR 0002 do tooling-root:
   lint e testes do protótipo, `cargo fmt --check`, `cargo clippy` e
   `cargo test` do motor e dos bots em Rust, build WASM dos bots, tipos e teste
   em Node do `seks-wasm`, tipos, testes e build da interface web do Seks, e
-  o mesmo para o Liu, e motor, bots, WASM e interface web do Sia). Define "pronto".
+  o mesmo para o Liu, motor, bots, WASM e interface web do Sia, e o mesmo
+  para o Shesh). Define "pronto".
 - Motor do Seks: `just seks-engine-test`.
 - Motor em WebAssembly: `just seks-wasm` (pacote em `digital/seks/wasm/pkg`),
   `just seks-wasm-test` (partidas inteiras no Node), `just seks-types` (tipos
@@ -54,14 +55,19 @@ Nível 1 do ADR 0002 do tooling-root:
   por CMA-ES). Detalhes em `digital/sia/bots/README.md` e
   `dev/notes/bots-do-sia.md`.
 - Shesh (protótipo, regras em `dev/rfc/jogo-de-corrida.md`): `just
-  shesh-engine-test` (motor) e `just shesh-batch A B` (lote entre dois bots,
-  com variantes de regra por flag).
+  shesh-engine-test` (motor), `just shesh-wasm` e `just shesh-wasm-test`
+  (pacote WASM e partidas no Node, com o bot), `just shesh-types`, `just
+  shesh-web-dev` e `just shesh-web-check` (interface web, pede `just
+  shesh-wasm` antes). Detalhes em `digital/shesh/wasm/README.md` e
+  `digital/shesh/web/README.md`.
+- Bots do Shesh: `just shesh-batch A B` (lote entre dois bots, com variantes
+  de regra por flag).
 - Manual: `just manual` (site e PDF), `just manual-serve`, `just manual-check`
   (trechos do manual cujas fontes em `regras/` mudaram). Detalhes em
   `manual/README.md`.
 - Site publicado: `just site` (manual na raiz e as interfaces do Seks em
-  `seks/`, do Liu em `liu/` e do Sia em `sia/`, em `out/site`) e `just site-serve`. Cada push na `main` publica
-  o site no GitHub Pages (`.github/workflows/pages.yml`).
+  `seks/`, do Liu em `liu/`, do Sia em `sia/` e do Shesh em `shesh/`, em
+  `out/site`) e `just site-serve`. Cada push na `main` publica o site no GitHub Pages (`.github/workflows/pages.yml`).
 - Issues, RFCs e ADRs: `r2 issue list`, `r2 rfc list`, `r2 adr list`.
 
 ## Mapa
@@ -84,7 +90,10 @@ Nível 1 do ADR 0002 do tooling-root:
 | `digital/sia/bots/` | Bots do Sia (`sia-bots`): aleatório, guloso e PIMC, lotes e calibração |
 | `digital/sia/wasm/` | `sia-wasm`: o motor (`Game`) e o bot (`Bot`) do Sia em WebAssembly e os tipos TypeScript |
 | `digital/sia/web/` | Interface web do Sia (Vite, TypeScript e Three.js): mesa em 3D sobre o tabuleiro do Seks, dois jogadores no mesmo aparelho, contra bot ou bot contra bot |
-| `digital/shesh/` | Protótipo do Shesh, o jogo de corrida: motor (`shesh-engine`) e bots (`shesh-bots`) em Rust, sem interface |
+| `digital/shesh/engine/` | Motor do Shesh, o jogo de corrida (protótipo), em Rust (`shesh-engine`), com os dados binários no estado |
+| `digital/shesh/bots/` | Bots do Shesh (`shesh-bots`): aleatório, guloso e expectimax, lotes |
+| `digital/shesh/wasm/` | `shesh-wasm`: o motor (`Game`) e o bot (`Bot`) do Shesh em WebAssembly e os tipos TypeScript |
+| `digital/shesh/web/` | Interface web do Shesh (Vite, TypeScript e Three.js): mesa em 3D sobre o tabuleiro do Seks com a trilha destacada, dois jogadores no mesmo aparelho, contra bot ou bot contra bot |
 | `arte/` | Identidade visual (ADR 0005); `esbocos/` guarda as quatro direções esboçadas, como referência |
 | `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` e `esbocos/` (temporários) ficam fora do git |
 

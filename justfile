@@ -259,18 +259,20 @@ sia-web-check: sia-web-install
 
 # --- Site publicado ---------------------------------------------------------
 
-# Site publicado em out/site: o manual (site e PDF) na raiz e as interfaces web do Seks em seks/, do Liu em liu/ e do Sia em sia/
+# Site publicado em out/site: o manual (site e PDF) na raiz e as interfaces web do Seks em seks/, do Liu em liu/, do Sia em sia/ e do Shesh em shesh/
 [group('site')]
-site: seks-wasm seks-web-install liu-wasm liu-web-install sia-wasm sia-web-install
+site: seks-wasm seks-web-install liu-wasm liu-web-install sia-wasm sia-web-install shesh-wasm shesh-web-install
     make -C manual build
     cd digital/seks/web && nice -n 19 pnpm build
     cd digital/liu/web && nice -n 19 pnpm build
     cd digital/sia/web && nice -n 19 pnpm build
+    cd digital/shesh/web && nice -n 19 pnpm build
     rm -rf out/site && mkdir -p out
     cp -r manual/build/site out/site
     cp -r digital/seks/web/dist out/site/seks
     cp -r digital/liu/web/dist out/site/liu
     cp -r digital/sia/web/dist out/site/sia
+    cp -r digital/shesh/web/dist out/site/shesh
     touch out/site/.nojekyll
 
 # Gera o site publicado e serve em http://127.0.0.1:PORT
@@ -338,7 +340,7 @@ shesh-web-check: shesh-web-install
 
 # --- Verificações -----------------------------------------------------------
 
-# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu, e motor, bots, WASM e interface web do Sia
+# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu, motor, bots, WASM e interface web do Sia, e motor, bots, WASM e interface web do Shesh
 [group('check')]
 check:
     make -C manual build
@@ -358,3 +360,7 @@ check:
     just sia-wasm-test
     just sia-web-check
     cd digital && cargo build -q -p sia-bots --lib --target wasm32-unknown-unknown
+    just shesh-types-check
+    just shesh-wasm-test
+    just shesh-web-check
+    cd digital && cargo build -q -p shesh-bots --lib --target wasm32-unknown-unknown
