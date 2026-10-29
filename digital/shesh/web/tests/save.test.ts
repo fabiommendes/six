@@ -12,7 +12,7 @@ function memory(): SaveStore & { data: Map<string, string> } {
   };
 }
 
-const KEY = "shesh.partida.v2";
+const KEY = "shesh.partida.v3";
 
 describe("save", () => {
   it("keeps the names, the bots, the dice that left and a state the engine reads back", () => {

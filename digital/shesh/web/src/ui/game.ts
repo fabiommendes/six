@@ -612,6 +612,6 @@ export class GameScreen {
 function rulesCard(): string {
   const rows = RULES_CARD.map((rule) => `<li><b>${esc(rule.title)}</b><span>${esc(rule.text)}</span></li>`).join("");
   return `<h2>Regras</h2>
-    <p class="sub">A trilha tem ${EXIT - 1} casas: a pista de entrada (1 a 4, a sua), a pista do meio (5 a 15, de todos) e a pista de saída (16 e 17, a sua). A casa 18 é a saída.</p>
+    <p class="sub">A trilha tem ${EXIT - 1} casas, como a do Ur: a pista de entrada (1 a 4, a sua), a pista do meio (5 a 12, de todos) e a pista de saída (13 e 14, a sua). A casa ${EXIT} é a saída.</p>
     <ol>${rows}</ol>`;
 }

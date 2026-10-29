@@ -6,9 +6,11 @@
  *
  * The track follows the RFC (`dev/rfc/jogo-de-corrida.md`): columns count
  * from 1 on the left, rows from the edge of the first player. Each player
- * numbers the track along their own path: squares 1 to 4 are the own entry
- * lane (columns 4 to 1), 5 to 15 the middle lane (row 6, columns 1 to 11),
- * 16 and 17 the own exit lane (columns 11 and 10), and 18 is off the board.
+ * numbers the track along their own path, as on the board of Ur: squares 1
+ * to 4 are the own entry lane (columns 6 to 3), 5 to 12 the middle lane
+ * (row 6, columns 3 to 10), 13 and 14 the own exit lane (columns 10 and 9),
+ * and 15 is off the board. Columns 7 and 8 of the own rows are the gap of
+ * the board of Ur: the entry mark and the exit mark sit there.
  */
 
 /** Side of a die. */
@@ -16,11 +18,13 @@ export const DIE_SIZE = 0.78;
 /** Cells on a side of the board. */
 export const BOARD_CELLS = 11;
 /** The square a die leaves the board from; the cell beside the exit lane marks it. */
-export const EXIT = 18;
+export const EXIT = 15;
 export const SHARED_FIRST = 5;
-export const SHARED_LAST = 15;
-/** The red square. */
-export const ROSETTE = 10;
+export const SHARED_LAST = 12;
+/** The red square, the rosette of the middle lane. */
+export const ROSETTE = 8;
+/** The rosettes of Ur: the end of the entry lane, the red square and the last square. */
+export const ROSETTES: readonly number[] = [4, ROSETTE, 14];
 /** Dice dealt to a player; the trays have room for more than they ever hold. */
 export const TRAY_SLOTS = 12;
 
@@ -54,14 +58,14 @@ export function laneOf(square: number): Lane {
   return square < SHARED_FIRST ? "entry" : square <= SHARED_LAST ? "middle" : "exit";
 }
 
-/** The column of a square (1 to 18) along the path; 18 is the cell of the exit mark. */
+/** The column of a square (1 to 15) along the path; 15 is the cell of the exit mark. */
 export function squareColumn(square: number): number {
-  if (square < SHARED_FIRST) return 5 - square;
-  if (square <= SHARED_LAST) return square - 4;
-  return 27 - square;
+  if (square < SHARED_FIRST) return 7 - square;
+  if (square <= SHARED_LAST) return square - 2;
+  return 23 - square;
 }
 
-/** The cell of `square` (1 to 17, or 18 for the mark of the exit) on the table. */
+/** The cell of `square` (1 to 14, or 15 for the mark of the exit) on the table. */
 export function squareSpot(seat: number, square: number): Spot {
   const row = laneOf(square) === "middle" ? 0 : ownRow(seat);
   return { x: columnX(squareColumn(square)), z: row };
@@ -69,7 +73,7 @@ export function squareSpot(seat: number, square: number): Spot {
 
 /** The cell where a die waits to enter: square 0, beside the first square. */
 export function entrySpot(seat: number): Spot {
-  return { x: columnX(5), z: ownRow(seat) };
+  return { x: columnX(7), z: ownRow(seat) };
 }
 
 /** The square of `seat` on a cell of the table (x, z at the centre of the cell), or null off its track. */

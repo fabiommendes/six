@@ -41,15 +41,17 @@ em `src/styles/fonts.css`. A moldura usa o azulejo de estrela e cruz do Shesh
 ## A trilha na mesa
 
 - Colunas contam da esquerda (1 a 11) e fileiras da borda do primeiro jogador
-  (1 a 11). A pista de entrada de cada jogador fica na fileira 5 (primeiro
-  jogador, a mais perto dele) ou 7 (segundo), da coluna 4 à 1 (casas 1 a 4).
-  A pista do meio é a fileira 6, da coluna 1 à 11 (casas 5 a 15), e a pista de
-  saída volta à fileira de cada um, nas colunas 11 e 10 (casas 16 e 17). A
-  saída (casa 18) é a casa seguinte, na coluna 9, marcada com uma seta "sai".
-  A seta "entra" fica na coluna 5, ao lado da casa 1.
+  (1 a 11). A trilha é a do tabuleiro de Ur. A pista de entrada de cada
+  jogador fica na fileira 5 (primeiro jogador, a mais perto dele) ou 7
+  (segundo), da coluna 6 à 3 (casas 1 a 4). A pista do meio é a fileira 6, da
+  coluna 3 à 10 (casas 5 a 12), e a pista de saída volta à fileira de cada
+  um, nas colunas 10 e 9 (casas 13 e 14). As colunas 7 e 8 das pistas
+  próprias são o vão do tabuleiro de Ur: a seta "entra" fica na coluna 7, ao
+  lado da casa 1, e a seta "sai" (a saída, casa 15) na coluna 8.
 - As casas da trilha têm contorno e cor: as pistas próprias na cor do
-  jogador (terracota e azul), a pista do meio em turquesa, a roseta em
-  vermelho com uma estrela. Cada casa leva o número dela, de cabeça para o
+  jogador (terracota e azul), a pista do meio em turquesa, a roseta do
+  centro em vermelho com uma estrela branca e as rosetas das pistas próprias
+  (casas 4 e 14) com uma estrela vermelha. Cada casa leva o número dela, de cabeça para o
   lado de quem a usa. Os dois jogadores andam no mesmo sentido da mesa; a
   câmera gira para o assento de quem joga.
 - Os dados de cada jogador mostram o valor na face de cima, na cor do assento
@@ -61,7 +63,7 @@ em `src/styles/fonts.css`. A moldura usa o azulejo de estrela e cruz do Shesh
   interface guarda os dados que saíram, pelos eventos (e os salva junto com a
   partida). Numa partida salva sem essa lista, ela é refeita com a soma, em
   dados de 6.
-- Os 4 dados binários (faces 0 e 1) são rolados a cada turno nas fileiras
+- Os 4 dados binários (faces lisas para 0 e com 1 ponto para 1) são rolados a cada turno nas fileiras
   livres do tabuleiro, do lado de quem joga. O motor só dá a soma; quais dos
   4 mostram 1 é sorteado de forma fixa pelo turno, só para a apresentação. A
   barra de baixo repete a rolagem em ícones.
@@ -70,15 +72,16 @@ em `src/styles/fonts.css`. A moldura usa o azulejo de estrela e cruz do Shesh
 
 - Toque (ou clique) num dado marcado com cantos (os que podem andar a
   rolagem), ou numa jogada da lista de baixo: o dado sobe, um anel mostra
-  onde ele para e a lista diz o que acontece ("come o 2", "ultrapassa",
+  onde ele para e a lista diz o que acontece ("come o 2", "desgasta",
   "encosta", "funde", "sai e vale 4 pontos"). Toque no anel, no dado de novo
   ou em Jogar para confirmar. Da reserva, só o menor dado entra.
-- Com rolagem 0, ou sem jogada possível, o botão Passar fica ativo.
+- Sem jogada possível, o botão Passar fica ativo.
 - Cada evento do motor vira uma animação e uma linha do histórico: o dado
   voa até a casa, e espera sobre o dado que encontrou até o motor dizer o que
   houve. Comer manda o dado do adversário de volta para a reserva dele e põe
-  um dado novo na sua; troca manda os dois; fundir junta os dois dados;
-  ultrapassar e encostar mostram o dado com 1 a menos; sair leva o dado para
+  um dado novo na sua; desgastar manda o seu dado de volta e mostra o do
+  adversário com o valor menor (ou o tira do jogo); fundir junta os dois
+  dados; encostar mostra o dado com 1 a menos; sair leva o dado para
   os pontos. Uma etiqueta sobe da casa com o nome do evento.
 - Escape cancela a escolha em curso e Ctrl+Z desfaz até a última vez de uma
   pessoa, passando pelas jogadas dos bots.

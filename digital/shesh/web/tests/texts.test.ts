@@ -25,7 +25,7 @@ describe("texts", () => {
   const events = eventsByKind();
 
   it("says every event the games produce, in Portuguese", () => {
-    for (const kind of ["rolled", "entered", "moved", "overtook", "fused", "traded", "captured", "touched", "exited", "passed", "ended"]) {
+    for (const kind of ["rolled", "entered", "moved", "fused", "worn", "captured", "touched", "exited", "extraTurn", "ended"]) {
       expect(events.get(kind)?.length, kind).toBeGreaterThan(0);
     }
     const view = SheshGame.create(1n).view();
@@ -38,11 +38,10 @@ describe("texts", () => {
     }
   });
 
-  it("uses the terms of the RFC for the six things that can happen", () => {
+  it("uses the terms of the RFC for the five things that can happen", () => {
     const first = (kind: string) => events.get(kind)![0]!;
     expect(eventText(first("captured"), NAMES)).toMatch(/Comeu/);
-    expect(eventText(first("traded"), NAMES)).toMatch(/Troca/);
-    expect(eventText(first("overtook"), NAMES)).toMatch(/Ultrapassou/);
+    expect(eventText(first("worn"), NAMES)).toMatch(/Desgastou/);
     expect(eventText(first("touched"), NAMES)).toMatch(/Encostou/);
     expect(eventText(first("fused"), NAMES)).toMatch(/Fundiu/);
     expect(eventText(first("exited"), NAMES)).toMatch(/pontos?/);

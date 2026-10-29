@@ -6,8 +6,7 @@
  */
 export type Rules = { 
 /**
- * A die that stops on a rosette rolls again. Off in the rules: then
- * only the center rosette, on the shared lane, does anything.
+ * A die that stops on a rosette rolls again.
  */
 extraTurn: boolean, 
 /**

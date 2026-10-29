@@ -37,8 +37,9 @@ pub struct Record {
     /// The most dice a player had in play at once (board and reserve).
     pub max_dice: [u8; PLAYERS],
     pub captures: u32,
-    pub trades: u32,
-    pub overtakes: u32,
+    pub wears: u32,
+    /// Points worn away for good.
+    pub worn_away: u32,
     pub touches: u32,
     pub fusions: u32,
     /// Points that went over 6 in a fusion.
@@ -48,8 +49,8 @@ pub struct Record {
     pub passes: u32,
     /// Captures by the value of the eating die before it ate.
     pub captures_by_value: [u32; 7],
-    /// Trades by the value of the die that went back with the eaten one.
-    pub trades_by_value: [u32; 7],
+    /// Wears by the value of the wearing die.
+    pub wears_by_value: [u32; 7],
 }
 
 pub fn play(config: &Config, seed: u64, swapped: bool) -> Result<Record, String> {
@@ -72,13 +73,13 @@ pub fn play(config: &Config, seed: u64, swapped: bool) -> Result<Record, String>
             match event {
                 Event::Captured { value, taken, .. } => {
                     record.captures += 1;
-                    record.captures_by_value[(value + taken) as usize] += 1;
+                    record.captures_by_value[(value + taken - 1) as usize] += 1;
                 }
-                Event::Traded { value, .. } => {
-                    record.trades += 1;
-                    record.trades_by_value[value as usize] += 1;
+                Event::Worn { value, .. } => {
+                    record.wears += 1;
+                    record.worn_away += u32::from(value);
+                    record.wears_by_value[value as usize] += 1;
                 }
-                Event::Overtook { .. } => record.overtakes += 1,
                 Event::Touched { .. } => record.touches += 1,
                 Event::Fused { lost, .. } => {
                     record.fusions += 1;
@@ -226,10 +227,10 @@ pub fn summary(config: &Config, records: &[Record]) -> String {
     let mean = |f: &dyn Fn(&Record) -> f64| ended.iter().map(|r| f(r)).sum::<f64>() / n;
     let _ = writeln!(
         out,
-        "per game: captures {:.1}, trades {:.1}, overtakes {:.1}, touches {:.1}, fusions {:.1} (points over 6 {:.1}), extra turns {:.1}, passes {:.1}",
+        "per game: captures {:.1}, wears {:.1} (points worn {:.1}), touches {:.1}, fusions {:.1} (points over 6 {:.1}), extra turns {:.1}, passes {:.1}",
         mean(&|r| f64::from(r.captures)),
-        mean(&|r| f64::from(r.trades)),
-        mean(&|r| f64::from(r.overtakes)),
+        mean(&|r| f64::from(r.wears)),
+        mean(&|r| f64::from(r.worn_away)),
         mean(&|r| f64::from(r.touches)),
         mean(&|r| f64::from(r.fusions)),
         mean(&|r| f64::from(r.fused_away)),
@@ -276,8 +277,8 @@ pub fn summary(config: &Config, records: &[Record]) -> String {
     );
     let _ = writeln!(
         out,
-        "trades by eater value 1-6:   {:?}",
-        &sum(&|r| r.trades_by_value)[1..]
+        "wears by wearer value 1-6:   {:?}",
+        &sum(&|r| r.wears_by_value)[1..]
     );
     out
 }

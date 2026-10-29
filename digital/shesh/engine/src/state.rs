@@ -1,9 +1,10 @@
 //! The state of a game and how it moves (`dev/rfc/jogo-de-corrida.md`).
 //!
-//! Two players, 0 and 1. Each player numbers the track along their own
-//! path: squares 1 to 4 are the own entry lane, 5 to 15 the shared middle
-//! lane, 16 and 17 the own exit lane, and 18 is off the board. A square of
-//! the middle lane has the same number for both players.
+//! Two players, 0 and 1. The track is the one of the Royal Game of Ur, and
+//! each player numbers it along their own path: squares 1 to 4 are the own
+//! entry lane, 5 to 12 the shared middle lane, 13 and 14 the own exit lane,
+//! and 15 is off the board. A square of the middle lane has the same number
+//! for both players.
 
 use std::ops::RangeInclusive;
 
@@ -15,14 +16,16 @@ use crate::rng::Rng;
 
 pub const PLAYERS: usize = 2;
 /// Squares on the board along the path of one player.
-pub const SQUARES: u8 = 17;
+pub const SQUARES: u8 = 14;
 /// The square after the last one: off the board.
-pub const EXIT: u8 = 18;
+pub const EXIT: u8 = 15;
 /// The middle lane, shared by both players.
-pub const SHARED: RangeInclusive<u8> = 5..=15;
-/// The two corners of the own lanes and the red center square. Only the
-/// center one counts in the rules (see `Rules::extra_turn`).
-pub const ROSETTES: [u8; 3] = [4, 10, 16];
+pub const SHARED: RangeInclusive<u8> = 5..=12;
+/// The rosettes of Ur: the end of the entry lane, the red center square
+/// (the fourth of the middle lane) and the last square. They roll again,
+/// and a die on the center one cannot be eaten nor touched (the other two
+/// are on the own lanes, out of reach).
+pub const ROSETTES: [u8; 3] = [4, 8, 14];
 pub const MAX_VALUE: u8 = 6;
 pub const POINTS_TO_WIN: u8 = 12;
 pub const BINARY_DICE: u8 = 4;
@@ -34,8 +37,7 @@ pub const BINARY_DICE: u8 = 4;
 #[cfg_attr(feature = "wire", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "wire", ts(export))]
 pub struct Rules {
-    /// A die that stops on a rosette rolls again. Off in the rules: then
-    /// only the center rosette, on the shared lane, does anything.
+    /// A die that stops on a rosette rolls again.
     pub extra_turn: bool,
     /// Only the smallest die of the reserve can enter.
     pub ordered_entry: bool,
@@ -48,7 +50,7 @@ pub struct Rules {
 impl Default for Rules {
     fn default() -> Rules {
         Rules {
-            extra_turn: false,
+            extra_turn: true,
             ordered_entry: true,
             all_home_wins: false,
         }
@@ -297,16 +299,10 @@ impl GameState {
     /// Carries a die of `value`, already lifted from `from` (0: the
     /// reserve), forward by the roll and resolves where it stops. Returns
     /// whether it earned an extra turn.
-    fn advance(&mut self, from: u8, mut value: u8, events: &mut Vec<Event>) -> bool {
+    fn advance(&mut self, from: u8, value: u8, events: &mut Vec<Event>) -> bool {
         let player = self.to_move;
         let other = 1 - player;
         let to = from + self.roll;
-        let overtook =
-            (from + 1..to).any(|s| SHARED.contains(&s) && self.board[other][s as usize] != 0);
-        if overtook {
-            value = value.saturating_sub(1).max(1);
-            events.push(Event::Overtook { player, value });
-        }
         if to == EXIT {
             self.points[player] += value;
             events.push(Event::Exited {
@@ -332,25 +328,28 @@ impl GameState {
                 value: sum.min(MAX_VALUE),
                 lost: sum.saturating_sub(MAX_VALUE),
             });
+        } else if theirs >= value {
+            // Wear: the die goes back and the other one loses its value
+            // for good (an equal one leaves the game).
+            self.reserve[player][value as usize] += 1;
+            self.board[other][square] = theirs - value;
+            events.push(Event::Worn {
+                player,
+                square: to,
+                value,
+                left: theirs - value,
+            });
+            return false;
         } else if theirs != 0 {
+            let kept = value - theirs + 1;
             self.board[other][square] = 0;
             self.reserve[other][theirs as usize] += 1;
-            if value <= theirs {
-                self.reserve[player][value as usize] += 1;
-                events.push(Event::Traded {
-                    player,
-                    square: to,
-                    value,
-                    taken: theirs,
-                });
-                return false;
-            }
-            self.board[player][square] = value - theirs;
+            self.board[player][square] = kept;
             self.reserve[player][theirs as usize] += 1;
             events.push(Event::Captured {
                 player,
                 square: to,
-                value: value - theirs,
+                value: kept,
                 taken: theirs,
             });
         } else {
@@ -464,24 +463,38 @@ mod tests {
     }
 
     #[test]
-    fn a_bigger_die_eats_splits_and_gains_a_die() {
+    fn a_bigger_die_eats_splits_gains_a_die_and_1() {
         let state = position(1, [&[(6, 5)], &[(7, 2)]]);
         let (next, _) = play(&state, Command::Move { from: 6 });
-        assert_eq!(next.die_at(0, 7), 3);
+        assert_eq!(next.die_at(0, 7), 4);
         assert_eq!(next.die_at(1, 7), 0);
         assert_eq!(next.in_reserve(0, 2), 1);
         assert_eq!(next.in_reserve(1, 2), 1);
     }
 
     #[test]
-    fn a_die_not_bigger_goes_back_with_the_eaten_one() {
-        let state = position(1, [&[(6, 3)], &[(7, 3)]]);
+    fn a_smaller_die_goes_back_and_wears_the_other_for_good() {
+        let state = position(1, [&[(6, 2)], &[(7, 5)]]);
         let (next, events) = play(&state, Command::Move { from: 6 });
         assert_eq!(next.die_at(0, 7), 0);
-        assert_eq!(next.die_at(1, 7), 0);
+        assert_eq!(next.in_reserve(0, 2), 1);
+        assert_eq!(next.die_at(1, 7), 3);
+        assert_eq!(next.dice(1), 1);
+        assert!(events.contains(&Event::Worn {
+            player: 0,
+            square: 7,
+            value: 2,
+            left: 3
+        }));
+    }
+
+    #[test]
+    fn an_equal_die_wears_the_other_out_of_the_game() {
+        let state = position(1, [&[(6, 3)], &[(7, 3), (9, 1)]]);
+        let (next, _) = play(&state, Command::Move { from: 6 });
         assert_eq!(next.in_reserve(0, 3), 1);
-        assert_eq!(next.in_reserve(1, 3), 1);
-        assert!(matches!(events[1], Event::Traded { .. }));
+        assert_eq!(next.die_at(1, 7), 0);
+        assert_eq!(next.dice(1), 1);
     }
 
     #[test]
@@ -493,94 +506,76 @@ mod tests {
     }
 
     #[test]
-    fn overtaking_loses_1_once_per_move() {
-        let state = position(4, [&[(6, 4)], &[(7, 2), (8, 2)]]);
+    fn passing_over_a_die_costs_nothing() {
+        let state = position(3, [&[(6, 4)], &[(7, 2)]]);
         let (next, _) = play(&state, Command::Move { from: 6 });
-        assert_eq!(next.die_at(0, 10), 3);
-    }
-
-    #[test]
-    fn a_1_does_not_lose_by_overtaking() {
-        let state = position(2, [&[(6, 1)], &[(7, 2)]]);
-        let (next, _) = play(&state, Command::Move { from: 6 });
-        assert_eq!(next.die_at(0, 8), 1);
-    }
-
-    #[test]
-    fn overtaking_happens_before_eating() {
-        let state = position(2, [&[(6, 3)], &[(7, 2), (8, 2)]]);
-        let (next, events) = play(&state, Command::Move { from: 6 });
-        assert!(matches!(
-            events[2],
-            Event::Traded {
-                value: 2,
-                taken: 2,
-                ..
-            }
-        ));
-        assert_eq!(next.die_at(0, 8), 0);
+        assert_eq!(next.die_at(0, 9), 4);
+        assert_eq!(next.die_at(1, 7), 2);
     }
 
     #[test]
     fn stopping_behind_a_die_takes_1_from_it() {
-        let state = position(1, [&[(6, 4)], &[(8, 3)]]);
-        let (next, _) = play(&state, Command::Move { from: 6 });
-        assert_eq!(next.die_at(1, 8), 2);
+        let state = position(1, [&[(5, 4)], &[(7, 3)]]);
+        let (next, _) = play(&state, Command::Move { from: 5 });
+        assert_eq!(next.die_at(1, 7), 2);
     }
 
     #[test]
     fn a_die_on_the_center_rosette_is_safe() {
-        let state = position(4, [&[(6, 4)], &[(10, 1)]]);
+        let state = position(3, [&[(5, 4)], &[(8, 1)]]);
         assert_eq!(state.legal_commands(), vec![Command::Pass]);
-        let state = position(3, [&[(6, 4)], &[(10, 2)]]);
-        let (next, _) = play(&state, Command::Move { from: 6 });
-        assert_eq!(next.die_at(1, 10), 2);
+        let state = position(2, [&[(5, 4)], &[(8, 2)]]);
+        let (next, _) = play(&state, Command::Move { from: 5 });
+        assert_eq!(next.die_at(1, 8), 2);
     }
 
     #[test]
-    fn a_rosette_rolls_again_only_with_the_extra_turn() {
-        let mut state = position(2, [&[(2, 1)], &[(9, 1)]]);
+    fn every_rosette_rolls_again() {
+        for (from, roll) in [(2, 2), (6, 2), (11, 3)] {
+            let state = position(roll, [&[(from, 1)], &[(10, 1)]]);
+            let (next, events) = play(&state, Command::Move { from });
+            assert_eq!(next.to_move(), 0, "rosette {}", from + roll);
+            assert!(events.contains(&Event::ExtraTurn { player: 0 }));
+        }
+        let mut state = position(2, [&[(2, 1)], &[(10, 1)]]);
+        state.rules.extra_turn = false;
         let (next, _) = play(&state, Command::Move { from: 2 });
         assert_eq!(next.to_move(), 1);
-        state.rules.extra_turn = true;
-        let (next, events) = play(&state, Command::Move { from: 2 });
-        assert_eq!(next.to_move(), 0);
-        assert!(events.contains(&Event::ExtraTurn { player: 0 }));
     }
 
     #[test]
     fn leaving_needs_the_exact_roll() {
-        let state = position(3, [&[(16, 5), (17, 2)], &[(9, 1)]]);
+        let state = position(3, [&[(13, 5), (14, 2)], &[(9, 1)]]);
         assert_eq!(state.legal_commands(), vec![Command::Pass]);
-        let state = position(2, [&[(16, 5)], &[(9, 1)]]);
-        let (next, _) = play(&state, Command::Move { from: 16 });
+        let state = position(2, [&[(13, 5)], &[(9, 1)]]);
+        let (next, _) = play(&state, Command::Move { from: 13 });
         assert_eq!(next.points(0), 5);
     }
 
     #[test]
     fn twelve_points_win() {
-        let mut state = position(1, [&[(17, 5)], &[(9, 1)]]);
+        let mut state = position(1, [&[(14, 5)], &[(9, 1)]]);
         state.points[0] = 7;
         state.reserve[0][6] = 1;
-        let (next, _) = play(&state, Command::Move { from: 17 });
+        let (next, _) = play(&state, Command::Move { from: 14 });
         assert_eq!(next.end(), Some(EndReason::Points { player: 0 }));
     }
 
     #[test]
     fn taking_every_die_home_ends_the_game() {
-        let state = position(1, [&[(17, 3)], &[(9, 1)]]);
-        let (next, _) = play(&state, Command::Move { from: 17 });
+        let state = position(1, [&[(14, 3)], &[(9, 1)]]);
+        let (next, _) = play(&state, Command::Move { from: 14 });
         assert_eq!(next.end(), Some(EndReason::AllHome { player: 0 }));
     }
 
     #[test]
     fn after_every_die_home_more_points_win() {
-        let mut state = position(1, [&[(17, 3)], &[(9, 1)]]);
+        let mut state = position(1, [&[(14, 3)], &[(9, 1)]]);
         state.points[1] = 5;
-        let (next, _) = play(&state, Command::Move { from: 17 });
+        let (next, _) = play(&state, Command::Move { from: 14 });
         assert_eq!(next.end(), Some(EndReason::AllHome { player: 1 }));
         state.rules.all_home_wins = true;
-        let (next, _) = play(&state, Command::Move { from: 17 });
+        let (next, _) = play(&state, Command::Move { from: 14 });
         assert_eq!(next.end(), Some(EndReason::AllHome { player: 0 }));
     }
 

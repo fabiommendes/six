@@ -51,7 +51,8 @@ function play(game, seed) {
     for (const player of view.players) {
       assert.ok(player.track.every((v) => v >= 0 && v <= 6));
       assert.equal(player.track[0], 0);
-      assert.equal(player.track[18], 0);
+      assert.equal(player.track.length, 16);
+      assert.equal(player.track[15], 0);
     }
     commands += 1;
     assert.ok(commands < 5000, "the game ends");
@@ -130,7 +131,7 @@ test("rules for experiments: an extra turn on the rosettes", () => {
   const game = Game.withRules(rules, 4n);
   const view = json(game.view());
   assert.deepEqual(view.rules, { extraTurn: true, orderedEntry: false, allHomeWins: true });
-  if (view.roll > 0) assert.equal(view.moves.length, 6, "free entry: any of the six dice");
+  assert.equal(view.moves.length, 6, "free entry: any of the six dice");
   assert.throws(() => Game.withRules("{}", 1n));
   play(game, 9);
 });

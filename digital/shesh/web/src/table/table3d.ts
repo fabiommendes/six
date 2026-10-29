@@ -47,6 +47,8 @@ import {
   extentPoints,
   frameLayout,
   seatAngle,
+  SHARED_FIRST,
+  SHARED_LAST,
   squareAt,
   squareSpot,
   TRAY_SLOTS,
@@ -741,13 +743,6 @@ export class Table3D {
           met = await this.arrive(event.player, die, event.to, 0.9 + 0.25 * (event.to - event.from));
           break;
         }
-        case "overtook":
-          if (mover) {
-            mover.show(event.value, seatAngle(event.player));
-            this.float(text!, mover.root.position, { background: seatColor(event.player), height: 1.5 });
-            await this.wave([mover], 0.35);
-          }
-          break;
         case "fused": {
           if (mover && met.own) {
             const target = met.own;
@@ -761,13 +756,20 @@ export class Table3D {
           mover = null;
           break;
         }
-        case "traded": {
+        case "worn": {
+          // The die goes back to its reserve; the other one loses its value for good, or leaves the game at 0.
           const other = 1 - event.player;
-          this.track[other]![event.square] = null;
           this.float(text!, squareSpot(event.player, event.square), { background: COLORS.ink, height: 1.5 });
           const moves: Promise<void>[] = [];
           if (mover) moves.push(this.sendToReserve(event.player, mover, event.value));
-          if (met.theirs) moves.push(this.sendToReserve(other, met.theirs, event.taken));
+          const worn = met.theirs;
+          if (worn && event.left > 0) {
+            worn.show(event.left, seatAngle(other));
+            moves.push(this.wave([worn], 0.35));
+          } else if (worn) {
+            this.track[other]![event.square] = null;
+            this.world.remove(worn.root);
+          }
           await Promise.all(moves);
           mover = null;
           break;
@@ -842,7 +844,7 @@ export class Table3D {
   private async arrive(seat: number, die: Die3D, square: number, height: number): Promise<{ own: Die3D | null; theirs: Die3D | null }> {
     const to = this.trackPoint(seat, square);
     const own = square < EXIT ? (this.track[seat]![square] ?? null) : null;
-    const theirs = square < EXIT && square >= 5 && square <= 15 ? (this.track[1 - seat]![square] ?? null) : null;
+    const theirs = square >= SHARED_FIRST && square <= SHARED_LAST ? (this.track[1 - seat]![square] ?? null) : null;
     const meets = own !== null || theirs !== null || square >= EXIT;
     await this.fly(die, { ...to, y: to.y + (meets ? HOVER : 0) }, orientation(die.value, seatAngle(seat)), { duration: 420 + 60 * height, height: 0.6 + 0.4 * Math.min(height, 2.5) });
     if (!meets) {

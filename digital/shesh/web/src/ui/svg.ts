@@ -52,12 +52,12 @@ export function dieIcon(value: number, size: number, seat: number): string {
   return `<svg width="${box}" height="${box}" viewBox="0 0 ${box} ${box}" aria-hidden="true">${dieMarkup(size / 2 + size * 0.03, size / 2 + size * 0.03, size, value, seat)}</svg>`;
 }
 
-/** A binary die showing `bit` (0 or 1) as an inline icon. */
+/** A binary die showing `bit` as an inline icon: blank for 0, one pip for 1. */
 export function binaryIcon(bit: 0 | 1, size: number): string {
   const box = f(size * 1.12);
   const c = size / 2 + size * 0.03;
   const half = size / 2;
-  return `<svg width="${box}" height="${box}" viewBox="0 0 ${box} ${box}" aria-hidden="true"><rect x="${f(c - half)}" y="${f(c - half)}" width="${f(size)}" height="${f(size)}" rx="${f(size * 0.17)}" fill="${BINARY_COLOR}" stroke="${COLORS.ink}" stroke-width="${f(size * 0.04)}"/><text x="${f(c)}" y="${f(c + size * 0.07)}" text-anchor="middle" dominant-baseline="middle" font-family="Alegreya Sans, sans-serif" font-weight="800" font-size="${f(size * 0.7)}" fill="${COLORS.ink}">${bit}</text></svg>`;
+  return `<svg width="${box}" height="${box}" viewBox="0 0 ${box} ${box}" aria-hidden="true"><rect x="${f(c - half)}" y="${f(c - half)}" width="${f(size)}" height="${f(size)}" rx="${f(size * 0.17)}" fill="${BINARY_COLOR}" stroke="${COLORS.ink}" stroke-width="${f(size * 0.04)}"/>${bit === 1 ? `<circle cx="${f(c)}" cy="${f(c)}" r="${f(size * 0.13)}" fill="${COLORS.ink}"/>` : ""}</svg>`;
 }
 
 /** An empty place for a die. */

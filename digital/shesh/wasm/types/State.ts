@@ -11,7 +11,7 @@ export type State = {
  * `board[player][square]`: the value of the die there, 0 when empty.
  * Index 0 and `EXIT` are never used.
  */
-board: [[number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number], [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number]], 
+board: [[number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number], [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number]], 
 /**
  * `reserve[player][value]`: how many dice of that value wait to enter.
  */

@@ -28,26 +28,28 @@ dele é ao mesmo tempo força e pontos.
 - O tabuleiro de 11 por 11 do Seks.
 - 6 dados de uma cor para cada jogador, mais dados de reserva da mesma cor
   (as capturas criam dados novos, ver [Comer](#comer)).
-- 4 **dados binários**: dados de seis faces com 3 faces 0 e 3 faces 1. São
+- 4 **dados binários**: dados de seis faces com 3 faces lisas (0) e 3 faces
+  com 1 ponto (1). São
   componentes novos no kit; o deck builder planejado também pede dados de
   faces especiais.
 
 ### Trilha
 
-A trilha usa as fileiras 5, 6 e 7, no desenho do tabuleiro de Ur: as pistas
-próprias têm um vão no meio, e a pista do meio é compartilhada.
+A trilha é a do tabuleiro de Ur, nas fileiras 5, 6 e 7: as pistas próprias
+têm um vão, e a pista do meio é compartilhada.
 
 - **Pista de entrada**, própria: na fileira 5 para as Brancas e na 7 para as
-  Pretas, da coluna 4 à coluna 1 (casas 1 a 4).
-- **Pista do meio**, compartilhada: a fileira 6, da coluna 1 à 11 (casas 5 a
-  15). Os dois jogadores andam no mesmo sentido.
-- **Pista de saída**, própria: de volta à fileira de cada um, da coluna 11 à
-  10 (casas 16 e 17).
-- **Saída**: a casa 18, fora do tabuleiro.
+  Pretas, da coluna 6 à coluna 3 (casas 1 a 4).
+- **Pista do meio**, compartilhada: a fileira 6, da coluna 3 à 10 (casas 5 a
+  12). Os dois jogadores andam no mesmo sentido.
+- **Pista de saída**, própria: de volta à fileira de cada um, da coluna 10 à
+  9 (casas 13 e 14).
+- **Saída**: a casa 15, fora do tabuleiro.
 
-A casa vermelha do centro (casa 10) é a **roseta**, a roseta central do Ur.
-Ao contrário do Ur, ela não dá lance extra, e as rosetas das pistas
-próprias não existem.
+As colunas 7 e 8 das fileiras 5 e 7 são o vão do tabuleiro de Ur. As
+**rosetas** são as do Ur: a última casa da pista de entrada (casa 4), a
+casa vermelha do centro (casa 8, a quarta da pista do meio) e a última casa
+da pista de saída (casa 14).
 
 ### Preparação
 
@@ -69,44 +71,44 @@ Cada jogador põe os seus 6 dados na **reserva**, mostrando os valores de 1 a
 Um dado que termina numa casa com outro dado do mesmo jogador se funde com
 ele: fica um dado só, com a soma dos valores. O que passar de 6 se perde.
 
-### Comer
+### Comer e desgastar
 
-Um dado que termina numa casa com um dado do adversário come:
+Um dado que termina numa casa com um dado do adversário:
 
-- **O seu dado é menor ou igual**: os dois voltam para as reservas dos
-  donos, com os mesmos valores.
-- **O seu dado é maior**: o dado do adversário volta para a reserva dele. O
-  seu fica na casa, com o valor reduzido pelo valor do dado comido, e você
-  ganha na sua reserva um dado novo com o valor do comido.
+- **Come, se for maior**: o dado do adversário volta para a reserva dele. O
+  seu fica na casa com o seu valor menos o do comido, mais 1, e você ganha
+  na sua reserva um dado novo com o valor do comido. Um 5 que come um 2
+  vira 4 e põe um 2 na reserva.
+- **Desgasta, se for menor ou igual**: o seu dado volta para a sua reserva,
+  e o dado do adversário perde o valor do seu para sempre. Um 2 que para
+  num 5 deixa um 3. Um dado de mesmo valor zera o outro, que sai do jogo.
 
-Comer com um dado maior não muda o seu total: um 5 que come um 2 vira 3 no
-tabuleiro e põe um 2 na reserva. O custo é que esses 2 pontos voltam ao
-começo da trilha e, pela ordem de entrada, entram antes dos dados maiores.
+> **Design:** o desgaste impede que um dado grande sirva de barreira aos
+> pequenos, e torna arriscado levar um dado grande até a saída.
 
-### Ultrapassar e encostar
+### Encostar
 
-Só acontecem na pista do meio.
+Na pista do meio, um dado que termina na casa logo atrás de um dado do
+adversário tira 1 do valor dele. Um 1 não perde. Passar por cima de dados do
+adversário não custa nada.
 
-- **Ultrapassar**: um dado que passa por cima de um ou mais dados do
-  adversário perde 1 de valor, uma vez por jogada. Um 1 não perde.
-- **Encostar**: um dado que termina na casa logo atrás de um dado do
-  adversário tira 1 do valor dele. Um 1 não perde.
+### Rosetas
 
-### Roseta
-
-Um dado na roseta não pode ser comido nem encostado. Um dado não pode
-terminar na roseta ocupada pelo adversário.
+Um dado que termina numa roseta joga de novo. Um dado na roseta do centro
+não pode ser comido, desgastado nem encostado, e o adversário não pode
+terminar nela. As outras duas ficam nas pistas próprias, fora do alcance do
+adversário.
 
 ### Saída e fim
 
-- Um dado sai com o número exato que o leva à casa 18. O valor dele vira
+- Um dado sai com o número exato que o leva à casa 15. O valor dele vira
   pontos do dono.
 - Vence quem chegar a 12 pontos.
 - Quem tira da trilha todos os seus dados, com a reserva vazia, encerra a
   partida: vence quem tem mais pontos e, no empate, quem encerrou.
 
-> **Design:** os dois lados começam com 21 pontos. As reduções de ultrapassar
-> e encostar queimam pontos, e a perda acima de 6 na fusão também. Uma
+> **Design:** os dois lados começam com 21 pontos. O desgaste e o encostar
+> queimam pontos, e a perda acima de 6 na fusão também. Uma
 > partida com muito contato pode deixar os dois abaixo de 12, e aí só a
 > segunda condição decide. Ela não dá a vitória a quem leva todos os dados:
 > sem isso, fundir os dados e queimar pontos para levar menos dados vencia
@@ -116,8 +118,8 @@ terminar na roseta ocupada pelo adversário.
 
 - O valor faz do dado ao mesmo tempo peça, força e pontos.
 - Comer divide o seu dado, em vez de só atrasar o do adversário.
-- Um dado pequeno pode se sacrificar para mandar de volta um dado grande
-  perto da saída.
+- Um dado pequeno pode se sacrificar para desgastar para sempre um dado
+  grande perto da saída.
 - A ordem de entrada força os dados pequenos a ir primeiro, e uma captura
   enche a reserva de dados pequenos, que atrasam os grandes.
 - A fusão junta os pequenos num dado forte, perdendo o excesso.
@@ -148,15 +150,19 @@ terminar na roseta ocupada pelo adversário.
   roseta é a casa vermelha do centro; a entrada continua em ordem.
 - 2026-10-28, designer: se os 4 dados binários derem 0, o jogador rola de
   novo até sair um número diferente de 0.
+- 2026-10-28, designer, para cortar os ciclos longos de comer e ganhar dado
+  e acabar com a barreira dos dados grandes: ultrapassar não custa nada;
+  comer com um dado maior deixa o seu valor menos o do comido, mais 1; um
+  dado menor ou igual volta para a reserva e desgasta para sempre o dado do
+  adversário; a trilha passa a ser a do Ur (14 casas), com as três rosetas
+  dando outra jogada e a do centro protegendo. Isso substitui as decisões
+  anteriores sobre a trilha, o lance extra e a troca.
 
 ## Open questions
 
-- **Ordem dentro da jogada**: um dado que ultrapassa e depois come perde 1
-  antes ou depois de comparar os valores? Proposta: antes.
-- **Ultrapassar e encostar na mesma jogada**: valem os dois? Proposta: sim.
-- **Duração**: sem lance extra, uns 70 turnos por jogador entre os
-  expectimax. Se for longa na mesa, baixar a meta de 12 pontos ou encurtar
-  a pista do meio.
+- **Meta de pontos**: com o desgaste, quem vence termina com 9,5 pontos em
+  média, e só 36% das partidas entre dois expectimax acabam nos 12 pontos.
+  Baixar a meta para 10? Ver [Medições](#medições).
 - **O dado grande ainda domina?** Mesmo com a ordem de entrada, depois que
   todos entram, o 6 vence todo contato, menos o sacrifício. Medir nos bots.
 - **Kit**: entram os 4 dados binários e dados extras por cor. Contar nos bots
@@ -216,6 +222,28 @@ partidas. Rolar de novo quando todos os dados dão 0 elimina o turno parado
 que acontecia em 1 de cada 16 turnos: os passes caem de 10 para 1,4 por partida entre dois
 expectimax, e a partida cai de 139 para 134 turnos. O expectimax vence o
 guloso em 63,1% (antes, 62,2%), e o primeiro jogador vence 52,1%.
+
+### Trilha do Ur e desgaste
+
+Regra atual: trilha do Ur, rosetas com outra jogada, desgaste, comer com
++1, sem ultrapassar. Lotes de 6.000 partidas.
+
+| Partida | Vitória do primeiro bot | Primeiro jogador | Turnos | Fim nos 12 pontos |
+|---|---|---|---|---|
+| expecti × aleatório | 78,4% | 54,0% | 63 | 42% |
+| expecti × guloso | 60,4% | 53,1% | 71 | 43% |
+| expecti × expecti | 50% | 54,1% | 70 | 36% |
+
+- A partida cai pela metade: de 134 para 70 turnos, contando 19 jogadas
+  extras.
+- Por partida entre dois expectimax: 2,4 capturas e 2,6 desgastes, que
+  queimam 10,5 pontos; mais 6,7 pontos perdidos acima de 6 nas fusões.
+- Quem vence termina com 9,5 pontos em média. A meta de 12 só decide 36% das
+  partidas; o resto acaba quando alguém leva todos os dados.
+- O primeiro jogador vence 54%, contra 52% antes: as jogadas extras dão um
+  pouco mais de vantagem a quem começa.
+- A habilidade pesa um pouco menos que na regra anterior (60,4% contra
+  63,1% do expectimax sobre o guloso).
 
 ## Outcome
 

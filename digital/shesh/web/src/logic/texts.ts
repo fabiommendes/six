@@ -1,11 +1,11 @@
 import type { EndReason, Event, Move, View } from "../engine/game";
 import { destinationOf } from "./selection";
-import { EXIT } from "../table/layout";
+import { EXIT, SHARED_FIRST, SHARED_LAST } from "../table/layout";
 
 /**
  * Every text the player reads, in Portuguese. The terms are those of the RFC
  * (`dev/rfc/jogo-de-corrida.md`): reserva, pista de entrada, do meio e de
- * saída, roseta, dado binário, comer, fundir, ultrapassar, encostar.
+ * saída, roseta, dado binário, comer, desgastar, fundir, encostar.
  */
 
 export const DEFAULT_NAMES = ["Jogador 1", "Jogador 2"] as const;
@@ -54,7 +54,7 @@ export function pointsText(n: number): string {
 
 /** The lane of a square along the path of its player, for texts. */
 export function laneText(square: number): string {
-  return square < 5 ? "pista de entrada" : square <= 15 ? "pista do meio" : "pista de saída";
+  return square < SHARED_FIRST ? "pista de entrada" : square <= SHARED_LAST ? "pista do meio" : "pista de saída";
 }
 
 /** A square as the texts say it: "casa 7". */
@@ -82,12 +82,12 @@ export function eventText(event: Event, names: readonly string[], view?: Pick<Vi
       return `${name(event.player)} entrou com o dado ${event.value} na casa ${event.square}.`;
     case "moved":
       return `${name(event.player)} moveu o dado da casa ${event.from} para ${square(event.to)}.`;
-    case "overtook":
-      return `Ultrapassou: o dado perde 1 e fica com ${event.value}.`;
     case "fused":
       return `Fundiu na casa ${event.square}: o dado fica com ${event.value}${event.lost > 0 ? ` (o excesso de ${event.lost} se perde)` : ""}.`;
-    case "traded":
-      return `Troca na casa ${event.square}: o dado ${event.value} e o dado ${event.taken} do adversário voltam para as reservas.`;
+    case "worn":
+      return event.left > 0
+        ? `Desgastou na casa ${event.square}: o dado ${event.value} volta para a reserva e o dado do adversário perde ${event.value} para sempre, ficando com ${event.left}.`
+        : `Desgastou na casa ${event.square}: o dado ${event.value} volta para a reserva e o dado do adversário, de mesmo valor, sai do jogo.`;
     case "captured":
       return `Comeu na casa ${event.square}: o dado ${event.taken} do adversário volta para a reserva, o dado fica com ${event.value} e ${name(event.player)} ganha um dado ${event.taken} na reserva.`;
     case "touched":
@@ -112,12 +112,10 @@ export function happeningText(event: Event, names: readonly string[], view?: Pic
 /** The word floated over the table for an event, or null for events without one. */
 export function floatText(event: Event): string | null {
   switch (event.kind) {
-    case "overtook":
-      return "Ultrapassou −1";
     case "fused":
       return event.lost > 0 ? `Fundiu · ${event.value} (−${event.lost})` : `Fundiu · ${event.value}`;
-    case "traded":
-      return "Troca";
+    case "worn":
+      return event.left > 0 ? `Desgastou −${event.value}` : "Desgastou · saiu do jogo";
     case "captured":
       return `Comeu o ${event.taken}`;
     case "touched":
@@ -136,14 +134,11 @@ export function effectsText(move: Move): string {
   const parts: string[] = [];
   for (const event of move.events) {
     switch (event.kind) {
-      case "overtook":
-        parts.push(`ultrapassa (fica com ${event.value})`);
-        break;
       case "fused":
         parts.push(`funde (fica com ${event.value}${event.lost > 0 ? `, perde ${event.lost}` : ""})`);
         break;
-      case "traded":
-        parts.push(`troca (o ${event.value} e o ${event.taken} voltam para as reservas)`);
+      case "worn":
+        parts.push(event.left > 0 ? `desgasta (volta para a reserva, o dado do adversário fica com ${event.left})` : "desgasta (volta para a reserva, o dado do adversário sai do jogo)");
         break;
       case "captured":
         parts.push(`come o ${event.taken} (fica com ${event.value})`);
@@ -211,8 +206,9 @@ export const RULES_CARD: readonly { readonly title: string; readonly text: strin
   { title: "Turno", text: "Role os 4 dados binários e some: 1 a 4. Se todos derem 0, role de novo. Mova um dado seu exatamente essa quantidade de casas, ou entre com um dado da reserva na casa de mesmo número. Se puder jogar, é obrigado." },
   { title: "Entrada", text: "Da reserva entra sempre o dado de menor valor." },
   { title: "Fundir", text: "Um dado que termina numa casa com outro seu funde com ele: fica um dado só, com a soma. O que passa de 6 se perde." },
-  { title: "Comer", text: "Em casa de adversário, na pista do meio: se o seu dado é menor ou igual, os dois voltam para as reservas. Se é maior, o dado dele volta, o seu fica com o valor reduzido pelo dele e você ganha na reserva um dado com o valor do comido." },
-  { title: "Ultrapassar e encostar", text: "Na pista do meio, passar por cima de dados do adversário tira 1 do seu dado (uma vez por jogada). Parar logo atrás de um dado do adversário tira 1 dele. Um 1 não perde." },
-  { title: "Roseta", text: "A casa vermelha do centro protege o dado de ser comido ou encostado, e o adversário não pode parar nela." },
+  { title: "Comer", text: "Em casa de adversário, na pista do meio, com um dado maior: o dado dele volta para a reserva, o seu fica com o seu valor menos o dele, mais 1, e você ganha na reserva um dado com o valor do comido." },
+  { title: "Desgastar", text: "Em casa de adversário, com um dado menor ou igual: o seu volta para a reserva e o dado dele perde o valor do seu para sempre. De mesmo valor, ele sai do jogo." },
+  { title: "Encostar", text: "Na pista do meio, parar logo atrás de um dado do adversário tira 1 dele. Um 1 não perde. Passar por cima de dados não custa nada." },
+  { title: "Rosetas", text: "As casas com estrela, como no Ur: a 4, a casa vermelha do centro e a 14. Quem para numa roseta joga de novo. A do centro protege o dado de ser comido, desgastado ou encostado, e o adversário não pode parar nela." },
   { title: "Saída e fim", text: "Um dado sai com o número exato que o leva à saída, e o valor dele vira pontos. Vence quem chegar a 12 pontos. Se um jogador tira da trilha todos os seus dados, a partida acaba e vence quem tem mais pontos (no empate, quem encerrou)." },
 ];

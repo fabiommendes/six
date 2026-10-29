@@ -67,12 +67,6 @@ pub enum Event {
         from: u8,
         to: u8,
     },
-    /// The moving die passed over dice of the other player: it now shows
-    /// `value` (a 1 does not lose).
-    Overtook {
-        player: usize,
-        value: u8,
-    },
     /// The die joined another die of the player: `lost` is what went over 6.
     Fused {
         player: usize,
@@ -80,16 +74,19 @@ pub enum Event {
         value: u8,
         lost: u8,
     },
-    /// The die landed on a die of the other player, of value `taken`, and
-    /// was not bigger: both went back to the reserves.
-    Traded {
+    /// The die, of value `value`, landed on a die of the other player
+    /// not smaller and went back to the reserve: the other die lost
+    /// `value` for good and shows `left` (0: it left the game).
+    Worn {
         player: usize,
         square: u8,
         value: u8,
-        taken: u8,
+        left: u8,
     },
-    /// The die, bigger, ate a die of value `taken`: it now shows `value`,
-    /// and the player gained a die of value `taken` in the reserve.
+    /// The die, bigger, ate a die of value `taken`, which went back to the
+    /// reserve of its owner: the die now shows its value minus `taken` plus
+    /// 1 (`value`), and the player gained a die of value `taken` in the
+    /// reserve.
     Captured {
         player: usize,
         square: u8,

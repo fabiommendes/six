@@ -11,13 +11,13 @@ import type { View } from "@wire/View";
 
 export type { Command, EndReason, Event, Move, PlayerView, Rules, State, Transition, View };
 
-/** The track along the path of one player: squares 1 to 17, and 18 is off the board. */
-export const EXIT = 18;
+/** The track along the path of one player: squares 1 to 14, and 15 is off the board. */
+export const EXIT = 15;
 /** The squares of the middle lane, shared by both players. */
 export const SHARED_FIRST = 5;
-export const SHARED_LAST = 15;
+export const SHARED_LAST = 12;
 /** The red square in the middle of the board. */
-export const ROSETTE = 10;
+export const ROSETTE = 8;
 /** Points that win. */
 export const POINTS_TO_WIN = 12;
 

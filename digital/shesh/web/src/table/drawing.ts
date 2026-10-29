@@ -1,6 +1,6 @@
 import { BINARY_COLOR, COLORS, seatColor } from "../ui/svg";
 import { PIPS } from "../ui/pips";
-import { BAND_H, BAND_W, BOARD_CELLS, entrySpot, squareSpot, type FrameLayout } from "./layout";
+import { BAND_H, BAND_W, BOARD_CELLS, entrySpot, EXIT, ROSETTE, ROSETTES, SHARED_FIRST, SHARED_LAST, squareSpot, type FrameLayout } from "./layout";
 
 /** The textures of the table, drawn on 2D canvases: dice faces, the wood, the board, the trays, the marks and the labels. */
 
@@ -83,7 +83,7 @@ export function drawDieFace(value: number, seat: number, px: number): HTMLCanvas
   return canvas;
 }
 
-/** A face of a binary die: a big 0 or 1 on ivory. */
+/** A face of a binary die on ivory: blank for 0, one pip for 1. */
 export function drawBinaryFace(bit: 0 | 1, px: number): HTMLCanvasElement {
   const canvas = makeCanvas(px);
   const ctx = context(canvas);
@@ -93,11 +93,11 @@ export function drawBinaryFace(bit: 0 | 1, px: number): HTMLCanvasElement {
   ctx.fillStyle = gradient;
   roundedRect(ctx, 0, 0, px, px, px * 0.145);
   ctx.fill();
-  ctx.fillStyle = bit === 1 ? COLORS.ink : COLORS.muted;
-  ctx.font = `800 ${px * 0.78}px ${FONT}`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(String(bit), px / 2, px * 0.54);
+  if (bit === 1) {
+    ctx.fillStyle = COLORS.ink;
+    disc(ctx, px / 2, px / 2, (px / FACE_SHARE) * 0.11);
+    ctx.fill();
+  }
   return canvas;
 }
 
@@ -288,7 +288,7 @@ function cellCorner(layout: FrameLayout, x: number, z: number): { x: number; y: 
  * The board of the Seks, seen as the Shesh uses it: the four bands of the star tile with the face of six at
  * the corners, the plate, the grid of 11 by 11 cells and the track on top: the two own lanes in the colors of
  * the seats, the middle lane in turquoise, each square numbered along the path of its player, the red square
- * in the middle, and the arrows where the dice come in and go out. Row `z` of the table is row `z + 6` from the
+ * in the middle, a red star on the rosettes of the own lanes, and the arrows where the dice come in and go out. Row `z` of the table is row `z + 6` from the
  * top of the texture; the first player sits at the bottom.
  */
 export function drawBoard(px: number, layout: FrameLayout): HTMLCanvasElement {
@@ -321,8 +321,9 @@ export function drawBoard(px: number, layout: FrameLayout): HTMLCanvasElement {
   ctx.strokeRect(plateAt, plateAt, plate, plate);
 
   const trail: { seat: number; square: number }[] = [];
-  for (let square = 1; square <= 17; square++) {
-    if (square >= 5 && square <= 15) {
+  const shared = (square: number) => square >= SHARED_FIRST && square <= SHARED_LAST;
+  for (let square = 1; square < EXIT; square++) {
+    if (shared(square)) {
       if (!trail.some((c) => c.square === square)) trail.push({ seat: 0, square });
     } else {
       trail.push({ seat: 0, square }, { seat: 1, square });
@@ -332,7 +333,7 @@ export function drawBoard(px: number, layout: FrameLayout): HTMLCanvasElement {
   for (const { seat, square } of trail) {
     const spot = squareSpot(seat, square);
     const { x, y } = cellCorner(layout, spot.x, spot.z);
-    ctx.fillStyle = square >= 5 && square <= 15 ? "rgba(22,127,136,0.28)" : seat === 0 ? "rgba(184,83,43,0.32)" : "rgba(44,90,154,0.32)";
+    ctx.fillStyle = shared(square) ? "rgba(22,127,136,0.28)" : seat === 0 ? "rgba(184,83,43,0.32)" : "rgba(44,90,154,0.32)";
     ctx.fillRect(x, y, cell, cell);
   }
   // The red square.
@@ -342,6 +343,17 @@ export function drawBoard(px: number, layout: FrameLayout): HTMLCanvasElement {
   ctx.fillStyle = "rgba(251,248,241,0.9)";
   starPath(ctx, centre.x + cell / 2, centre.y + cell / 2, cell * 0.38, cell * 0.2, 8);
   ctx.fill();
+  // The rosettes of the own lanes: a red star on the tint of the seat.
+  for (const seat of [0, 1]) {
+    for (const square of ROSETTES) {
+      if (square === ROSETTE) continue;
+      const spot = squareSpot(seat, square);
+      const { x, y } = cellCorner(layout, spot.x, spot.z);
+      ctx.fillStyle = COLORS.rosette;
+      starPath(ctx, x + cell / 2, y + cell / 2, cell * 0.38, cell * 0.2, 8);
+      ctx.fill();
+    }
+  }
 
   ctx.strokeStyle = COLORS.line;
   ctx.lineWidth = 1;
@@ -374,7 +386,7 @@ export function drawBoard(px: number, layout: FrameLayout): HTMLCanvasElement {
     const spot = squareSpot(seat, square);
     const { x, y } = cellCorner(layout, spot.x, spot.z);
     ctx.save();
-    if (seat === 1 && !(square >= 5 && square <= 15)) {
+    if (seat === 1 && !shared(square)) {
       ctx.translate(x + cell, y + cell);
       ctx.rotate(Math.PI);
     } else {
@@ -384,7 +396,7 @@ export function drawBoard(px: number, layout: FrameLayout): HTMLCanvasElement {
     ctx.restore();
   }
   for (const seat of [0, 1]) {
-    for (const [square, label] of [[0, "entra"], [18, "sai"]] as const) {
+    for (const [square, label] of [[0, "entra"], [EXIT, "sai"]] as const) {
       const spot = square === 0 ? entrySpot(seat) : squareSpot(seat, square);
       const { x, y } = cellCorner(layout, spot.x, spot.z);
       const cx = x + cell / 2;

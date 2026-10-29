@@ -22,11 +22,11 @@ import {
 } from "../src/table/layout";
 
 describe("the track", () => {
-  it("follows the RFC: entry lane in columns 4 to 1, middle lane in row 6 from column 1 to 11, exit lane in columns 11 and 10", () => {
+  it("follows the board of Ur: entry lane in columns 6 to 3, middle lane in row 6 from column 3 to 10, exit lane in columns 10 and 9", () => {
     // The columns count from 1 on the left: column c is at x = c - 6.
-    expect([1, 2, 3, 4].map((s) => squareSpot(0, s).x)).toEqual([-2, -3, -4, -5]);
-    expect([5, 6, 15].map((s) => squareSpot(0, s))).toEqual([{ x: -5, z: 0 }, { x: -4, z: 0 }, { x: 5, z: 0 }]);
-    expect([16, 17, EXIT].map((s) => squareSpot(0, s).x)).toEqual([5, 4, 3]);
+    expect([1, 2, 3, 4].map((s) => squareSpot(0, s).x)).toEqual([0, -1, -2, -3]);
+    expect([5, 6, 12].map((s) => squareSpot(0, s))).toEqual([{ x: -3, z: 0 }, { x: -2, z: 0 }, { x: 4, z: 0 }]);
+    expect([13, 14, EXIT].map((s) => squareSpot(0, s).x)).toEqual([4, 3, 2]);
   });
 
   it("puts the own lanes on the row of each player and the middle lane on the central row", () => {
@@ -38,8 +38,8 @@ describe("the track", () => {
   });
 
   it("shares the middle lane and keeps the own lanes apart", () => {
-    for (let s = 5; s <= 15; s++) expect(squareSpot(0, s)).toEqual(squareSpot(1, s));
-    for (const s of [1, 2, 3, 4, 16, 17]) expect(squareSpot(0, s)).not.toEqual(squareSpot(1, s));
+    for (let s = 5; s <= 12; s++) expect(squareSpot(0, s)).toEqual(squareSpot(1, s));
+    for (const s of [1, 2, 3, 4, 13, 14]) expect(squareSpot(0, s)).not.toEqual(squareSpot(1, s));
   });
 
   it("has the red square in the middle of the board", () => {
@@ -48,7 +48,7 @@ describe("the track", () => {
   });
 
   it("names the three lanes", () => {
-    expect([1, 4, 5, 15, 16, 17].map(laneOf)).toEqual(["entry", "entry", "middle", "middle", "exit", "exit"]);
+    expect([1, 4, 5, 12, 13, 14].map(laneOf)).toEqual(["entry", "entry", "middle", "middle", "exit", "exit"]);
   });
 
   it("finds the square of a cell, and nothing off the track", () => {
