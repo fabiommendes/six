@@ -103,13 +103,13 @@ adversário.
 
 - Um dado sai com o número exato que o leva à casa 15. O valor dele vira
   pontos do dono.
-- Vence quem chegar a 12 pontos.
+- Vence quem chegar a 10 pontos.
 - Quem tira da trilha todos os seus dados, com a reserva vazia, encerra a
   partida: vence quem tem mais pontos e, no empate, quem encerrou.
 
 > **Design:** os dois lados começam com 21 pontos. O desgaste e o encostar
 > queimam pontos, e a perda acima de 6 na fusão também. Uma
-> partida com muito contato pode deixar os dois abaixo de 12, e aí só a
+> partida com muito contato pode deixar os dois abaixo de 10, e aí só a
 > segunda condição decide. Ela não dá a vitória a quem leva todos os dados:
 > sem isso, fundir os dados e queimar pontos para levar menos dados vencia
 > (ver [Medições](#medições)).
@@ -157,12 +157,12 @@ adversário.
   adversário; a trilha passa a ser a do Ur (14 casas), com as três rosetas
   dando outra jogada e a do centro protegendo. Isso substitui as decisões
   anteriores sobre a trilha, o lance extra e a troca.
+- 2026-10-28, designer: a meta cai de 12 para 10 pontos, para medir.
 
 ## Open questions
 
-- **Meta de pontos**: com o desgaste, quem vence termina com 9,5 pontos em
-  média, e só 36% das partidas entre dois expectimax acabam nos 12 pontos.
-  Baixar a meta para 10? Ver [Medições](#medições).
+- **Meta de pontos**: com 10, 55% das partidas entre dois expectimax acabam
+  na meta. Manter 10 ou tirar a meta? Ver [Medições](#medições).
 - **O dado grande ainda domina?** Mesmo com a ordem de entrada, depois que
   todos entram, o 6 vence todo contato, menos o sacrifício. Medir nos bots.
 - **Kit**: entram os 4 dados binários e dados extras por cor. Contar nos bots
@@ -244,6 +244,24 @@ Regra atual: trilha do Ur, rosetas com outra jogada, desgaste, comer com
   pouco mais de vantagem a quem começa.
 - A habilidade pesa um pouco menos que na regra anterior (60,4% contra
   63,1% do expectimax sobre o guloso).
+
+### Meta de 10 pontos
+
+Mesma regra, com a meta em 10. Lotes de 12.000 partidas, metade com cada bot
+começando.
+
+| Partida | Vitória do primeiro bot | Primeiro jogador | Turnos | Fim nos 10 pontos |
+|---|---|---|---|---|
+| expecti × aleatório | 79,7% | 53,8% | 59 | 57% |
+| expecti × guloso | 59,1% | 53,7% | 66 | 63% |
+| expecti × expecti | 50% | 53,8% | 66 | 55% |
+
+- A meta passa a decidir mais da metade das partidas (36% com 12).
+- A partida encurta uns 4 turnos.
+- O resto quase não muda: o expectimax vence o guloso em 59,1% (60,4% com
+  12), o primeiro jogador vence 54%, e quem vence termina com 8,9 pontos em
+  média.
+- Quem tem mais jogadas extras vence 63% das partidas entre dois expectimax.
 
 ## Outcome
 

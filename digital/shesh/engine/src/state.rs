@@ -27,7 +27,7 @@ pub const SHARED: RangeInclusive<u8> = 5..=12;
 /// are on the own lanes, out of reach).
 pub const ROSETTES: [u8; 3] = [4, 8, 14];
 pub const MAX_VALUE: u8 = 6;
-pub const POINTS_TO_WIN: u8 = 12;
+pub const POINTS_TO_WIN: u8 = 10;
 pub const BINARY_DICE: u8 = 4;
 
 /// The open questions of the RFC, as switches for experiments. The default

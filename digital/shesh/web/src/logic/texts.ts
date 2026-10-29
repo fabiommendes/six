@@ -64,7 +64,7 @@ export function endText(reason: EndReason, names: readonly string[], view?: Pick
   const name = names[reason.player] ?? "";
   switch (reason.kind) {
     case "points":
-      return `${name} chegou a 12 pontos.`;
+      return `${name} chegou a 10 pontos.`;
     case "allHome": {
       const points = view ? ` (${pointsText(view.players[reason.player]!.points)} contra ${view.players[1 - reason.player]!.points})` : "";
       return `Todos os dados de um jogador saíram da trilha, e a partida acabou. Venceu quem tem mais pontos${points}: ${name}.`;
@@ -210,5 +210,5 @@ export const RULES_CARD: readonly { readonly title: string; readonly text: strin
   { title: "Desgastar", text: "Em casa de adversário, com um dado menor ou igual: o seu volta para a reserva e o dado dele perde o valor do seu para sempre. De mesmo valor, ele sai do jogo." },
   { title: "Encostar", text: "Na pista do meio, parar logo atrás de um dado do adversário tira 1 dele. Um 1 não perde. Passar por cima de dados não custa nada." },
   { title: "Rosetas", text: "As casas com estrela, como no Ur: a 4, a casa vermelha do centro e a 14. Quem para numa roseta joga de novo. A do centro protege o dado de ser comido, desgastado ou encostado, e o adversário não pode parar nela." },
-  { title: "Saída e fim", text: "Um dado sai com o número exato que o leva à saída, e o valor dele vira pontos. Vence quem chegar a 12 pontos. Se um jogador tira da trilha todos os seus dados, a partida acaba e vence quem tem mais pontos (no empate, quem encerrou)." },
+  { title: "Saída e fim", text: "Um dado sai com o número exato que o leva à saída, e o valor dele vira pontos. Vence quem chegar a 10 pontos. Se um jogador tira da trilha todos os seus dados, a partida acaba e vence quem tem mais pontos (no empate, quem encerrou)." },
 ];

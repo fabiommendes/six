@@ -515,7 +515,7 @@ export class GameScreen {
         return `<article class="player${active ? " active" : ""}${won ? " won" : ""}" style="--seat:${seatColor(i)}">
           <div class="seat-dot"></div>
           <div class="who"><div class="name">${esc(this.names[i]!)}</div><div class="tags">${bot}${state}</div></div>
-          <div class="score"><b>${player.points}</b><span>de 12 pontos</span></div>
+          <div class="score"><b>${player.points}</b><span>de 10 pontos</span></div>
           <div class="facts">
             <span title="Dados da reserva e dados na trilha">${esc(diceText(player.reserve.length, onTrack))}</span>
           </div>

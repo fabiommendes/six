@@ -19,7 +19,7 @@ export const SHARED_LAST = 12;
 /** The red square in the middle of the board. */
 export const ROSETTE = 8;
 /** Points that win. */
-export const POINTS_TO_WIN = 12;
+export const POINTS_TO_WIN = 10;
 
 /** A random seed for the rolls of a new game. */
 export function randomSeed(): bigint {

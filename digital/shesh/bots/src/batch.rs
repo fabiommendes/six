@@ -203,7 +203,7 @@ pub fn summary(config: &Config, records: &[Record]) -> String {
     }
     let _ = writeln!(
         out,
-        "end by 12 points {:5.1}%, by all dice home {:5.1}%",
+        "end by 10 points {:5.1}%, by all dice home {:5.1}%",
         rate(by_points),
         rate(ended.len() - by_points)
     );

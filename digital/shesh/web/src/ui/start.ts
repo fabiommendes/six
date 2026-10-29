@@ -92,7 +92,7 @@ export function showStart(host: HTMLElement, options: StartOptions): void {
     host.innerHTML = `<div class="start-wrap"><div class="start">
       <div class="brand">${brandMark(26)}<span>SIX</span></div>
       <h1>Shesh</h1>
-      <p class="sub">Corrida de dados para dois. Cada dado é peça, força e pontos: coma, desgaste, funda e leve os seus dados até a saída. Vence quem chegar a 12 pontos.</p>
+      <p class="sub">Corrida de dados para dois. Cada dado é peça, força e pontos: coma, desgaste, funda e leve os seus dados até a saída. Vence quem chegar a 10 pontos.</p>
       <div class="dice-row">${dice}</div>
       ${resume}
       <form class="new-game">

@@ -29,7 +29,7 @@ pub enum Command {
 #[cfg_attr(feature = "wire", serde(tag = "kind", rename_all = "camelCase"))]
 #[cfg_attr(feature = "wire", ts(export))]
 pub enum EndReason {
-    /// The player reached 12 points.
+    /// The player reached 10 points.
     Points { player: usize },
     /// A player took every die off the track, with an empty reserve, and
     /// `player` had more points (or ended it on a tie; see

@@ -67,7 +67,7 @@ test("random games end with a winner and a reason", () => {
     assert.ok(["points", "allHome"].includes(view.end.kind));
     assert.equal(view.end.player, view.winner);
     assert.deepEqual(view.moves, []);
-    if (view.end.kind === "points") assert.ok(view.players[view.winner].points >= 12);
+    if (view.end.kind === "points") assert.ok(view.players[view.winner].points >= 10);
   }
 });
 

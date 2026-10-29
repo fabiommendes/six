@@ -83,7 +83,7 @@ describe("texts", () => {
 
   it("names the end of the game and the winner", () => {
     const view = { players: [{ points: 12 }, { points: 3 }] } as never;
-    expect(endText({ kind: "points", player: 0 }, NAMES)).toBe("Ana chegou a 12 pontos.");
+    expect(endText({ kind: "points", player: 0 }, NAMES)).toBe("Ana chegou a 10 pontos.");
     expect(endText({ kind: "allHome", player: 1 }, NAMES, view)).toMatch(/Venceu quem tem mais pontos \(3 pontos contra 12\): Bia/);
     expect(winnerText(1, NAMES)).toBe("Bia venceu!");
     expect(winnerText(null, NAMES)).toBe("");
