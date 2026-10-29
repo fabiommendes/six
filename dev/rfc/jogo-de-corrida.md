@@ -158,6 +158,8 @@ adversário.
   dando outra jogada e a do centro protegendo. Isso substitui as decisões
   anteriores sobre a trilha, o lance extra e a troca.
 - 2026-10-28, designer: a meta cai de 12 para 10 pontos, para medir.
+- 2026-10-29, designer, depois de medir a entrada livre: a entrada continua
+  em ordem, do menor dado.
 
 ## Open questions
 
@@ -262,6 +264,27 @@ começando.
   12), o primeiro jogador vence 54%, e quem vence termina com 8,9 pontos em
   média.
 - Quem tem mais jogadas extras vence 63% das partidas entre dois expectimax.
+
+### Entrada livre
+
+Meta de 10, com a entrada livre (qualquer dado da reserva) no lugar da entrada
+em ordem. Lotes de 12.000 partidas.
+
+| Partida | Vitória do primeiro bot | Primeiro jogador | Turnos | Fim nos 10 pontos |
+|---|---|---|---|---|
+| expecti × aleatório | 82,5% | 52,9% | 52 | 54% |
+| expecti × guloso | 58,2% | 53,4% | 62 | 71% |
+| expecti × expecti | 50% | 53,0% | 61 | 61% |
+
+- Os bots abrem com os dados grandes: entre dois expectimax, dos três
+  primeiros dados de cada jogador, 88% são 4, 5 ou 6; o resto é quase todo 1.
+- O dado grande que entra cedo não sofre mais: por partida entre dois
+  expectimax, 1,3 dado de 6 desgastado nas duas regras, e o 5 é comido 0,4
+  vez nas duas. O 6 não pode ser comido, e o desgaste custa um dado de quem
+  desgasta.
+- A partida encurta 4 turnos, e o desgaste queima quase o mesmo (9,8 pontos
+  contra 10,2).
+- A habilidade pesa um pouco menos contra o guloso (58,2% contra 59,1%).
 
 ## Outcome
 

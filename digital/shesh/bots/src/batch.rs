@@ -51,6 +51,14 @@ pub struct Record {
     pub captures_by_value: [u32; 7],
     /// Wears by the value of the wearing die.
     pub wears_by_value: [u32; 7],
+    /// Entries by the value of the entering die.
+    pub entries_by_value: [u32; 7],
+    /// Entries of each player's first three dice, by value.
+    pub opening_by_value: [u32; 7],
+    /// Eaten dice by their value.
+    pub eaten_by_value: [u32; 7],
+    /// Worn dice by their value before the wear.
+    pub worn_by_value: [u32; 7],
 }
 
 pub fn play(config: &Config, seed: u64, swapped: bool) -> Result<Record, String> {
@@ -66,19 +74,29 @@ pub fn play(config: &Config, seed: u64, swapped: bool) -> Result<Record, String>
         first: state.to_move(),
         ..Record::default()
     };
+    let mut entered = [0u8; PLAYERS];
     while state.end().is_none() && state.turn() < MAX_TURNS {
         let command = bots[state.to_move()].choose(&state);
         let (next, events) = state.apply(command).map_err(|e| e.to_string())?;
         for event in events {
             match event {
+                Event::Entered { player, value, .. } => {
+                    record.entries_by_value[value as usize] += 1;
+                    if entered[player] < 3 {
+                        record.opening_by_value[value as usize] += 1;
+                    }
+                    entered[player] += 1;
+                }
                 Event::Captured { value, taken, .. } => {
                     record.captures += 1;
                     record.captures_by_value[(value + taken - 1) as usize] += 1;
+                    record.eaten_by_value[taken as usize] += 1;
                 }
-                Event::Worn { value, .. } => {
+                Event::Worn { value, left, .. } => {
                     record.wears += 1;
                     record.worn_away += u32::from(value);
                     record.wears_by_value[value as usize] += 1;
+                    record.worn_by_value[(value + left) as usize] += 1;
                 }
                 Event::Touched { .. } => record.touches += 1,
                 Event::Fused { lost, .. } => {
@@ -279,6 +297,26 @@ pub fn summary(config: &Config, records: &[Record]) -> String {
         out,
         "wears by wearer value 1-6:   {:?}",
         &sum(&|r| r.wears_by_value)[1..]
+    );
+    let _ = writeln!(
+        out,
+        "entries by value 1-6:        {:?}",
+        &sum(&|r| r.entries_by_value)[1..]
+    );
+    let _ = writeln!(
+        out,
+        "first 3 entries by value:    {:?}",
+        &sum(&|r| r.opening_by_value)[1..]
+    );
+    let _ = writeln!(
+        out,
+        "eaten by value 1-6:          {:?}",
+        &sum(&|r| r.eaten_by_value)[1..]
+    );
+    let _ = writeln!(
+        out,
+        "worn by value 1-6:           {:?}",
+        &sum(&|r| r.worn_by_value)[1..]
     );
     out
 }
