@@ -29,6 +29,10 @@ money: Array<number>,
  */
 order: Array<number>, bought: Array<Kind | null>, 
 /**
+ * Whether the standard mission is on the table: not sabotaged.
+ */
+standard: boolean, 
+/**
  * The cards of the table, `null` once sabotaged.
  */
 table: Array<Mission | null>, markers: Array<Spot | null>, 

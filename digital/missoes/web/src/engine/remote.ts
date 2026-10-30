@@ -57,6 +57,12 @@ export class RemoteGame implements MissionsGame {
     return response.view;
   }
 
+  async check(answer: Answer): Promise<string | null> {
+    const response = await this.request({ op: "check", answer });
+    if (!("problem" in response)) throw new Error("expected a check");
+    return response.problem;
+  }
+
   apply(answer: Answer): Promise<Step> {
     return this.step({ op: "apply", answer });
   }

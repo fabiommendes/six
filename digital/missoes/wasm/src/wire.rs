@@ -60,32 +60,48 @@ impl From<engine::Kind> for Kind {
     }
 }
 
-/// A mission, as `missoes_engine::Mission`.
+/// A mission, as `missoes_engine::Mission`. The number missions are flat
+/// variants, `ones` to `sixes` for `Mission::Number(1)` to `Number(6)`, so a
+/// mission crosses as a plain string.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub enum Mission {
     Standard,
-    Present,
-    Sequence,
+    Bonus,
+    Distinct,
     Even,
     Odd,
     High,
     Low,
     TwoGroups,
+    Ones,
+    Twos,
+    Threes,
+    Fours,
+    Fives,
+    Sixes,
 }
 
 impl From<engine::Mission> for Mission {
     fn from(mission: engine::Mission) -> Mission {
         match mission {
             engine::Mission::Standard => Mission::Standard,
-            engine::Mission::Present => Mission::Present,
-            engine::Mission::Sequence => Mission::Sequence,
+            engine::Mission::Bonus => Mission::Bonus,
+            engine::Mission::Distinct => Mission::Distinct,
             engine::Mission::Even => Mission::Even,
             engine::Mission::Odd => Mission::Odd,
             engine::Mission::High => Mission::High,
             engine::Mission::Low => Mission::Low,
             engine::Mission::TwoGroups => Mission::TwoGroups,
+            engine::Mission::Number(n) => match n {
+                1 => Mission::Ones,
+                2 => Mission::Twos,
+                3 => Mission::Threes,
+                4 => Mission::Fours,
+                5 => Mission::Fives,
+                _ => Mission::Sixes,
+            },
         }
     }
 }
@@ -140,9 +156,10 @@ pub enum Action {
         target: usize,
         up: bool,
     },
-    /// Remove card `card` of the table, for points (`View.sabotageCost`).
+    /// Remove mission `spot` of the table for the round, the standard too,
+    /// for points (`View.sabotageCost`).
     Sabotage {
-        card: usize,
+        spot: Spot,
     },
 }
 
@@ -161,8 +178,8 @@ impl From<Action> for engine::Action {
                 target,
                 up,
             },
-            Action::Sabotage { card } => engine::Action::Sabotage {
-                card,
+            Action::Sabotage { spot } => engine::Action::Sabotage {
+                spot: spot.into(),
                 payment: Payment::Point,
             },
         }
@@ -187,9 +204,9 @@ impl TryFrom<engine::Action> for Action {
                 up,
             },
             engine::Action::Sabotage {
-                card,
+                spot,
                 payment: Payment::Point,
-            } => Action::Sabotage { card },
+            } => Action::Sabotage { spot: spot.into() },
             engine::Action::Sabotage { .. } => return Err("a sabotage paid with a die".into()),
         })
     }
@@ -288,15 +305,15 @@ fn hands(round: &engine::Round) -> Vec<Vec<Die>> {
 }
 
 /// For each player, the result of the hand on each spot: the standard
-/// mission first, then the cards of the table in order (0 for a card
+/// mission first, then the cards of the table in order (0 for a mission
 /// sabotaged).
-fn results(round: &engine::Round, bonus: u8) -> Vec<Vec<u8>> {
+fn results(round: &engine::Round, scoring: engine::Scoring) -> Vec<Vec<u8>> {
     (0..round.rolls.len())
         .map(|p| {
             let hand = round.hand(p);
             std::iter::once(engine::Spot::Standard)
                 .chain((0..round.table.len()).map(engine::Spot::Card))
-                .map(|spot| round.mission(spot).map_or(0, |m| m.result(&hand, bonus)))
+                .map(|spot| round.mission(spot).map_or(0, |m| m.result(&hand, scoring)))
                 .collect()
         })
         .collect()
@@ -318,6 +335,8 @@ pub struct RoundView {
     /// The order of the round, empty before the money is known.
     pub order: Vec<usize>,
     pub bought: Vec<Option<Kind>>,
+    /// Whether the standard mission is on the table: not sabotaged.
+    pub standard: bool,
     /// The cards of the table, `null` once sabotaged.
     pub table: Vec<Option<Mission>>,
     pub markers: Vec<Option<Spot>>,
@@ -349,17 +368,18 @@ pub enum Decision {
     Cash { options: Vec<usize> },
     /// Buy one of the showcase, or none.
     Buy { options: Vec<usize> },
-    /// Put the marker on one of `spots`; `moved` when its card was
+    /// Put the marker on one of `spots`; `moved` when its mission was
     /// sabotaged.
     Place { spots: Vec<Spot>, moved: bool },
     /// A turn: the dice that can be sacrificed (any other dice of the hand
     /// can be rerolled with it), the zeros and modifiers ready, and the
-    /// cards that can be sabotaged. Passing is always legal.
+    /// missions that can be sabotaged, the standard too. Passing is always
+    /// legal.
     Act {
         sacrifice: Vec<usize>,
         zeros: Vec<Use>,
         modifiers: Vec<Use>,
-        sabotage: Vec<usize>,
+        sabotage: Vec<Spot>,
     },
 }
 
@@ -419,13 +439,16 @@ impl Pending {
                         target,
                         up: true,
                     }),
-                    sabotage: (0..round.table.len())
-                        .filter(|&card| {
+                    sabotage: round
+                        .spots()
+                        .into_iter()
+                        .filter(|&spot| {
                             act(engine::Action::Sabotage {
-                                card,
+                                spot,
                                 payment: Payment::Point,
                             })
                         })
+                        .map(Spot::from)
                         .collect(),
                 }
             }
@@ -470,7 +493,7 @@ impl Played {
     fn of(steps: &Steps) -> Option<Played> {
         let last = steps.last()?;
         let (round, log) = (&last.round, &last.log);
-        let bonus = steps.game().rules.bonus;
+        let scoring = steps.game().rules.scoring();
         Some(Played {
             round: steps.game().round,
             hands: hands(round),
@@ -478,7 +501,7 @@ impl Played {
             bought: log.bought.iter().map(|k| k.map(Kind::from)).collect(),
             missions: log.missions.iter().map(|&m| m.into()).collect(),
             results: (0..log.missions.len())
-                .map(|p| log.missions[p].result(&round.hand(p), bonus))
+                .map(|p| log.missions[p].result(&round.hand(p), scoring))
                 .collect(),
             deltas: log.deltas.clone(),
             cashed: log.cashed.clone(),
@@ -531,7 +554,7 @@ pub struct View {
 impl View {
     pub fn of(steps: &Steps, bots: &[Option<String>]) -> View {
         let game = steps.game();
-        let bonus = game.rules.bonus;
+        let scoring = game.rules.scoring();
         let current = steps.round().map(|round| RoundView {
             hands: hands(round),
             cash: round.cash.clone(),
@@ -539,11 +562,12 @@ impl View {
             money: (0..game.players()).map(|p| round.money(p)).collect(),
             order: round.order.clone(),
             bought: round.bought.iter().map(|k| k.map(Kind::from)).collect(),
+            standard: round.standard,
             table: round.table.iter().map(|m| m.map(Mission::from)).collect(),
             markers: round.markers.iter().map(|s| s.map(Spot::from)).collect(),
             active: steps.active().to_vec(),
-            results: results(round, bonus),
-            score: round.score(bonus),
+            results: results(round, scoring),
+            score: round.score(scoring),
         });
         View {
             players: game.players(),
@@ -615,6 +639,20 @@ mod tests {
         assert_eq!(
             engine::Answer::from(place),
             engine::Answer::Place(engine::Spot::Card(2))
+        );
+        let sabotage: Answer =
+            from_json(r#"{"kind":"act","action":{"kind":"sabotage","spot":{"kind":"standard"}}}"#)
+                .unwrap();
+        assert_eq!(
+            engine::Answer::from(sabotage),
+            engine::Answer::Act(engine::Action::Sabotage {
+                spot: engine::Spot::Standard,
+                payment: Payment::Point
+            })
+        );
+        assert_eq!(
+            to_json(&Mission::from(engine::Mission::Number(3))),
+            r#""threes""#
         );
         let buy: Answer = from_json(r#"{"kind":"buy","die":null}"#).unwrap();
         assert_eq!(engine::Answer::from(buy), engine::Answer::Buy(None));

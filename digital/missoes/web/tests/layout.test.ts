@@ -18,7 +18,7 @@ describe("the table layout", () => {
   it("keeps hands, reserves, cards and the showcase inside the table", () => {
     for (const tray of trays(4)) {
       for (let i = 0; i < 7; i++) expect(inside(handSpot(tray, i, 7).x, handSpot(tray, i, 7).z)).toBe(true);
-      for (let i = 0; i < 24; i++) expect(inside(reserveSpot(tray, i).x, reserveSpot(tray, i).z)).toBe(true);
+      for (const count of [6, 14, 24]) for (let i = 0; i < count; i++) expect(inside(reserveSpot(tray, i, count).x, reserveSpot(tray, i, count).z)).toBe(true);
     }
     expect(cardSpot(4).x + 1.2).toBeLessThan(showcaseSpot(0).x - 0.5);
     for (let i = 0; i < 8; i++) expect(inside(showcaseSpot(i).x, showcaseSpot(i).z)).toBe(true);

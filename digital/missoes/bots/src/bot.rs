@@ -1,6 +1,6 @@
 //! The bots.
 
-use missoes_engine::{Action, Game, Kind, Payment, Player, Rng, Rolled, Round, Spot};
+use missoes_engine::{Action, Game, Kind, Mission, Payment, Player, Rng, Rolled, Round, Spot};
 
 /// The names [`by_name`] knows.
 pub const BOTS: [&str; 5] = ["random", "greedy", "nobuy", "nosabotage", "nosac"];
@@ -40,7 +40,7 @@ pub fn by_name(name: &str, seed: u64) -> Result<Box<dyn Player>, String> {
 
 /// The bot's view of the round: its points minus the best of the others.
 fn margin(game: &Game, round: &Round, me: usize) -> f64 {
-    let points = round.score(game.rules.bonus);
+    let points = round.score(game.rules.scoring());
     let best_other = (0..points.len())
         .filter(|&p| p != me)
         .map(|p| points[p])
@@ -61,6 +61,137 @@ fn best_spot(game: &Game, round: &Round, me: usize) -> Spot {
         }
     }
     best.1
+}
+
+/// What a mission keeps of a hand: the dice with a value in the bits of
+/// `values`, or with `single`, one die of each value.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Plan {
+    values: u8,
+    single: bool,
+}
+
+impl Plan {
+    const fn of(values: u8) -> Plan {
+        Plan {
+            values,
+            single: false,
+        }
+    }
+
+    /// The plans worth trying for `mission`.
+    fn all(mission: Mission) -> Vec<Plan> {
+        match mission {
+            Mission::Standard | Mission::Bonus => (1..=6).map(|v| Plan::of(1 << v)).collect(),
+            Mission::Number(n) => vec![Plan::of(1 << n)],
+            Mission::Even => vec![Plan::of(0b101_0100)],
+            Mission::Odd => vec![Plan::of(0b010_1010)],
+            Mission::High => vec![Plan::of(0b110_0000)],
+            Mission::Low => vec![Plan::of(0b000_0110)],
+            Mission::TwoGroups => (1..=6)
+                .flat_map(|a| (a + 1..=6).map(move |b| Plan::of(1 << a | 1 << b)))
+                .collect(),
+            Mission::Distinct => vec![Plan {
+                values: 0b111_1110,
+                single: true,
+            }],
+        }
+    }
+
+    /// Which dice of the hand of `me` the plan keeps.
+    fn kept(self, round: &Round, me: usize) -> Vec<bool> {
+        let mut seen = 0u8;
+        (0..round.rolls[me].len())
+            .map(|i| {
+                let Some(v) = round.rolls[me][i].value().filter(|_| round.counts(me, i)) else {
+                    return false;
+                };
+                let keep = self.values >> v & 1 == 1 && !(self.single && seen >> v & 1 == 1);
+                seen |= 1 << v;
+                keep
+            })
+            .collect()
+    }
+
+    /// The chance that a reroll of `kind` lands on a value the plan keeps,
+    /// with `have` the bits of the values kept so far.
+    fn hit(self, kind: Kind, have: u8) -> f64 {
+        if kind == Kind::Modifier {
+            return 0.0;
+        }
+        let wanted = if self.single {
+            self.values & !have
+        } else {
+            self.values
+        };
+        let faces = kind.faces();
+        faces
+            .iter()
+            .filter(|&&f| f > 0 && wanted >> f & 1 == 1)
+            .count() as f64
+            / 6.0
+    }
+
+    /// The sacrifice that follows the plan: the die off the plan least
+    /// likely to help on a reroll goes out, keeping unused zeros and
+    /// modifiers for last, and the other dice off the plan that may help
+    /// are rerolled. `None` without dice to reroll. Also gives how much the
+    /// plan already keeps, for choosing among plans.
+    fn sacrifice(self, round: &Round, me: usize) -> (f64, Option<Action>) {
+        let kept = self.kept(round, me);
+        let have = (0..kept.len())
+            .filter(|&i| kept[i])
+            .fold(0u8, |bits, i| bits | 1 << round.rolls[me][i].face);
+        let die = |i: usize| round.rolls[me][i];
+        let fresh_action =
+            |i: usize| !round.used[me][i] && (die(i).is_zero() || die(i).kind == Kind::Modifier);
+        let mut off: Vec<usize> = (0..kept.len())
+            .filter(|&i| round.in_hand(me, i) && !kept[i])
+            .collect();
+        let hope: f64 = off.iter().map(|&i| self.hit(die(i).kind, have)).sum();
+        let worth = kept.iter().filter(|&&k| k).count() as f64 + hope / 2.0;
+        off.sort_by(|&i, &j| {
+            (fresh_action(i), self.hit(die(i).kind, have))
+                .partial_cmp(&(fresh_action(j), self.hit(die(j).kind, have)))
+                .unwrap()
+        });
+        let Some((&out, rest)) = off.split_first() else {
+            return (worth, None);
+        };
+        let rerolls: Vec<usize> = rest
+            .iter()
+            .copied()
+            .filter(|&i| !round.used[me][i] && self.hit(die(i).kind, have) > 0.0)
+            .collect();
+        if rerolls.is_empty() {
+            return (worth, None);
+        }
+        (worth, Some(Action::Sacrifice { out, rerolls }))
+    }
+}
+
+/// Plays the sacrifices of `me` on its mission to the end, following the
+/// best plan at each step, with dice rolled by `rng`.
+fn play_mission(game: &Game, round: &mut Round, me: usize, rng: &mut Rng) {
+    let Some(mission) = round.markers[me].and_then(|spot| round.mission(spot)) else {
+        return;
+    };
+    if !game.rules.sacrifice {
+        return;
+    }
+    loop {
+        let best = Plan::all(mission)
+            .into_iter()
+            .map(|plan| plan.sacrifice(round, me))
+            .max_by(|a, b| a.0.total_cmp(&b.0));
+        let Some((_, Some(Action::Sacrifice { out, rerolls }))) = best else {
+            return;
+        };
+        round.removed[me][out] = true;
+        for i in rerolls {
+            round.rolls[me][i] = round.rolls[me][i].kind.roll(rng);
+        }
+    }
 }
 
 /// The chance that a roll of `kind` shows `value` and counts it.
@@ -175,9 +306,7 @@ impl Player for Random {
         let hand: Vec<usize> = (0..round.rolls[me].len())
             .filter(|&i| round.in_hand(me, i))
             .collect();
-        let cards: Vec<usize> = (0..round.table.len())
-            .filter(|&i| round.table[i].is_some())
-            .collect();
+        let spots = round.spots();
         match self.0.below(10) {
             0..=2 if game.rules.sacrifice && hand.len() >= 2 => {
                 let out = hand[self.0.below(hand.len())];
@@ -187,9 +316,9 @@ impl Player for Random {
                     .collect();
                 Action::Sacrifice { out, rerolls }
             }
-            3 if game.points[me] >= game.rules.sabotage_points() && !cards.is_empty() => {
+            3 if game.points[me] >= game.rules.sabotage_points() && spots.len() > 1 => {
                 Action::Sabotage {
-                    card: cards[self.0.below(cards.len())],
+                    spot: spots[self.0.below(spots.len())],
                     payment: Payment::Point,
                 }
             }
@@ -221,6 +350,7 @@ pub struct Greedy {
 
 const SAMPLES: usize = 128;
 const SACRIFICE_SAMPLES: usize = 48;
+const SPOT_SAMPLES: usize = 24;
 /// A reserve die worth less than this, in points over the rounds left, is
 /// cashed when it helps.
 const CHEAP: f64 = 0.5;
@@ -300,49 +430,61 @@ impl Greedy {
 }
 
 impl Greedy {
-    /// The best sacrifice by the mean margin over a few samples: removing
-    /// any die and rerolling the counted dice off a value, or the repeated
-    /// dice.
-    fn best_sacrifice(&mut self, game: &Game, round: &Round, me: usize) -> Option<(f64, Action)> {
-        let size = round.rolls[me].len();
-        let hand: Vec<usize> = (0..size).filter(|&i| round.in_hand(me, i)).collect();
+    /// The spot with the best mean margin once `me` plays its sacrifices
+    /// there, over a few samples, the standard on a tie. The others stay as
+    /// they are.
+    fn best_spot(&mut self, game: &Game, round: &Round, me: usize) -> Spot {
         let seed = self.rng.next_u64();
+        let mut best = (f64::MIN, Spot::Standard);
+        for spot in round.spots() {
+            let mut rng = Rng::new(seed);
+            let mean = (0..SPOT_SAMPLES)
+                .map(|_| {
+                    let mut trial = round.clone();
+                    trial.markers[me] = Some(spot);
+                    play_mission(game, &mut trial, me, &mut rng);
+                    margin(game, &trial, me)
+                })
+                .sum::<f64>()
+                / SPOT_SAMPLES as f64;
+            if mean > best.0 {
+                best = (mean, spot);
+            }
+        }
+        best.1
+    }
+
+    /// The best sacrifice by the mean margin over a few samples, among the
+    /// plans of the mission of `me`: each plan keeps the dice the mission
+    /// wants, sacrifices the die least likely to help and rerolls the
+    /// others off the plan.
+    fn best_sacrifice(&mut self, game: &Game, round: &Round, me: usize) -> Option<(f64, Action)> {
+        let mission = round.markers[me].and_then(|spot| round.mission(spot))?;
+        let seed = self.rng.next_u64();
+        let mut options: Vec<Action> = Plan::all(mission)
+            .into_iter()
+            .filter_map(|plan| plan.sacrifice(round, me).1)
+            .collect();
+        options.dedup();
         let mut best: Option<(f64, Action)> = None;
-        for &out in &hand {
-            let counted: Vec<usize> = hand
-                .iter()
-                .copied()
-                .filter(|&i| i != out && round.counts(me, i))
-                .collect();
-            let face = |i: usize| round.rolls[me][i].face;
-            let mut options: Vec<Vec<usize>> = (1..=6)
-                .map(|v| counted.iter().copied().filter(|&i| face(i) != v).collect())
-                .collect();
-            options.push(
-                counted
-                    .iter()
-                    .copied()
-                    .filter(|&i| counted.iter().any(|&j| j < i && face(j) == face(i)))
-                    .collect(),
-            );
-            options.sort();
-            options.dedup();
-            for rerolls in options {
-                let mut rng = Rng::new(seed);
-                let mut trial = round.clone();
-                trial.removed[me][out] = true;
-                let mean = (0..SACRIFICE_SAMPLES)
-                    .map(|_| {
-                        for &i in &rerolls {
-                            trial.rolls[me][i] = round.rolls[me][i].kind.roll(&mut rng);
-                        }
-                        margin(game, &trial, me)
-                    })
-                    .sum::<f64>()
-                    / SACRIFICE_SAMPLES as f64;
-                if best.as_ref().is_none_or(|b| mean > b.0) {
-                    best = Some((mean, Action::Sacrifice { out, rerolls }));
-                }
+        for action in options {
+            let Action::Sacrifice { out, ref rerolls } = action else {
+                unreachable!()
+            };
+            let mut rng = Rng::new(seed);
+            let mut trial = round.clone();
+            trial.removed[me][out] = true;
+            let mean = (0..SACRIFICE_SAMPLES)
+                .map(|_| {
+                    for &i in rerolls {
+                        trial.rolls[me][i] = round.rolls[me][i].kind.roll(&mut rng);
+                    }
+                    margin(game, &trial, me)
+                })
+                .sum::<f64>()
+                / SACRIFICE_SAMPLES as f64;
+            if best.as_ref().is_none_or(|b| mean > b.0) {
+                best = Some((mean, action));
             }
         }
         best
@@ -478,7 +620,7 @@ impl Player for Greedy {
     }
 
     fn place(&mut self, game: &Game, round: &Round, me: usize) -> Spot {
-        best_spot(game, round, me)
+        self.best_spot(game, round, me)
     }
 
     fn act(&mut self, game: &Game, round: &Round, me: usize) -> Action {
@@ -527,21 +669,25 @@ impl Player for Greedy {
         }
         if self.sabotages {
             let payments = self.payments(game, round, me);
-            for card in (0..round.table.len()).filter(|&c| round.table[c].is_some()) {
+            let spots = round.spots();
+            for &spot in spots.iter().filter(|_| spots.len() > 1) {
                 for &(cost, payment) in &payments {
                     let mut trial = round.clone();
-                    trial.table[card] = None;
+                    match spot {
+                        Spot::Standard => trial.standard = false,
+                        Spot::Card(card) => trial.table[card] = None,
+                    }
                     if let Payment::Die(i) = payment {
                         trial.removed[me][i] = true;
                     }
                     for q in round.order.iter().copied() {
-                        if trial.markers[q] == Some(Spot::Card(card)) {
+                        if trial.markers[q] == Some(spot) {
                             trial.markers[q] = Some(best_spot(game, &trial, q));
                         }
                     }
                     consider(
                         margin(game, &trial, me) - cost,
-                        Action::Sabotage { card, payment },
+                        Action::Sabotage { spot, payment },
                         &mut best,
                     );
                 }

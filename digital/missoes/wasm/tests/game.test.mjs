@@ -62,7 +62,7 @@ function randomAnswer(view, random) {
         return { kind: "act", action: { kind: "modify", modifier: use.die, target: pick(use.targets), up: random() < 0.5 } };
       }
       if (roll < 0.6 && decision.sabotage.length > 0) {
-        return { kind: "act", action: { kind: "sabotage", card: pick(decision.sabotage) } };
+        return { kind: "act", action: { kind: "sabotage", spot: pick(decision.sabotage) } };
       }
       return { kind: "act", action: { kind: "pass" } };
     }
@@ -79,6 +79,21 @@ function play(game, seed) {
   while (view.pending !== null) {
     const step = game.botToMove() ? json(game.playBot()) : json(game.apply(JSON.stringify(randomAnswer(view, random))));
     seen.add(step.answer.kind === "act" ? step.answer.action.kind : step.answer.kind);
+    if (step.answer.kind === "act" && step.answer.action.kind === "sabotage") {
+      const spot = step.answer.action.spot;
+      seen.add(`sabotage ${spot.kind}`);
+      const current = step.view.current;
+      if (spot.kind === "standard") assert.equal(current.standard, false);
+      else assert.equal(current.table[spot.card], null);
+    }
+    for (const mission of step.view.table) seen.add(`mission ${mission}`);
+    const decision = step.view.pending?.decision;
+    if (decision?.kind === "act") {
+      // The last mission on the table cannot be sabotaged.
+      const current = step.view.current;
+      const left = (current.standard ? 1 : 0) + current.table.filter((m) => m !== null).length;
+      if (left <= 1) assert.deepEqual(decision.sabotage, []);
+    }
     assert.equal(step.player, view.pending.player);
     assert.deepEqual(step.view, json(game.view()));
     view = step.view;
@@ -110,6 +125,10 @@ test("people and bots play whole games with 2 to 4 seats", () => {
   for (const kind of ["select", "cash", "buy", "place", "pass", "sacrifice", "zero", "modify", "sabotage"]) {
     assert.ok(seen.has(kind), `no ${kind} answer was played`);
   }
+  for (const kind of ["sabotage standard", "sabotage card"]) assert.ok(seen.has(kind), `no ${kind}`);
+  for (const mission of ["bonus", "distinct", "even", "odd", "high", "low", "twoGroups", "ones", "twos", "threes", "fours", "fives", "sixes"]) {
+    assert.ok(seen.has(`mission ${mission}`), `the card ${mission} never came to the table`);
+  }
 });
 
 test("the first view: six dice each, the showcase and a card per player", () => {
@@ -133,9 +152,12 @@ test("illegal answers throw and change nothing", () => {
   assert.throws(() => game.apply(JSON.stringify({ kind: "buy", die: 0 })), /answered/);
   assert.throws(() => game.apply("{}"));
   assert.throws(() => game.playBot(), /not a bot/);
+  assert.match(game.check(JSON.stringify({ kind: "select", dice: [0, 1] })), /selected/);
+  assert.equal(game.check(JSON.stringify({ kind: "select", dice: [0, 1, 2, 3, 4, 5] })), undefined);
   assert.equal(game.view(), before);
   game.apply(JSON.stringify({ kind: "select", dice: [0, 1, 2, 3, 4, 5] }));
   assert.ok(game.botToMove());
+  assert.match(game.check(JSON.stringify({ kind: "select", dice: [0, 1, 2, 3, 4, 5] })), /is a bot/);
   assert.throws(() => game.apply(JSON.stringify({ kind: "select", dice: [0, 1, 2, 3, 4, 5] })), /is a bot/);
 });
 

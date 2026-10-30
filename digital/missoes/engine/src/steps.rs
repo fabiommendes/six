@@ -47,10 +47,10 @@ enum Stage {
     Buy(usize),
     Place(usize),
     Act(usize),
-    /// The players on sabotaged `card` move their markers, in the order of
+    /// The players on sabotaged `spot` move their markers, in the order of
     /// the round from position `from`; then the turn at `resume` follows.
     Move {
-        card: usize,
+        spot: Spot,
         from: usize,
         resume: usize,
     },
@@ -237,10 +237,17 @@ impl Steps {
                 self.round.markers[p] = Some(spot);
                 self.stage = Stage::Place(i + 1);
             }
-            (Stage::Move { card, from, resume }, Answer::Place(spot)) => {
+            (
+                Stage::Move {
+                    spot: gone,
+                    from,
+                    resume,
+                },
+                Answer::Place(spot),
+            ) => {
                 self.round.markers[p] = Some(spot);
                 self.stage = Stage::Move {
-                    card,
+                    spot: gone,
                     from: from + 1,
                     resume,
                 };
@@ -283,8 +290,9 @@ impl Steps {
                     && !round.rolls[p][modifier].is_zero()
                     && round.counts(p, target)
             }
-            Action::Sabotage { card, payment } => {
-                round.table.get(card).copied().flatten().is_some()
+            Action::Sabotage { spot, payment } => {
+                round.mission(spot).is_some()
+                    && round.spots().len() > 1
                     && match payment {
                         Payment::Point => self.game.points[p] >= self.game.rules.sabotage_points(),
                         Payment::Die(i) => {
@@ -341,8 +349,8 @@ impl Steps {
                 let die = &mut round.rolls[p][target];
                 die.face = (die.face + step).clamp(1, 6);
             }
-            Action::Sabotage { card, payment } => {
-                let mission = round.table[card].unwrap();
+            Action::Sabotage { spot, payment } => {
+                let mission = round.mission(spot).unwrap();
                 match payment {
                     Payment::Point => game.points[p] -= game.rules.sabotage_points(),
                     Payment::Die(d) => {
@@ -351,12 +359,15 @@ impl Steps {
                         game.take_out(round, p, r);
                     }
                 }
-                round.table[card] = None;
+                match spot {
+                    Spot::Standard => round.standard = false,
+                    Spot::Card(card) => round.table[card] = None,
+                }
                 self.log
                     .sabotages
                     .push((p, mission, payment == Payment::Point));
                 self.stage = Stage::Move {
-                    card,
+                    spot,
                     from: 0,
                     resume: i + 1,
                 };
@@ -392,12 +403,12 @@ impl Steps {
                     }
                 }
                 Stage::Place(i) if i == n => self.stage = Stage::Act(0),
-                Stage::Move { card, from, resume } => {
-                    let on_card = |q: &usize| self.round.markers[*q] == Some(Spot::Card(card));
+                Stage::Move { spot, from, resume } => {
+                    let on_card = |q: &usize| self.round.markers[*q] == Some(spot);
                     match (from..n).find(|&j| on_card(&self.round.order[j])) {
                         Some(j) => {
                             self.stage = Stage::Move {
-                                card,
+                                spot,
                                 from: j,
                                 resume,
                             };
@@ -457,12 +468,16 @@ impl Steps {
     fn finish_round(&mut self) {
         let n = self.game.players();
         let (game, round, log) = (&mut self.game, &self.round, &mut self.log);
-        let deltas = round.score(game.rules.bonus);
+        let deltas = round.score(game.rules.scoring());
         for (points, delta) in game.points.iter_mut().zip(&deltas) {
             *points += delta;
         }
-        for (i, card) in round.table.iter().enumerate().rev() {
-            if card.is_none() {
+        // A card someone scored on is done and replaced; the others, the
+        // sabotaged ones too, stay for the next round.
+        for i in (0..round.table.len()).rev() {
+            let done = round.table[i].is_some()
+                && (0..n).any(|p| round.markers[p] == Some(Spot::Card(i)) && deltas[p] > 0);
+            if done {
                 let gone = game.table.remove(i);
                 game.used.push(gone);
             }
@@ -500,6 +515,7 @@ fn empty_round(game: &Game) -> Round {
         removed: vec![Vec::new(); n],
         used: vec![Vec::new(); n],
         table: game.table.iter().map(|&m| Some(m)).collect(),
+        standard: true,
         markers: vec![None; n],
     }
 }
@@ -519,7 +535,7 @@ fn empty_log(n: usize) -> RoundLog {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Rng, Rules};
+    use crate::{Rng, Rules, Scoring};
 
     /// A player with random legal answers that tries every kind of action.
     struct Wild(Rng);
@@ -573,9 +589,7 @@ mod tests {
                         && !round.rolls[me][*i].is_zero()
                 })
                 .collect();
-            let cards: Vec<usize> = (0..round.table.len())
-                .filter(|&c| round.table[c].is_some())
-                .collect();
+            let spots = round.spots();
             match self.0.below(6) {
                 0 if hand.len() > 1 => {
                     let out = hand[0];
@@ -603,11 +617,11 @@ mod tests {
                     None => Action::Pass,
                 },
                 3 if game.points[me] >= game.rules.sabotage_points()
-                    && !cards.is_empty()
+                    && spots.len() > 1
                     && self.0.below(3) == 0 =>
                 {
                     Action::Sabotage {
-                        card: self.pick(&cards).unwrap(),
+                        spot: spots[self.0.below(spots.len())],
                         payment: Payment::Point,
                     }
                 }
@@ -692,7 +706,7 @@ mod tests {
         steps.apply(Answer::Place(Spot::Card(0))).unwrap();
         let first = order[0];
         let sabotage = Action::Sabotage {
-            card: 0,
+            spot: Spot::Card(0),
             payment: Payment::Point,
         };
         steps.apply(Answer::Act(sabotage)).unwrap();
@@ -711,5 +725,49 @@ mod tests {
                 decision: Decision::Act
             })
         );
+    }
+
+    #[test]
+    fn the_standard_can_be_sabotaged_but_not_the_last_mission() {
+        let mut steps = Steps::new(Game::new(Rules::default(), 8));
+        steps.game.points = vec![5, 5];
+        let table = steps.game().table.clone();
+        for _ in 0..2 {
+            steps.apply(Answer::Select((0..6).collect())).unwrap();
+        }
+        for _ in 0..2 {
+            steps.apply(Answer::Cash(vec![])).unwrap();
+        }
+        while steps.pending().unwrap().decision == Decision::Buy {
+            steps.apply(Answer::Buy(None)).unwrap();
+        }
+        let order = steps.round().unwrap().order.clone();
+        for _ in 0..2 {
+            steps.apply(Answer::Place(Spot::Standard)).unwrap();
+        }
+        let sabotage = |spot| {
+            Answer::Act(Action::Sabotage {
+                spot,
+                payment: Payment::Point,
+            })
+        };
+        steps.apply(sabotage(Spot::Card(0))).unwrap();
+        steps.apply(sabotage(Spot::Standard)).unwrap();
+        for _ in 0..2 {
+            assert!(steps.apply(Answer::Place(Spot::Standard)).is_err());
+            steps.apply(Answer::Place(Spot::Card(1))).unwrap();
+        }
+        assert_eq!(steps.round().unwrap().spots(), vec![Spot::Card(1)]);
+        assert_eq!(steps.pending().unwrap().player, order[0]);
+        assert!(steps.apply(sabotage(Spot::Card(1))).is_err());
+        let scored = steps.round().unwrap().score(Scoring::default());
+        steps.apply(Answer::Act(Action::Pass)).unwrap();
+        steps.apply(Answer::Act(Action::Pass)).unwrap();
+        let round = steps.round().unwrap();
+        assert!(round.standard);
+        assert_eq!(steps.game().table[0], table[0]);
+        if scored.iter().all(|&d| d == 0) {
+            assert_eq!(steps.game().table, table);
+        }
     }
 }

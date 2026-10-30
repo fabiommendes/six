@@ -5,8 +5,8 @@
 //!                    [--threads T] [--goal P] [--hand H] [--start-common C]
 //!                    [--start-gold G] [--market-each M] [--market-one O]
 //!                    [--market-gold G] [--market-high-gold H] [--bought-waits]
-//!                    [--no-sacrifice] [--bonus B] [--without MISSION,...]
-//!                    [--no-cash] [--sabotage-by-die]
+//!                    [--no-sacrifice] [--bonus B] [--parity-minus M]
+//!                    [--without MISSION,...] [--no-cash] [--sabotage-by-die]
 //! ```
 //!
 //! One bot per player. `--games` counts seeds: with rotation (the default)
@@ -17,7 +17,7 @@ use missoes_bots::batch::{self, Config};
 use missoes_bots::DEFAULT_THREADS;
 use missoes_engine::{Mission, Rules};
 
-const USAGE: &str = "usage: missoes-bots batch --bots A,B[,C,D] [--games G] [--seed S] [--no-rotate] [--threads T] [--goal P] [--hand H] [--start-common C] [--start-gold G] [--market-each M] [--market-one O] [--market-gold G] [--market-high-gold H] [--bought-waits] [--no-sacrifice] [--bonus B] [--without MISSION,...] [--no-cash] [--sabotage-by-die]";
+const USAGE: &str = "usage: missoes-bots batch --bots A,B[,C,D] [--games G] [--seed S] [--no-rotate] [--threads T] [--goal P] [--hand H] [--start-common C] [--start-gold G] [--market-each M] [--market-one O] [--market-gold G] [--market-high-gold H] [--bought-waits] [--no-sacrifice] [--bonus B] [--parity-minus M] [--without MISSION,...] [--no-cash] [--sabotage-by-die]";
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -81,6 +81,7 @@ fn run_batch(args: &[String]) -> Result<(), String> {
             "--sabotage-by-die" => rules.sabotage_by_die = true,
             "--bought-waits" => rules.bought_plays = false,
             "--bonus" => rules.bonus = number(value(args, &mut i, flag)?, flag)?,
+            "--parity-minus" => rules.parity_minus = number(value(args, &mut i, flag)?, flag)?,
             "--market-gold" => rules.market_gold = number(value(args, &mut i, flag)?, flag)?,
             "--market-high-gold" => {
                 rules.market_high_gold = number(value(args, &mut i, flag)?, flag)?

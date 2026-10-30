@@ -22,7 +22,7 @@ function answerFor(view: View, turn: number): Answer {
       if (zero && turn % 2 === 0) return { kind: "act", action: { kind: "zero", zero: zero.die, target: zero.targets[0]! } };
       const mod = decision.modifiers[0];
       if (mod) return { kind: "act", action: { kind: "modify", modifier: mod.die, target: mod.targets[0]!, up: turn % 3 === 0 } };
-      if (decision.sabotage.length > 0 && turn % 7 === 0) return { kind: "act", action: { kind: "sabotage", card: decision.sabotage[0]! } };
+      if (decision.sabotage.length > 0 && turn % 7 === 0) return { kind: "act", action: { kind: "sabotage", spot: decision.sabotage[0]! } };
       return { kind: "act", action: { kind: "pass" } };
     }
   }

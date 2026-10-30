@@ -22,6 +22,6 @@ mod steps;
 
 pub use dice::{Kind, Rolled};
 pub use game::{Action, Game, Payment, Player, Round, RoundLog, Rules, Spot};
-pub use mission::{best_group, longest_run, resolve, Mission};
+pub use mission::{best_group, distinct, resolve, Mission, Scoring};
 pub use rng::Rng;
 pub use steps::{Answer, Decision, Pending, Played, Steps};

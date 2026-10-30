@@ -113,8 +113,9 @@ dados do mercado à venda: no início de cada rodada, ela é completada até ter
      quiser dos outros;
    - **usar um 0** ou **um modificador** (ver abaixo);
    - **sabotar**: paga 2 pontos com 2 jogadores, ou 1 com 3 ou 4, e remove
-     uma carta da mesa. Quem tinha marcador nela o põe em outra missão da
-     mesa. A padrão nunca é sabotada;
+     uma missão da mesa nesta rodada, a padrão também. Quem tinha marcador
+     nela o põe em outra missão da mesa. A última missão da mesa não pode
+     ser sabotada;
    - **passar**: sai da fase até o fim da rodada.
 
    A fase acaba quando todos passaram.
@@ -123,16 +124,19 @@ dados do mercado à venda: no início de cada rodada, ela é completada até ter
    ganha pontos iguais ao seu resultado. Quem fica sozinho numa missão vence
    nela com qualquer resultado maior que 0.
 9. **Limpar**: todos os dados voltam à reserva do dono. As cartas
-   sabotadas vão para o descarte, e a mesa é reposta com cartas do baralho;
-   quando o baralho acaba, o descarte é embaralhado.
+   cumpridas, em que alguém pontuou, vão para o descarte, e a mesa é reposta
+   com cartas do baralho; quando o baralho acaba, o descarte é embaralhado.
+   As outras cartas, sabotadas ou não, ficam na mesa. A padrão volta à mesa
+   na rodada seguinte.
 
 > **Design:** os ouros dão a ordem: quem vai na frente compra primeiro e
 > marca primeiro, mas também age primeiro e mostra o jogo a quem vem
 > depois. Comprar custa os ouros da rodada; o dado comprado, que entra na
 > mão, repõe em parte o que eles deixam de dar.
 
-> **Proposta:** as cartas que não foram sabotadas ficam na mesa para a
-> rodada seguinte.
+> **Proposta:** "cumprida" é a carta em que alguém pontuou; uma carta em
+> que ninguém pontuou fica, como a sabotada. A última missão não pode ser
+> sabotada, para os marcadores terem para onde ir.
 
 > **Detalhe:** um ouro comprado entra na mão, mas também não conta: é um
 > ouro de quem comprou.
@@ -154,26 +158,25 @@ dados do mercado à venda: no início de cada rodada, ela é completada até ter
 ### Missões
 
 Toda missão pontua por número de dados, não pelo valor deles. A **padrão**
-conta quantas vezes se repete o valor que mais se repete na mão.
+fica sempre na mesa, fora do baralho; ela só não entra no sorteio, e pode
+ser sabotada como as outras.
 
-As cartas pontuam melhor que a padrão em certas mãos:
+| Missão | Objetivo | Pontuação |
+|---|---|---|
+| Padrão | O maior grupo de dados iguais | O tamanho do grupo |
+| Bônus | O maior grupo de dados iguais | O tamanho do grupo, mais 1 |
+| Diferentes | O maior número de valores diferentes | O número de valores diferentes |
+| Pares | O maior número de dados pares | O número de dados |
+| Ímpares | O maior número de dados ímpares | O número de dados |
+| Alta | O maior número de 5 e 6 | O número de dados |
+| Baixa | O maior número de 1 e 2 | O número de dados |
+| Dois grupos | Os dois maiores grupos de dados iguais somados; o segundo conta a partir de 2 dados | A soma |
+| 1, 2, 3, 4, 5 e 6 | O maior número de dados com aquele valor | O dobro do número de dados |
 
-| Missão | Resultado |
-|---|---|
-| Presente | O da padrão mais 1: um dado a mais com o valor que o jogador quiser |
-| Sequência | O tamanho da maior sequência de valores seguidos |
-| Pares | O da padrão, contando só os valores pares, mais o bônus |
-| Ímpares | O da padrão, contando só os valores ímpares, mais o bônus |
-| Alta | O da padrão, contando só 4, 5 e 6, mais o bônus |
-| Baixa | O da padrão, contando só 1, 2 e 3, mais o bônus |
-| Dois grupos | Os dois maiores grupos de valores iguais somados; o segundo conta a partir de 2 dados |
+O baralho tem 1 carta de cada número e 2 de cada outra missão: 20 cartas.
 
-> **Proposta:** bônus de 1. Alta, Baixa e Dois grupos foram propostas no
-> protótipo, sem pedido do designer, para o baralho ter cartas bastantes
-> para 4 jogadores.
-
-> **Proposta:** a Exclusão sai do baralho: ela mexia nos dados da mesa toda
-> e não cabe na disputa por carta.
+> **Proposta:** Dois grupos foi proposta no protótipo, sem pedido do
+> designer; entra com 2 cópias, como as outras.
 
 ### Fim do jogo
 
@@ -259,6 +262,24 @@ empatar, a vitória é dividida.
   passa a ter 6 dados um: o um combina com o baixo, o ímpar e o 1 do
   binário, e o combo pode ser montado aos poucos. Sabotar custa 2 pontos
   com 2 jogadores e 1 com 3 ou 4.
+
+- 2026-10-30, designer: o 0 fica como está por enquanto. Cada carta tem
+  Objetivo e Pontuação. Pares e
+  Ímpares contam os dados pares ou ímpares e pontuam esse número menos 1;
+  Alta e Baixa contam os 5 e 6 ou os 1 e 2 e pontuam esse número; Presente é
+  a padrão mais 1. Entram as missões 1 a 6: vence quem tem mais dados com o
+  valor, e pontua o dobro. O baralho tem 1 carta de cada número e 2 de cada
+  outra missão. A padrão pode ser sabotada; ela é padrão só por não entrar
+  no sorteio. As cartas sabotadas ficam para a rodada seguinte; só as
+  cumpridas são repostas.
+
+- 2026-10-30, designer: Pares e Ímpares pontuam o número de dados, sem o
+  −1, para simplificar. A Presente se chama Bônus.
+- 2026-10-30, designer: a Sequência vira Diferentes (o maior número de
+  valores diferentes), para ficar mais forte. O bot deve sacrificar e rolar
+  de novo segundo a missão em que está.
+- 2026-10-30, designer: a sabotagem fica como está (2 pontos com 2
+  jogadores, 1 com 3 ou 4): sabotar deve ser comum e parte da estratégia.
 
 ## Open questions
 
@@ -619,6 +640,80 @@ Com a sabotagem a 2 pontos com 2 jogadores:
 - **Sabotar ainda vale, mas pouco**: 56,3% contra quem nunca sabota (era
   66% com 1 ponto).
 - Comprar vale 87,8% contra quem nunca compra; empates em 1,8%.
+
+### Missões novas, 20 cartas e padrão sabotável
+
+Regras de 2026-10-30: as missões novas (Pares e Ímpares por contagem, Alta e
+Baixa por 5 e 6 ou 1 e 2, missões 1 a 6 com o dobro), 1 carta de cada número
+e 2 das outras, padrão sabotável, só as cartas cumpridas repostas.
+
+- **A sabotagem disparou**: 6,5 sabotagens por jogador numa partida com 2
+  jogadores, mesmo a 2 pontos (era 1,15), e 7,4 com 3. A padrão é o alvo
+  principal: 5,7 das 13 sabotagens de uma partida com 2 jogadores. Quem fica
+  com a padrão sozinho tira o rival dela e força o rival a uma carta pior.
+- **A partida encurta menos**: 13,4 rodadas com 2 jogadores (eram 8,3),
+  12,1 com 3 e 10,5 com 4, porque os pontos gastos em sabotagem atrasam a
+  meta.
+- **Sabotar vale com 2 jogadores, não com 4**: 68% contra quem nunca sabota
+  com 2; com 4, quem nunca sabota vence 26,4% (25% seria o empate).
+- **Pares e Ímpares ficaram as cartas mais fracas** (1,8 a 2,4 pontos por
+  marcador); Alta e Baixa, 2,0 a 2,9. As missões 1 a 6 dão 2,5 a 3,4, e a
+  do 1, com os dados um, 3,9 a 4,9. Dois grupos continua forte (3,5 a 3,8).
+- Comprar vale 89% contra quem nunca compra.
+
+Sabotagens por rodada e rodadas com ao menos uma sabotagem (gulosos):
+
+| Jogadores | Sabotagens por rodada | Rodadas com sabotagem |
+|---|---|---|
+| 2 | 0,97 | 60% |
+| 3 | 1,83 | 77% |
+| 4 | 2,12 | 80% |
+
+Pares e Ímpares sem o −1 (`--parity-minus 0`), pontos por marcador:
+
+| Jogadores | Pares com −1 | Pares sem | Ímpares com −1 | Ímpares sem | Padrão |
+|---|---|---|---|---|---|
+| 2 | 1,97 | 2,95 | 2,44 | 3,36 | 2,9 |
+| 3 | 1,84 | 2,84 | 2,30 | 3,43 | 2,9 |
+| 4 | 2,08 | 3,21 | 2,74 | 3,67 | 3,0 |
+
+- Sem o −1, Pares fica no nível da Padrão e Ímpares acima dela (os dados um
+  são ímpares). A parte dos marcadores quase não muda (7% a 8%), e a partida
+  encurta 0,7 a 0,9 rodada.
+
+### Bot que joga a missão e Diferentes no lugar de Sequência
+
+O guloso sacrificava e rolava de novo sempre pensando em grupos de valores
+iguais, e escolhia a missão pelo resultado antes dos sacrifícios. Agora,
+para cada missão, ele segue um plano: os dados que a missão quer ficam; sai
+o dado com menos chance de ajudar numa rolagem (os 0 e modificadores ainda
+não usados por último); os outros que podem ajudar rolam de novo. Ele
+escolhe a missão pela margem média depois de jogar esses sacrifícios.
+
+Resultado de 6 comuns sozinhos numa missão, antes e depois dos sacrifícios
+do plano (20 mil mãos, com o −1 em Pares e Ímpares):
+
+| Missão | Antes | Depois |
+|---|---|---|
+| Padrão | 2,41 | 3,10 |
+| Bônus | 3,41 | 4,10 |
+| Diferentes | 4,01 | 4,45 |
+| Pares, Ímpares (com −1) | 2,02 | 3,20 |
+| Alta, Baixa | 2,00 | 3,44 |
+| Dois grupos | 3,52 | 4,08 |
+| 1 a 6 | 2,00 | 4,55 |
+
+- **Sozinhas, Alta e Baixa passam a Padrão** (3,44 contra 3,10), como o
+  designer esperava: cada dado rolado de novo acerta com chance de 1/3.
+- **Na partida, a Alta continua baixa** (1,9 a 2,1 pontos por marcador; a
+  Baixa, 2,5 a 2,7). Os pontos por marcador misturam a força da carta com a
+  disputa e com as reservas que os bots montam, cheias de dados que puxam
+  para baixo (um, baixo, ímpar). A tabela acima mede só a carta.
+- Sem o −1, Pares e Ímpares rendem 4,2 sozinhas, entre as mais fortes;
+  na partida, 2,7 a 3,6 por marcador.
+- Diferentes é a carta mais forte depois dos números (4,45 sozinha, 3,3 a
+  3,45 por marcador na partida).
+- Com 4 jogadores, 85% das rodadas têm sabotagem (2,3 por rodada).
 
 ## Outcome
 

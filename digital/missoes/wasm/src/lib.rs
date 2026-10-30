@@ -83,6 +83,18 @@ impl Game {
         Ok(self.step(player, answer))
     }
 
+    /// Why `answer` would be illegal for the person who decides now, or
+    /// `None` if [`Game::answer`] would play it.
+    pub fn problem(&self, answer: Answer) -> Option<String> {
+        let Some(pending) = self.steps.pending() else {
+            return Some("the game is over".into());
+        };
+        if self.bots[pending.player].is_some() {
+            return Some(format!("player {} is a bot", pending.player));
+        }
+        self.steps.check(&answer.into()).err()
+    }
+
     /// The bot who decides now answers.
     pub fn bot_answer(&mut self) -> Result<Step, String> {
         let player = self.steps.pending().ok_or("the game is over")?.player;
@@ -135,6 +147,13 @@ impl Game {
         self.answer(answer)
             .map(|s| wire::to_json(&s))
             .map_err(error)
+    }
+
+    /// Checks an `Answer` JSON of the person who decides now without playing
+    /// it: `undefined` if `apply` would accept it, else why not.
+    pub fn check(&self, json: &str) -> Result<Option<String>, JsError> {
+        let answer: Answer = wire::from_json(json).map_err(error)?;
+        Ok(self.problem(answer))
     }
 
     /// The bot who decides now answers; returns a `Step` JSON. Throws if a
@@ -190,6 +209,13 @@ mod tests {
         let before = game.current_view();
         assert!(game.answer(Answer::Select { dice: vec![0] }).is_err());
         assert!(game.answer(Answer::Buy { die: None }).is_err());
+        assert!(game.problem(Answer::Select { dice: vec![0] }).is_some());
+        assert_eq!(
+            game.problem(Answer::Select {
+                dice: (0..6).collect()
+            }),
+            None
+        );
         assert_eq!(game.current_view(), before);
         let step = game
             .answer(Answer::Select {

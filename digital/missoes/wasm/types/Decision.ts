@@ -5,4 +5,4 @@ import type { Use } from "./Use";
 /**
  * The pending decision and its legal options.
  */
-export type Decision = { "kind": "select", count: number, } | { "kind": "cash", options: Array<number>, } | { "kind": "buy", options: Array<number>, } | { "kind": "place", spots: Array<Spot>, moved: boolean, } | { "kind": "act", sacrifice: Array<number>, zeros: Array<Use>, modifiers: Array<Use>, sabotage: Array<number>, };
+export type Decision = { "kind": "select", count: number, } | { "kind": "cash", options: Array<number>, } | { "kind": "buy", options: Array<number>, } | { "kind": "place", spots: Array<Spot>, moved: boolean, } | { "kind": "act", sacrifice: Array<number>, zeros: Array<Use>, modifiers: Array<Use>, sabotage: Array<Spot>, };

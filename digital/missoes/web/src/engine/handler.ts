@@ -17,6 +17,8 @@ export class GameHandler {
           return { id: request.id, view: this.game.viewNow() };
         case "view":
           return { id: request.id, view: this.need().viewNow() };
+        case "check":
+          return { id: request.id, problem: this.need().checkNow(request.answer) };
         case "apply":
           return { id: request.id, step: this.need().applyNow(request.answer) };
         case "bot":

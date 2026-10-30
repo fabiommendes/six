@@ -41,29 +41,55 @@ export function faceText(kind: Kind, face: number): string {
 
 export const MISSION_NAMES: Record<Mission, string> = {
   standard: "Padrão",
-  present: "Presente",
-  sequence: "Sequência",
+  bonus: "Bônus",
+  distinct: "Diferentes",
   even: "Pares",
   odd: "Ímpares",
   high: "Alta",
   low: "Baixa",
   twoGroups: "Dois grupos",
+  ones: "Número 1",
+  twos: "Número 2",
+  threes: "Número 3",
+  fours: "Número 4",
+  fives: "Número 5",
+  sixes: "Número 6",
 };
 
-export const MISSION_RULES: Record<Mission, string> = {
-  standard: "Quantas vezes se repete o valor que mais se repete.",
-  present: "O da padrão mais 1.",
-  sequence: "O tamanho da maior sequência de valores seguidos.",
-  even: "O da padrão só com valores pares, mais 1.",
-  odd: "O da padrão só com valores ímpares, mais 1.",
-  high: "O da padrão só com 4, 5 e 6, mais 1.",
-  low: "O da padrão só com 1, 2 e 3, mais 1.",
-  twoGroups: "Os dois maiores grupos de valores iguais somados; o segundo conta a partir de 2 dados.",
+/** The value of a number mission (1 to 6), or `null` for the others. */
+export function missionNumber(mission: Mission): number | null {
+  const n = ["ones", "twos", "threes", "fours", "fives", "sixes"].indexOf(mission);
+  return n < 0 ? null : n + 1;
+}
+
+/** What a mission asks and what its winners score, as the table of the RFC (a no-break space keeps "mais 1" on one line). */
+export interface MissionRule {
+  readonly goal: string;
+  readonly score: string;
+}
+
+const numberRule = (n: number): MissionRule => ({ goal: `Obter mais dados com o valor ${n}`, score: `Dobro do número de dados com ${n}` });
+
+export const MISSION_RULES: Record<Mission, MissionRule> = {
+  standard: { goal: "Obter o maior grupo de dados iguais", score: "Tamanho do grupo vencedor" },
+  bonus: { goal: "Obter o maior grupo de dados iguais", score: "Tamanho do grupo vencedor, mais\u00a01" },
+  distinct: { goal: "Obter mais valores diferentes", score: "Número de valores diferentes" },
+  even: { goal: "Obter mais dados com valor par", score: "Número de dados pares" },
+  odd: { goal: "Obter mais dados com valor ímpar", score: "Número de dados ímpares" },
+  high: { goal: "Obter mais dados com 5 ou 6", score: "Dados com 5 ou 6" },
+  low: { goal: "Obter mais dados com 1 ou 2", score: "Dados com 1 ou 2" },
+  twoGroups: { goal: "Obter os dois maiores grupos de dados iguais", score: "Soma dos dois; o segundo conta com 2 dados ou mais" },
+  ones: numberRule(1),
+  twos: numberRule(2),
+  threes: numberRule(3),
+  fours: numberRule(4),
+  fives: numberRule(5),
+  sixes: numberRule(6),
 };
 
-/** The mission at `spot` in the round of `view`. */
+/** The mission at `spot` in the round of `view`; `null` once sabotaged. */
 export function spotMission(view: View, spot: Spot): Mission | null {
-  if (spot.kind === "standard") return "standard";
+  if (spot.kind === "standard") return view.current?.standard === false ? null : "standard";
   return view.current?.table[spot.card] ?? null;
 }
 
@@ -137,8 +163,8 @@ export function stepLine(step: Step, before: View, names: readonly string[]): st
         case "modify":
           return `${who} usou o modificador ${action.up ? "+" : "−"}${was[action.modifier]!.face}: o ${KIND_NAMES[was[action.target]!.kind]} foi de ${was[action.target]!.face} para ${now[action.target]!.face}.`;
         case "sabotage": {
-          const mission = before.current?.table[action.card];
-          return `${who} pagou ${points(before.sabotageCost)} e sabotou ${mission ? MISSION_NAMES[mission] : "uma carta"}.`;
+          const mission = spotMission(before, action.spot);
+          return `${who} pagou ${points(before.sabotageCost)} e sabotou ${mission ? MISSION_NAMES[mission] : "uma missão"}.`;
         }
       }
     }

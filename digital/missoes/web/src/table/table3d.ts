@@ -24,38 +24,57 @@ import {
   type Texture,
 } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import type { Die, Kind, Mission, View } from "../engine/game";
+import type { Kind, Mission, View } from "../engine/game";
 import { KIND_FACES } from "../logic/texts";
 import { DIE_LOOKS, seatColor } from "../ui/svg";
-import { drawCard, drawCloth, drawDieFace, drawTray, shade } from "./drawing";
+import { drawCard, drawChip, drawCloth, drawDieFace, drawShowcase, drawTray, shade } from "./drawing";
 import {
   CARD_D,
   CARD_W,
   cardSpot,
   HAND_DIE,
   handSpot,
-  RESERVE_DIE,
   reserveSpot,
+  SHOWCASE_AREA,
   SHOWCASE_DIE,
   showcaseSpot,
   TABLE_D,
   TABLE_W,
   trays,
+  ZONE_LABEL,
+  zones,
   type Tray,
 } from "./layout";
 import { easeOut, tween } from "./motion";
 
 /**
  * What can be picked on the table, as a key: `hand:P:I` (die I of the hand
- * of player P), `reserve:P:R` (reserve die R), `showcase:I` and `card:C`
- * (C is the column: 0 for the standard mission, then the cards).
+ * of player P, wherever it lies), `reserve:P:R` (reserve die R out of the
+ * hand), `showcase:I`, `card:C` (C is the column: 0 for the standard
+ * mission, then the cards) and `chip:NAME` (a chip the screen asked for).
  */
 export type PickKey = string;
 
-/** The marks the screen asks for: dice and cards that can be picked, and those picked. */
+/** A chip to tap, floating behind a die (`near`): at its left (`offset` −1) or right (+1). */
+export interface Chip {
+  readonly key: PickKey;
+  readonly text: string;
+  readonly near: PickKey;
+  readonly offset: number;
+}
+
+/** What the screen asks the table to show besides the view. */
 export interface Marks {
+  /** Dice and cards that can be picked now, and those picked. */
   readonly selectable: ReadonlySet<PickKey>;
   readonly selected: ReadonlySet<PickKey>;
+  /** Reserve dice picked for the hand of a seat that is selecting: they wait on its mat. */
+  readonly picks?: { readonly seat: number; readonly dice: ReadonlySet<number> };
+  /** A die of a hand shown back in the reserve before it leaves: the die a sacrifice being built takes out. */
+  readonly aside?: { readonly seat: number; readonly die: number };
+  /** For each column of the missions, what the player deciding makes there. */
+  readonly results?: readonly (string | null)[];
+  readonly chips?: readonly Chip[];
 }
 
 export interface TableOptions {
@@ -122,13 +141,17 @@ class Assets {
     });
   }
 
+  /** Invisible, for the boxes that take the clicks on dice. */
+  readonly hit: Material = new MeshBasicMaterial({ visible: false });
+
   /** The square under a die that can be picked (thin) or is picked (thick). */
   frameMaterial(thick: boolean): Material {
     return this.material(`frame:${thick}`, () => {
       const c = document.createElement("canvas");
       c.width = c.height = 128;
       const ctx = c.getContext("2d")!;
-      ctx.strokeStyle = thick ? "#1E1B18" : "#FBF8F1";
+      // Gold reads on the wool of the reserve and on the dark mat of the hand alike.
+      ctx.strokeStyle = thick ? "#E8B730" : "#FBF8F1";
       ctx.lineWidth = thick ? 16 : 7;
       ctx.setLineDash(thick ? [] : [18, 10]);
       ctx.strokeRect(10, 10, 108, 108);
@@ -138,6 +161,7 @@ class Assets {
 
   dispose(): void {
     for (const g of [this.body, this.top, this.plane, ...this.token]) g.dispose();
+    this.hit.dispose();
     for (const m of this.materials.values()) m.dispose();
     for (const t of this.textures) t.dispose();
   }
@@ -154,6 +178,11 @@ export class Table3D {
   private layerTextures: Texture[] = [];
   private readonly pickables: Object3D[] = [];
   private readonly faces = new Map<PickKey, { kind: Kind; face: number }>();
+  /** Where each die was last shown, by seat and reserve index, so a die that changes place slides. */
+  private places = new Map<string, { x: number; z: number }>();
+  private nextPlaces = new Map<string, { x: number; z: number }>();
+  /** Where each pickable die is in this view. */
+  private readonly spots = new Map<PickKey, { x: number; z: number; size: number }>();
   private readonly observer: ResizeObserver;
   private loop = 0;
   private readonly raycaster = new Raycaster();
@@ -193,7 +222,12 @@ export class Table3D {
     this.loop = requestAnimationFrame(this.frame);
   }
 
-  /** Shows `view`: dice whose face changed tumble into place. */
+  /**
+   * Shows `view`: in each tray the reserve and the hand. A die of the hand
+   * that is used (a 0 or a modifier) or sacrificed lies back in the reserve,
+   * with the face it shows. Dice whose face changed tumble; dice that
+   * changed place slide.
+   */
   show(view: View, names: readonly string[], marks: Marks): void {
     this.scene.remove(this.layer);
     this.layer.traverse((o) => {
@@ -202,6 +236,8 @@ export class Table3D {
     for (const t of this.layerTextures) t.dispose();
     this.layerTextures = [];
     this.pickables.length = 0;
+    this.spots.clear();
+    this.nextPlaces = new Map();
     this.layer = new Group();
     this.scene.add(this.layer);
 
@@ -212,42 +248,68 @@ export class Table3D {
     const seen = new Set<PickKey>();
     seats.forEach((tray, p) => {
       const passed = round && round.order.length > 0 && view.pending?.decision.kind === "act" && !round.active[p];
-      const money = round && round.hands[p]!.length > 0 ? ` · dinheiro ${round.money[p]}` : "";
-      const detail = `${view.points[p]} pts${money}${passed ? " · passou" : ""}`;
+      const playing = round && round.hands[p]!.length > 0;
+      const score = round ? `${view.points[p]}+${round.score[p]}` : `${view.points[p]}`;
+      const detail = `${score} pts${playing ? ` · $${round.money[p]}` : ""}${passed ? " · passou" : ""}`;
       this.addTray(tray, p, names[p]!, detail, p === pending);
       const hand = hands[p] ?? [];
-      const inHand = new Set(round ? hand.map((d) => d.source).filter((s): s is number => s !== null) : []);
-      let slot = 0;
-      view.reserves[p]!.forEach((kind, r) => {
-        if (inHand.has(r)) return;
-        const key = `reserve:${p}:${r}`;
-        const at = reserveSpot(tray, slot++);
-        this.addDie(key, kind, null, at, RESERVE_DIE, marks, 1);
-      });
+      const bySource = new Map<number, number>();
       hand.forEach((die, i) => {
-        const key = `hand:${p}:${i}`;
-        seen.add(key);
-        const at = handSpot(tray, i, hand.length);
-        this.addDie(key, die.kind, die.face, at, HAND_DIE, marks, opacity(die), die.removed ? 0.25 : 0);
+        if (die.source !== null) bySource.set(die.source, i);
+      });
+      // What lies on the mat and what lies in the reserve, in the order of the reserve.
+      const onMat: { key: PickKey; ident: string; kind: Kind; face: number | null; alpha: number }[] = [];
+      const inReserve: { key: PickKey; ident: string; kind: Kind; face: number | null; slot: number }[] = [];
+      const picks = marks.picks?.seat === p ? marks.picks.dice : null;
+      const out = (i: number) => hand[i]!.removed || hand[i]!.used || (marks.aside?.seat === p && marks.aside.die === i);
+      hand.forEach((die, i) => {
+        if (out(i)) return;
+        const goldOff = !die.counts && (die.kind === "gold" || die.kind === "highGold");
+        onMat.push({ key: `hand:${p}:${i}`, ident: `${p}:${die.source ?? `h${i}`}`, kind: die.kind, face: die.face, alpha: goldOff ? 0.55 : 1 });
+      });
+      view.reserves[p]!.forEach((kind, r) => {
+        const i = bySource.get(r);
+        if (i !== undefined) {
+          const die = hand[i]!;
+          if (out(i)) inReserve.push({ key: `hand:${p}:${i}`, ident: `${p}:${r}`, kind: die.kind, face: die.face, slot: r });
+        } else if (picks?.has(r)) {
+          onMat.push({ key: `reserve:${p}:${r}`, ident: `${p}:${r}`, kind, face: null, alpha: 1 });
+        } else {
+          inReserve.push({ key: `reserve:${p}:${r}`, ident: `${p}:${r}`, kind, face: null, slot: r });
+        }
+      });
+      onMat.forEach((d, slot) => {
+        seen.add(d.key);
+        this.addDie(d.key, d.ident, d.kind, d.face, { ...handSpot(tray, slot, onMat.length), size: HAND_DIE }, marks, d.alpha);
+      });
+      // While the seat picks its hand, the reserve keeps its slots, so the dice left do not move under the finger.
+      const slots = picks ? view.reserves[p]!.length : inReserve.length;
+      inReserve.forEach((d, slot) => {
+        seen.add(d.key);
+        this.addDie(d.key, d.ident, d.kind, d.face, reserveSpot(tray, picks ? d.slot : slot, slots), marks, 1);
       });
     });
     for (const key of [...this.faces.keys()]) if (!seen.has(key)) this.faces.delete(key);
+    this.places = this.nextPlaces;
 
-    const missions: (Mission | null)[] = ["standard", ...(round ? round.table : view.table)];
+    const missions: (Mission | null)[] = [round?.standard === false ? null : "standard", ...(round ? round.table : view.table)];
     missions.forEach((mission, column) => {
-      const shown = mission ?? view.table[column - 1] ?? null;
+      const shown = mission ?? (column === 0 ? "standard" : view.table[column - 1]) ?? null;
       if (!shown) return;
-      this.addCard(column, shown, mission === null, marks);
+      this.addCard(column, missions.length, shown, mission === null, marks.results?.[column] ?? null, marks);
     });
     if (round) {
+      const columnOf = (s: NonNullable<(typeof round.markers)[number]>) => (s.kind === "standard" ? 0 : s.card + 1);
       round.markers.forEach((spot, p) => {
         if (!spot) return;
-        const column = spot.kind === "standard" ? 0 : spot.card + 1;
-        const onSame = round.markers.slice(0, p).filter((s) => s && (s.kind === "standard" ? 0 : s.card + 1) === column).length;
-        this.addToken(column, p, onSame);
+        const column = columnOf(spot);
+        const onSame = round.markers.slice(0, p).filter((s) => s && columnOf(s) === column).length;
+        this.addToken(column, missions.length, p, onSame);
       });
     }
-    view.showcase.forEach((kind, i) => this.addDie(`showcase:${i}`, kind, null, showcaseSpot(i), SHOWCASE_DIE, marks, 1));
+    this.addShowcaseMat();
+    view.showcase.forEach((kind, i) => this.addDie(`showcase:${i}`, null, kind, null, { ...showcaseSpot(i), size: SHOWCASE_DIE }, marks, 1));
+    for (const chip of marks.chips ?? []) this.addChip(chip, marks);
   }
 
   /** Where a pickable thing is on the page, for tests in the browser. */
@@ -272,7 +334,9 @@ export class Table3D {
 
   private addTray(tray: Tray, seat: number, name: string, detail: string, active: boolean): void {
     const px = 64;
-    const map = texture(drawTray(Math.round(tray.w * px), Math.round(tray.d * px), seat, name, detail, active));
+    const z = zones(tray);
+    const pixels = (zone: typeof z.hand) => ({ x: zone.left * px, y: zone.top * px, w: zone.w * px, h: zone.d * px });
+    const map = texture(drawTray(Math.round(tray.w * px), Math.round(tray.d * px), seat, name, detail, active, pixels(z.reserve), pixels(z.hand), ZONE_LABEL * px));
     this.layerTextures.push(map);
     const mesh = new Mesh(this.assets.plane, new MeshStandardMaterial({ map, roughness: 0.9 }));
     mesh.userData.own = true;
@@ -282,14 +346,46 @@ export class Table3D {
     this.layer.add(mesh);
   }
 
-  private addCard(column: number, mission: Mission, sabotaged: boolean, marks: Marks): void {
-    const map = texture(drawCard(mission, sabotaged, 460, 620));
+  private addShowcaseMat(): void {
+    const px = 64;
+    const map = texture(drawShowcase(Math.round(SHOWCASE_AREA.w * px), Math.round(SHOWCASE_AREA.d * px)));
+    this.layerTextures.push(map);
+    const mesh = new Mesh(this.assets.plane, new MeshBasicMaterial({ map, transparent: true, depthWrite: false }));
+    mesh.userData.own = true;
+    mesh.scale.set(SHOWCASE_AREA.w, SHOWCASE_AREA.d, 1);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(SHOWCASE_AREA.x, 0.008, SHOWCASE_AREA.z);
+    this.layer.add(mesh);
+  }
+
+  /** A chip floating over the table next to a die, to tap. */
+  private addChip(chip: Chip, marks: Marks): void {
+    const near = this.spots.get(chip.near);
+    if (!near) return;
+    const w = 1.5;
+    const d = 0.75;
+    const map = texture(drawChip(chip.text, 240, 120));
+    this.layerTextures.push(map);
+    const mesh = new Mesh(this.assets.plane, new MeshBasicMaterial({ map, transparent: true, depthTest: false }));
+    mesh.userData.own = true;
+    mesh.userData.pick = chip.key;
+    mesh.renderOrder = 10;
+    mesh.scale.set(w, d, 1);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(near.x + chip.offset * (w / 2 + 0.05), 1.6, near.z - near.size / 2 - d / 2 - 0.15);
+    if (marks.selected.has(chip.key)) mesh.position.y += 0.1;
+    this.layer.add(mesh);
+    this.pickables.push(mesh);
+  }
+
+  private addCard(column: number, columns: number, mission: Mission, sabotaged: boolean, result: string | null, marks: Marks): void {
+    const map = texture(drawCard(mission, sabotaged, result, 520, 650));
     this.layerTextures.push(map);
     const key = `card:${column}`;
     const mesh = new Mesh(this.assets.plane, new MeshStandardMaterial({ map, roughness: 0.8 }));
     mesh.userData.own = true;
     mesh.userData.pick = key;
-    const at = cardSpot(column);
+    const at = cardSpot(column, columns);
     mesh.scale.set(CARD_W, CARD_D, 1);
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.set(at.x, 0.02 + (marks.selected.has(key) ? 0.05 : 0), at.z);
@@ -304,21 +400,23 @@ export class Table3D {
     }
   }
 
-  private addToken(column: number, seat: number, index: number): void {
-    const at = cardSpot(column);
+  private addToken(column: number, columns: number, seat: number, index: number): void {
+    const at = cardSpot(column, columns);
     const material = this.assets.material(`token:${seat}`, () => new MeshStandardMaterial({ color: seatColor(seat), roughness: 0.4 }));
     const mesh = new Mesh(this.assets.token[seat % 4]!, material);
-    mesh.position.set(at.x - 0.75 + index * 0.5, 0.14, at.z + CARD_D / 2 - 0.45);
+    mesh.scale.setScalar(1.3);
+    mesh.position.set(at.x - CARD_W / 2 + 0.6 + index * 0.8, 0.14, at.z + CARD_D / 2 - 0.6);
     this.layer.add(mesh);
   }
 
-  private addDie(key: PickKey, kind: Kind, face: number | null, at: { x: number; z: number }, size: number, marks: Marks, alpha: number, aside = 0): void {
+  /** A die at `at`; `ident` follows it from view to view (seat and reserve index) so it slides when it changes place. */
+  private addDie(key: PickKey, ident: string | null, kind: Kind, face: number | null, at: { x: number; z: number; size: number }, marks: Marks, alpha: number): void {
+    const size = at.size;
     const root = new Group();
     const tumbler = new Group();
     const body = new Mesh(this.assets.body, this.assets.bodyMaterial(kind, alpha));
-    body.userData.pick = key;
     tumbler.add(body);
-    // A die off the hand shows its highest printed face; a hand die shows the face it rolled.
+    // A die off the hand shows its highest printed face; a rolled die shows the face it rolled.
     const top = face ?? Math.max(...KIND_FACES[kind]);
     const faceMesh = new Mesh(this.assets.top, this.assets.faceMaterial(kind, top, alpha));
     faceMesh.rotation.x = -Math.PI / 2;
@@ -328,22 +426,49 @@ export class Table3D {
     root.add(tumbler);
     root.scale.setScalar(size);
     const selected = marks.selected.has(key);
-    root.position.set(at.x, selected ? 0.3 : 0, at.z - aside * 1.2);
+    root.position.set(at.x, selected ? 0.3 : 0, at.z);
     this.layer.add(root);
-    this.pickables.push(body);
+    // Clicks hit a still box at the die's place, not the die, which may be sliding or tumbling there.
+    const hit = new Mesh(this.assets.body, this.assets.hit);
+    hit.userData.pick = key;
+    hit.scale.setScalar(size);
+    hit.position.set(at.x, size / 2, at.z);
+    this.layer.add(hit);
+    this.pickables.push(hit);
+    this.spots.set(key, at);
+    let frame: Mesh | null = null;
     if (selected || marks.selectable.has(key)) {
-      const frame = new Mesh(this.assets.plane, this.assets.frameMaterial(selected));
+      frame = new Mesh(this.assets.plane, this.assets.frameMaterial(selected));
       frame.scale.setScalar(size * 1.32);
       frame.rotation.x = -Math.PI / 2;
-      frame.position.set(at.x, 0.02, at.z - aside * 1.2);
+      frame.position.set(at.x, 0.02, at.z);
       this.layer.add(frame);
     }
+    if (ident !== null) {
+      const before = this.places.get(ident);
+      this.nextPlaces.set(ident, { x: at.x, z: at.z });
+      if (before && Math.hypot(before.x - at.x, before.z - at.z) > 0.05 && !this.options.reducedMotion()) this.slide(root, frame, before, at);
+    }
     if (face === null) return;
-    const before = this.faces.get(key);
+    const was = this.faces.get(key);
     this.faces.set(key, { kind, face });
-    if (before && before.kind === kind && before.face === face) return;
+    if (was && was.kind === kind && was.face === face) return;
     if (this.options.reducedMotion()) return;
     this.tumble({ root, tumbler, kind, face });
+  }
+
+  /** Moves a die (and its frame) from where it was to its new place. */
+  private slide(root: Group, frame: Mesh | null, from: { x: number; z: number }, to: { x: number; z: number }): void {
+    const place = (t: number) => {
+      const e = easeOut(t);
+      const x = from.x + (to.x - from.x) * e;
+      const z = from.z + (to.z - from.z) * e;
+      root.position.x = x;
+      root.position.z = z;
+      frame?.position.set(x, frame.position.y, z);
+    };
+    place(0);
+    void tween(420, place);
   }
 
   private tumble(die: DieMesh): void {
@@ -358,6 +483,7 @@ export class Table3D {
   }
 
   private readonly click = (event: MouseEvent) => {
+    this.layer.updateMatrixWorld();
     const rect = this.renderer.domElement.getBoundingClientRect();
     const pointer = new Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
     this.raycaster.setFromCamera(pointer, this.camera);
@@ -383,11 +509,4 @@ export class Table3D {
     this.renderer.render(this.scene, this.camera);
     this.loop = requestAnimationFrame(this.frame);
   };
-}
-
-/** How solid a die of the hand looks: faded once removed, dimmed when it does not count. */
-function opacity(die: Die): number {
-  if (die.removed) return 0.3;
-  if (!die.counts) return 0.6;
-  return 1;
 }

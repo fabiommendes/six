@@ -1,6 +1,6 @@
 //! The table, the round and the decisions the engine asks of the players.
 
-use crate::{resolve, Kind, Mission, Rng, Rolled, Steps};
+use crate::{resolve, Kind, Mission, Rng, Rolled, Scoring, Steps};
 
 /// The numbers of the rules, open to experiments.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -20,12 +20,15 @@ pub struct Rules {
     pub bought_plays: bool,
     /// Games longer than this stop with the points they have.
     pub max_rounds: u16,
-    /// The mission cards in the deck: bit `i` for `Mission::CARDS[i]`.
+    /// The kinds of mission card in the deck: bit `i` for
+    /// `Mission::CARDS[i]`, with `Mission::copies` cards each.
     pub cards: u16,
     /// Whether players may sacrifice dice.
     pub sacrifice: bool,
-    /// Added to the result of the even, odd, high and low missions.
+    /// Added to the result of the bonus mission.
     pub bonus: u8,
+    /// Taken from the count of the even and odd missions.
+    pub parity_minus: u8,
     /// Whether reserve dice out of the hand can be cashed for money.
     pub cash: bool,
     /// Whether a sabotage can be paid with a die of the hand, besides a
@@ -34,6 +37,13 @@ pub struct Rules {
 }
 
 impl Rules {
+    pub fn scoring(&self) -> Scoring {
+        Scoring {
+            bonus: self.bonus,
+            parity_minus: self.parity_minus,
+        }
+    }
+
     /// The points a sabotage costs: 2 with 2 players, 1 with more.
     pub fn sabotage_points(&self) -> i32 {
         if self.players == 2 {
@@ -61,6 +71,7 @@ impl Default for Rules {
             cards: (1u16 << Mission::CARDS.len()) - 1,
             sacrifice: true,
             bonus: 1,
+            parity_minus: 0,
             cash: true,
             sabotage_by_die: false,
         }
@@ -98,8 +109,9 @@ pub enum Action {
         target: usize,
         up: bool,
     },
-    /// Remove a card of the table; its players move their markers.
-    Sabotage { card: usize, payment: Payment },
+    /// Remove a mission of the table for the round, the standard too; its
+    /// players move their markers. The last mission cannot be sabotaged.
+    Sabotage { spot: Spot, payment: Payment },
 }
 
 /// The decisions of a player. Each call gets the table and the round as
@@ -138,6 +150,8 @@ pub struct Round {
     pub used: Vec<Vec<bool>>,
     /// The cards of the table; `None` once sabotaged.
     pub table: Vec<Option<Mission>>,
+    /// Whether the standard mission is on the table: not sabotaged.
+    pub standard: bool,
     /// The markers; `None` before the player places it.
     pub markers: Vec<Option<Spot>>,
 }
@@ -180,14 +194,16 @@ impl Round {
     /// The mission at `spot`, if it is still there.
     pub fn mission(&self, spot: Spot) -> Option<Mission> {
         match spot {
-            Spot::Standard => Some(Mission::Standard),
+            Spot::Standard => self.standard.then_some(Mission::Standard),
             Spot::Card(i) => self.table.get(i).copied().flatten(),
         }
     }
 
     /// The spots a marker can go to.
     pub fn spots(&self) -> Vec<Spot> {
-        std::iter::once(Spot::Standard)
+        self.standard
+            .then_some(Spot::Standard)
+            .into_iter()
             .chain(
                 (0..self.table.len())
                     .filter(|&i| self.table[i].is_some())
@@ -198,7 +214,7 @@ impl Round {
 
     /// The points of every player as the dice and markers stand; a player
     /// without a marker counts on the standard mission.
-    pub fn score(&self, bonus: u8) -> Vec<i32> {
+    pub fn score(&self, scoring: Scoring) -> Vec<i32> {
         let n = self.rolls.len();
         let at = |p: usize| self.markers[p].unwrap_or(Spot::Standard);
         let mut points = vec![0; n];
@@ -212,7 +228,7 @@ impl Round {
             let players: Vec<usize> = (0..n).filter(|&q| at(q) == spot).collect();
             let hands: Vec<Vec<u8>> = players.iter().map(|&q| self.hand(q)).collect();
             let mission = self.mission(spot).unwrap_or(Mission::Standard);
-            for (&q, d) in players.iter().zip(resolve(mission, &hands, bonus)) {
+            for (&q, d) in players.iter().zip(resolve(mission, &hands, scoring)) {
                 points[q] = d;
             }
         }
@@ -259,7 +275,7 @@ impl Game {
             .collect();
         let mut deck: Vec<Mission> = (0..Mission::CARDS.len())
             .filter(|&i| rules.cards >> i & 1 == 1)
-            .map(|i| Mission::CARDS[i])
+            .flat_map(|i| std::iter::repeat_n(Mission::CARDS[i], Mission::CARDS[i].copies()))
             .collect();
         rng.shuffle(&mut deck);
         let mut market: Vec<Kind> = Kind::SPECIAL

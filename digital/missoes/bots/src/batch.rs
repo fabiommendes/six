@@ -34,6 +34,8 @@ pub struct Record {
     pub wins: Vec<f64>,
     pub points: Vec<i32>,
     pub rounds: u16,
+    /// Rounds with at least one sabotage.
+    pub sabotaged_rounds: u16,
     pub stalled: bool,
     pub buys: Vec<u32>,
     pub sacrifices: Vec<u32>,
@@ -93,6 +95,7 @@ pub fn play(config: &Config, seed: u64, shift: usize) -> Result<Record, String> 
                 record.bought[bot_of(p)][k] += 1;
             }
         }
+        record.sabotaged_rounds += u16::from(!log.sabotages.is_empty());
         for &(p, mission, by_point) in &log.sabotages {
             record.sabotages[bot_of(p)][usize::from(!by_point)] += 1;
             record.sabotaged[mission_index(mission)] += 1;
@@ -198,6 +201,18 @@ pub fn summary(config: &Config, records: &[Record]) -> String {
         }
         r.leaders_at_half.iter().map(|&b| r.wins[b]).sum::<f64>() / r.leaders_at_half.len() as f64
     });
+    let sabotages = sum(&|r| {
+        r.sabotages
+            .iter()
+            .map(|s| (s[0] + s[1]) as f64)
+            .sum::<f64>()
+    });
+    let _ = writeln!(
+        out,
+        "  sabotages per round {:.2}, rounds with a sabotage {:.1}%",
+        sabotages / total_rounds,
+        100.0 * sum(&|r| r.sabotaged_rounds as f64) / total_rounds
+    );
     let _ = writeln!(
         out,
         "  ties {:.1}%, leader at half the game wins {:.1}%",

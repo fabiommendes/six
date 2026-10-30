@@ -29,6 +29,8 @@ export function randomSeed(): bigint {
  */
 export interface MissionsGame {
   view(): Promise<View>;
+  /** Why the answer of the person who decides now is illegal, or `null` if `apply` would play it. */
+  check(answer: Answer): Promise<string | null>;
   /** Plays the answer of the person who decides now. */
   apply(answer: Answer): Promise<Step>;
   /** The bot who decides now answers. */
@@ -49,6 +51,10 @@ export class LocalGame implements MissionsGame {
     return JSON.parse(this.game.view()) as View;
   }
 
+  checkNow(answer: Answer): string | null {
+    return this.game.check(JSON.stringify(answer)) ?? null;
+  }
+
   applyNow(answer: Answer): Step {
     return JSON.parse(this.game.apply(JSON.stringify(answer))) as Step;
   }
@@ -63,6 +69,10 @@ export class LocalGame implements MissionsGame {
 
   view(): Promise<View> {
     return attempt(() => this.viewNow());
+  }
+
+  check(answer: Answer): Promise<string | null> {
+    return attempt(() => this.checkNow(answer));
   }
 
   apply(answer: Answer): Promise<Step> {
