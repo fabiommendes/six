@@ -472,6 +472,26 @@ mais.
   empates vêm de partidas lentas, não de repetição. O código foi removido.
 - Bot melhor não encurta a partida: a duração tem de vir das regras.
 
+### 11x11 com as regras atuais
+
+Linha, captura de todo dado de 4 ou mais, limite de dados menos 10, reserva
+só de 2, lookahead x lookahead (o que conta os dados altos), 100 partidas
+por linha.
+
+| Dados | Limite | Vitórias | Empates | Brancas | Mediana de turnos | p90 | Fim pelo limite | Reserva acaba no turno |
+|---|---|---|---|---|---|---|---|---|
+| 13 | 3 | 51% x 40% | 9% | 58,2% | 165 | 291 | 20% | 41 |
+| 14 | 4 | 42% x 44% | 14% | 59,3% | 173 | 300 | 14% | 45 |
+| 16 | 6 | 40% x 39% | 21% | 39,2% | 196 | 300 | 4% | 56 |
+
+- Como em 9x9, menos dados empatam menos: 21% com 16, 9% com 13.
+- Em 11x11 o limite de captura pesa: com 13 dados, 20% das partidas acabam
+  nele. As duas metas, linha e captura, decidem partidas.
+- A partida é um pouco mais longa que em 9x9 com 12 dados (mediana 165
+  contra 151).
+- As Brancas oscilam de 39% a 59%; com 100 partidas, a margem é de uns 10
+  pontos.
+
 ## Outcome
 
 Pendente.
