@@ -112,7 +112,7 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
   .head { order: -1; padding: 0 6px 8px; }
   .brand { font-size: 12px; gap: 6px; }
   h1 { font-size: 34px; margin: 6px 0 0; }
-  .sub, .band, .legend, .foot { display: none; }
+  .sub, .band, .foot { display: none; }
   .turn { justify-content: flex-end; gap: 8px; }
   .turn .who { font-size: 20px; }
   .mobile-turn { display: flex; }

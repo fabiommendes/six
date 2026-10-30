@@ -124,7 +124,7 @@ describe("the note under the title", () => {
     await match.start();
     expect(hint(match.snapshot(), "toque")).toEqual({
       strong: "Escolha um dado.",
-      rest: "Toque num dado das Brancas para ver aonde ele vai. No primeiro turno, as Brancas precisam mover. As Brancas vencem ao levar um dado à fileira 11.",
+      rest: "Toque num dado das Brancas para ver aonde ele vai. No primeiro turno, as Brancas precisam mover. As Brancas vencem ao levar um dado à fileira\u00a011.",
     });
     await match.click("b2");
     expect(hint(match.snapshot(), "toque").rest).toBe(
@@ -140,7 +140,7 @@ describe("the note under the title", () => {
     await match.start();
     expect(hint(match.snapshot(), "toque")).toEqual({
       strong: "Escolha um dado.",
-      rest: "Toque num dado das Brancas para ver aonde ele vai; toque nele de novo para incrementar. As Brancas vencem ao levar um dado à fileira 11.",
+      rest: "Toque num dado das Brancas para ver aonde ele vai; toque nele de novo para incrementar. As Brancas vencem ao levar um dado à fileira\u00a011.",
     });
     expect(hint(match.snapshot(), "clique").rest.startsWith("Clique num dado")).toBe(true);
   });
@@ -175,7 +175,7 @@ describe("the note under the title", () => {
     await match.start();
     expect(turnSubtitle(match.snapshot())).toBe("Mova, incremente ou atire.");
     expect(hint(match.snapshot(), "clique").rest).toBe(
-      "Clique num dado das Brancas para ver aonde ele vai; clique nele de novo para incrementar. O 6 das Brancas em f6 pode atirar. As Brancas vencem ao levar um dado à fileira 11.",
+      "Clique num dado das Brancas para ver aonde ele vai; clique nele de novo para incrementar. O 6 das Brancas em f6 pode atirar. As Brancas vencem ao levar um dado à fileira\u00a011.",
     );
     await match.click("f6");
     const note = hint(match.snapshot(), "clique");
@@ -193,7 +193,7 @@ describe("the note under the title", () => {
     await match.start();
     expect(turnSubtitle(match.snapshot())).toBe("Sua vez: mova ou incremente um dado.");
     expect(hint(match.snapshot(), "toque").rest).toContain("num dos seus dados");
-    expect(hint(match.snapshot(), "toque").rest).toContain("Você vence ao levar um dado à fileira 11.");
+    expect(hint(match.snapshot(), "toque").rest).toContain("Você vence ao levar um dado à fileira\u00a011.");
     await match.click("b2");
     const playing = match.click("b4");
     await new Promise((resolve) => setTimeout(resolve, 0));

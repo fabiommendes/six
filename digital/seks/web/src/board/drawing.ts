@@ -211,7 +211,37 @@ export function drawShadow(px: number, share: number, blur: number): HTMLCanvasE
   return canvas;
 }
 
-export type MarkKind = "ring" | "selected" | "from" | "to" | "decisive" | "target";
+export type MarkKind = "selected" | "from" | "to" | "decisive" | "target";
+
+/**
+ * A cell the selected die can move to: a ring with the value the die shows
+ * when it lands there, the number of cells it walks. The numeral has a halo
+ * in the colour of the plate, so it reads on the red center cell too.
+ */
+export function drawRing(value: number, px: number, fontFamily: string, canvas: HTMLCanvasElement = makeCanvas(px)): HTMLCanvasElement {
+  const ctx = context(canvas);
+  ctx.clearRect(0, 0, px, px);
+  const c = px / 2;
+  disc(ctx, c, c, px * 0.27);
+  ctx.strokeStyle = COLORS.wool;
+  ctx.lineWidth = px * 0.1;
+  ctx.stroke();
+  ctx.strokeStyle = COLORS.seks;
+  ctx.lineWidth = px * 0.045;
+  ctx.stroke();
+  ctx.font = `800 ${Math.round(px * 0.38)}px ${fontFamily}`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  // Alegreya Sans sets its figures a little high on the middle line.
+  const y = c + px * 0.02;
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = COLORS.wool;
+  ctx.lineWidth = px * 0.06;
+  ctx.strokeText(String(value), c, y);
+  ctx.fillStyle = COLORS.seks;
+  ctx.fillText(String(value), c, y);
+  return canvas;
+}
 
 /**
  * A mark of play, drawn in one cell (`px` by `px`). Each has its own shape:
@@ -223,15 +253,7 @@ export function drawMark(kind: MarkKind, px: number): HTMLCanvasElement {
   const canvas = makeCanvas(px);
   const ctx = context(canvas);
   const c = px / 2;
-  if (kind === "ring") {
-    disc(ctx, c, c, px * 0.14);
-    ctx.strokeStyle = COLORS.wool;
-    ctx.lineWidth = px * 0.11;
-    ctx.stroke();
-    ctx.strokeStyle = COLORS.seks;
-    ctx.lineWidth = px * 0.05;
-    ctx.stroke();
-  } else if (kind === "selected") {
+  if (kind === "selected") {
     const i = px * 0.04;
     ctx.fillStyle = COLORS.selection;
     ctx.strokeStyle = COLORS.seks;

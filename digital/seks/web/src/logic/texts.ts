@@ -44,10 +44,11 @@ export const BUTTONS = {
 
 export const LEGEND = {
   selected: "dado selecionado",
-  destination: "casa ao alcance",
+  destination: "casa ao alcance, com o valor com que o dado chega",
   target: "alvo do tiro",
   origin: "origem",
   last: "destino da última jogada",
+  decisive: "o que decidiu a partida",
 } as const;
 
 export const START = {
@@ -246,7 +247,7 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
     const side = snapshot.view.to_move;
     const mine = snapshot.mode.kind !== "hotseat";
     const whose = mine ? "num dos seus dados" : `num dado das ${SIDE_NAME[side]}`;
-    const goal = `${mine ? "Você vence" : `As ${SIDE_NAME[side]} vencem`} ao levar um dado à fileira ${GOAL_ROW[side]}.`;
+    const goal = `${mine ? "Você vence" : `As ${SIDE_NAME[side]} vencem`} ao levar um dado à fileira\u00a0${GOAL_ROW[side]}.`;
     if (snapshot.view.first_turn) {
       return { strong: "Escolha um dado.", rest: `${Verb} ${whose} para ver aonde ele vai. No primeiro turno, as Brancas precisam mover. ${goal}` };
     }

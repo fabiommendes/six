@@ -23,7 +23,7 @@ import type { Cell } from "../engine/cells";
 import type { Side, View } from "../engine/game";
 import { NO_MARKS, type Marks } from "../logic/marks";
 import type { Stage } from "../logic/match";
-import { drawBoardTexture, drawMark, type MarkKind } from "./drawing";
+import { drawBoardTexture, drawMark, drawRing, type MarkKind } from "./drawing";
 import { DieAssets, Die3D } from "./die3d";
 import { BOARD_THICKNESS, cellAtScreen, cellCenter, DIE_SIZE, orientation } from "./geometry";
 import { COMPACT_BELOW, frameLayout, type FrameLayout } from "./layout";
@@ -53,6 +53,7 @@ const FONT = '"Alegreya Sans", sans-serif';
 const MARK_HEIGHT = 0.004;
 const BOARD_TEXTURE = 2048;
 const RING_POOL = 48;
+const MARK_TEXTURE = 128;
 /** The sides of the board, lit from the north west: the sun falls on the west and north sides. */
 const BLOCK_COLORS = { west: "#DDD2BD", north: "#DDD2BD", east: "#C9BCA3", south: "#C9BCA3" } as const;
 
@@ -78,7 +79,7 @@ function tween(duration: number, step: (t: number) => void): Promise<void> {
 }
 
 function markTexture(kind: MarkKind): CanvasTexture {
-  const t = new CanvasTexture(drawMark(kind, 128));
+  const t = new CanvasTexture(drawMark(kind, MARK_TEXTURE));
   t.colorSpace = SRGBColorSpace;
   return t;
 }
@@ -111,6 +112,9 @@ export class Board3D implements Stage {
   private layout: FrameLayout = frameLayout(false);
   private readonly markTextures: Record<MarkKind, CanvasTexture>;
   private readonly markMaterials: Record<MarkKind, Material>;
+  /** The rings of the destinations, one for each value a die can land with (1 to 6). */
+  private readonly ringTextures: CanvasTexture[];
+  private readonly ringMaterials: Material[];
   private readonly markGeometry = new PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
   private readonly selectedMark: Mesh;
   private readonly fromMark: Mesh;
@@ -159,9 +163,15 @@ export class Board3D implements Stage {
     this.block.visible = false;
     this.world.add(this.block);
 
-    this.markTextures = { ring: markTexture("ring"), selected: markTexture("selected"), from: markTexture("from"), to: markTexture("to"), decisive: markTexture("decisive"), target: markTexture("target") };
+    this.ringTextures = [1, 2, 3, 4, 5, 6].map((value) => {
+      const t = new CanvasTexture(drawRing(value, MARK_TEXTURE, FONT));
+      t.colorSpace = SRGBColorSpace;
+      return t;
+    });
+    this.ringMaterials = this.ringTextures.map((map) => new MeshBasicMaterial({ map, transparent: true, depthWrite: false }));
+    this.markTextures = { selected: markTexture("selected"), from: markTexture("from"), to: markTexture("to"), decisive: markTexture("decisive"), target: markTexture("target") };
     const markMaterial = (kind: MarkKind) => new MeshBasicMaterial({ map: this.markTextures[kind], transparent: true, depthWrite: false });
-    this.markMaterials = { ring: markMaterial("ring"), selected: markMaterial("selected"), from: markMaterial("from"), to: markMaterial("to"), decisive: markMaterial("decisive"), target: markMaterial("target") };
+    this.markMaterials = { selected: markMaterial("selected"), from: markMaterial("from"), to: markMaterial("to"), decisive: markMaterial("decisive"), target: markMaterial("target") };
     this.selectedMark = this.newMark("selected");
     this.fromMark = this.newMark("from");
     this.toMark = this.newMark("to");
@@ -189,7 +199,13 @@ export class Board3D implements Stage {
     this.placeMark(this.selectedMark, marks.selected, 0.0);
     this.placeMark(this.fromMark, marks.lastFrom, 0.001);
     this.placeMark(this.toMark, marks.lastTo, 0.001);
-    marks.destinations.forEach((cell, i) => this.placeMark(this.ring(i), cell, 0.002));
+    marks.destinations.forEach((cell, i) => {
+      const ring = this.ring(i);
+      ring.material = this.ringMaterials[(marks.arrivals?.[i] ?? 1) - 1]!;
+      // The numeral reads upright from the side the board is seen from.
+      ring.rotation.y = -this.yawTarget;
+      this.placeMark(ring, cell, 0.002);
+    });
     for (let i = marks.destinations.length; i < this.rings.length; i++) this.rings[i]!.visible = false;
     const targets = marks.targets ?? [];
     while (this.targetMarks.length < targets.length) this.targetMarks.push(this.newMark("target"));
@@ -295,7 +311,13 @@ export class Board3D implements Stage {
   }
 
   private ring(index: number): Mesh {
-    while (this.rings.length <= Math.max(index, RING_POOL - 1)) this.rings.push(this.newMark("ring"));
+    while (this.rings.length <= Math.max(index, RING_POOL - 1)) {
+      const mesh = new Mesh(this.markGeometry, this.ringMaterials[0]);
+      mesh.renderOrder = 2;
+      mesh.visible = false;
+      this.world.add(mesh);
+      this.rings.push(mesh);
+    }
     return this.rings[index]!;
   }
 
@@ -382,6 +404,11 @@ export class Board3D implements Stage {
       // Draw with the fallback font rather than not at all.
     }
     if (this.disposed) return;
+    // The numerals of the rings, now in the font of the board.
+    this.ringTextures.forEach((texture, i) => {
+      drawRing(i + 1, MARK_TEXTURE, FONT, texture.image as HTMLCanvasElement);
+      texture.needsUpdate = true;
+    });
     for (const turned of [0, 1]) {
       const canvas = (this.frameCanvases[turned] ??= document.createElement("canvas"));
       canvas.width = canvas.height = BOARD_TEXTURE;
@@ -495,6 +522,8 @@ export class Board3D implements Stage {
     this.assets.dispose();
     for (const t of Object.values(this.markTextures)) t.dispose();
     for (const m of Object.values(this.markMaterials)) m.dispose();
+    for (const t of this.ringTextures) t.dispose();
+    for (const m of this.ringMaterials) m.dispose();
     this.markGeometry.dispose();
     for (const t of this.frameTextures) t?.dispose();
     this.frame.geometry.dispose();

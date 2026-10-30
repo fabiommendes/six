@@ -6,7 +6,9 @@ import { DEFAULT_BOT_LEVEL } from "../bot/levels";
 import type { BotLevelId } from "../bot/protocol";
 import type { Cell } from "../engine/cells";
 import type { Command, SeksGame, Side } from "../engine/game";
+import { LegendMemory, marksOnBoard } from "../logic/legend";
 import { Match, type Mode, type Seed } from "../logic/match";
+import type { PreferenceStore } from "../logic/view-preference";
 import type { Session } from "../logic/session";
 import type { LiveStatus } from "../net/live-session";
 import { drawStatus } from "../logic/status";
@@ -113,6 +115,16 @@ export interface GameScreenOptions {
   readonly spawnBot?: () => BotPlayer;
   /** The player asked for a new game. */
   readonly onNewGame: () => void;
+  /** Where the legend keeps which marks the player has seen; the local storage by default, none with `null`. */
+  readonly legendStore?: PreferenceStore | null;
+}
+
+function browserStore(): PreferenceStore | null {
+  try {
+    return localStorage;
+  } catch {
+    return null;
+  }
 }
 
 const SKELETON = `
@@ -140,7 +152,7 @@ const SKELETON = `
       <div class="last"></div>
       <div class="sides"></div>
       <div class="count" hidden></div>
-      <div class="legend"></div>
+      <div class="legend" hidden></div>
       <div class="actions">
         <button type="button" data-action="undo">${BUTTONS.undo}</button>
         <button type="button" data-action="tilt" aria-pressed="false">${BUTTONS.tiltOn}</button>
@@ -175,12 +187,14 @@ export class GameScreen {
   private readonly endView: EndCardView;
   /** The bot made to play both sides when the player chose to finish with bots (a hotseat match has none of its own). */
   private extraBot: BotPlayer | null = null;
+  private readonly legendMemory: LegendMemory;
 
   constructor(
     private readonly host: HTMLElement,
     private readonly options: GameScreenOptions,
   ) {
     this.gesture = matchMedia("(pointer: coarse)").matches ? "toque" : "clique";
+    this.legendMemory = new LegendMemory(options.legendStore === undefined ? browserStore() : options.legendStore);
     host.className = "screen";
     host.innerHTML = SKELETON;
     this.confirm = new ConfirmDialog(host);
@@ -195,7 +209,6 @@ export class GameScreen {
       onEnd: () => options.mail?.onEnd(),
     });
     need(host, ".brand .mark").innerHTML = brandMark(26);
-    need(host, ".legend").innerHTML = this.legend();
 
     const container = need(host, "#board");
     let board: Board3D | null = null;
@@ -455,9 +468,12 @@ export class GameScreen {
     if (target && !target.closest("canvas, button, a, input, label, select")) this.match.clearSelection();
   };
 
-  private legend(): string {
-    const item = (mark: Parameters<typeof markIcon>[0], text: string) => `<span>${markIcon(mark)}${text}</span>`;
-    return item("selected", LEGEND.selected) + item("destination", LEGEND.destination) + item("target", LEGEND.target) + item("origin", LEGEND.origin) + item("last", LEGEND.last);
+  /** The marks on the board that the player has not seen enough times yet, each with what it means. */
+  private renderLegend(snapshot: ReturnType<Match["snapshot"]>): void {
+    const marks = this.legendMemory.update(marksOnBoard(snapshot));
+    const legend = need(this.host, ".legend");
+    legend.hidden = marks.length === 0;
+    legend.innerHTML = marks.map((mark) => `<span>${markIcon(mark)}${esc(LEGEND[mark])}</span>`).join("");
   }
 
   /** The strips of motif of the panel, as wide as the panel. */
@@ -479,6 +495,7 @@ export class GameScreen {
     this.drawStrips();
 
     need(host, ".sub").textContent = modeLine(snapshot.mode);
+    this.renderLegend(snapshot);
     need(host, "#board").setAttribute("aria-label", boardLabel(snapshot));
 
     // The turn, or the end of the game.

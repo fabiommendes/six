@@ -20,7 +20,9 @@ Hotseat, jogo contra o bot, partida por correspondência (link) e partida ao viv
 
 - `src/engine`: carregador do WASM e invólucro tipado do `Game`.
 - `src/logic`: seleção, partida (`Match`, desfazer, capturados), contador,
-  textos ao jogador e posições de teste. Não depende de DOM nem de WebGL.
+  textos ao jogador, legenda (`legend.ts`: cada marca é explicada nas três
+  primeiras vezes em que aparece, contadas no `localStorage`) e posições de
+  teste. Não depende de DOM nem de WebGL.
   Partida por correspondência: `link.ts` (formato do link, genérico),
   `seks-link.ts` (o Seks no formato) e `mail-games.ts` (partidas guardadas, de
   correspondência e ao vivo). Partida ao vivo: `invite.ts` (o link de convite).

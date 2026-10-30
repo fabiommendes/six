@@ -4,7 +4,7 @@ import type { BotLevel } from "../bot/protocol";
 import type { Cell } from "../engine/cells";
 import type { Command, SeksGame, Side, Transition, View } from "../engine/game";
 import type { Event } from "@wire/Event";
-import { NO_MARKS, type Marks } from "./marks";
+import { arrivalValue, NO_MARKS, type Marks } from "./marks";
 import { click, type Selection, type SelectionBoard } from "./selection";
 
 /** Two players on the same screen. */
@@ -382,6 +382,7 @@ export class Match {
     return {
       selected: this.selection?.at ?? null,
       destinations: this.selection?.moves ?? NO_MARKS.destinations,
+      arrivals: this.selection?.moves.map((cell) => arrivalValue(this.selection!.at, cell)) ?? [],
       targets: this.selection?.shots ?? [],
       lastFrom: last?.from ?? null,
       lastTo: last?.to ?? null,
