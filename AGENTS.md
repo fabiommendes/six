@@ -25,7 +25,8 @@ Nível 1 do ADR 0002 do tooling-root:
   `cargo test` do motor e dos bots em Rust, build WASM dos bots, tipos e teste
   em Node do `seks-wasm`, tipos, testes e build da interface web do Seks, e
   o mesmo para o Liu, motor, bots, WASM e interface web do Sia, e o mesmo
-  para o Shesh, e o WASM e a interface web do jogo de missões). Define
+  para o Shesh, e o WASM e a interface web dos jogos de conexão e de
+  missões). Define
   "pronto".
 - Motor do Seks: `just seks-engine-test`.
 - Motor em WebAssembly: `just seks-wasm` (pacote em `digital/seks/wasm/pkg`),
@@ -70,12 +71,19 @@ Nível 1 do ADR 0002 do tooling-root:
   missoes-types`, `just missoes-web-dev` e `just missoes-web-check`
   (interface web, pede `just missoes-wasm` antes). Detalhes em
   `digital/missoes/wasm/README.md` e `digital/missoes/web/README.md`.
+- Jogo de conexão (protótipo sem nome, regras em `dev/rfc/jogo-de-conexao.md`):
+  `just conexao-engine-test` e `just conexao-batch A,B` (lote entre dois bots,
+  trocando as cores, com variantes de regra por flag). `just conexao-wasm` e
+  `just conexao-wasm-test` (pacote WASM e partidas no Node, com o bot), `just
+  conexao-types`, `just conexao-web-dev` e `just conexao-web-check` (interface
+  web, pede `just conexao-wasm` antes). Detalhes em
+  `digital/conexao/wasm/README.md` e `digital/conexao/web/README.md`.
 - Manual: `just manual` (site e PDF), `just manual-serve`, `just manual-check`
   (trechos do manual cujas fontes em `regras/` mudaram). Detalhes em
   `manual/README.md`.
 - Site publicado: `just site` (manual na raiz e as interfaces do Seks em
-  `seks/`, do Liu em `liu/`, do Sia em `sia/`, do Shesh em `shesh/` e do
-  jogo de missões em `missoes/`, em
+  `seks/`, do Liu em `liu/`, do Sia em `sia/`, do Shesh em `shesh/`, do
+  jogo de conexão em `conexao/` e do jogo de missões em `missoes/`, em
   `out/site`) e `just site-serve`. Cada push na `main` publica o site no GitHub Pages (`.github/workflows/pages.yml`).
 - Issues, RFCs e ADRs: `r2 issue list`, `r2 rfc list`, `r2 adr list`.
 
@@ -107,6 +115,10 @@ Nível 1 do ADR 0002 do tooling-root:
 | `digital/missoes/bots/` | Bots do jogo de missões (`missoes-bots`): aleatório e guloso, com variantes sem compra e sem lance, lotes |
 | `digital/missoes/wasm/` | `missoes-wasm`: o jogo de missões em WebAssembly, uma decisão por vez, com os bots dos lugares de bot e os tipos TypeScript |
 | `digital/missoes/web/` | Interface web do jogo de missões (Vite, TypeScript e Three.js): mesa em 3D com 2 a 4 jogadores no mesmo aparelho, pessoas ou bots |
+| `digital/conexao/engine/` | Motor do jogo de conexão (protótipo), em Rust (`conexao-engine`), com o limite de vizinhos e as duas metas (linha e chegada) |
+| `digital/conexao/bots/` | Bots do jogo de conexão (`conexao-bots`): aleatório, guloso, guloso sem bloqueio e guloso com dois lances, lotes |
+| `digital/conexao/wasm/` | `conexao-wasm`: o motor (`Game`) e o bot (`Bot`) do jogo de conexão em WebAssembly, com os tipos do JSON e os tipos TypeScript |
+| `digital/conexao/web/` | Interface web do jogo de conexão (Vite, TypeScript e Three.js): mesa em 3D sobre o tabuleiro do Seks, com as variantes de regra escolhidas antes da partida; dois jogadores no mesmo aparelho, contra bot ou bot contra bot |
 | `arte/` | Identidade visual (ADR 0005); `esbocos/` guarda as quatro direções esboçadas, como referência |
 | `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` e `esbocos/` (temporários) ficam fora do git |
 

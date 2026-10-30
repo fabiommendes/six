@@ -259,14 +259,15 @@ sia-web-check: sia-web-install
 
 # --- Site publicado ---------------------------------------------------------
 
-# Site publicado em out/site: o manual (site e PDF) na raiz e as interfaces web do Seks em seks/, do Liu em liu/, do Sia em sia/, do Shesh em shesh/ e do jogo de missões em missoes/
+# Site publicado em out/site: o manual (site e PDF) na raiz e as interfaces web do Seks em seks/, do Liu em liu/, do Sia em sia/, do Shesh em shesh/, do jogo de conexão em conexao/ e do jogo de missões em missoes/
 [group('site')]
-site: seks-wasm seks-web-install liu-wasm liu-web-install sia-wasm sia-web-install shesh-wasm shesh-web-install missoes-wasm missoes-web-install
+site: seks-wasm seks-web-install liu-wasm liu-web-install sia-wasm sia-web-install shesh-wasm shesh-web-install conexao-wasm conexao-web-install missoes-wasm missoes-web-install
     make -C manual build
     cd digital/seks/web && nice -n 19 pnpm build
     cd digital/liu/web && nice -n 19 pnpm build
     cd digital/sia/web && nice -n 19 pnpm build
     cd digital/shesh/web && nice -n 19 pnpm build
+    cd digital/conexao/web && nice -n 19 pnpm build
     cd digital/missoes/web && nice -n 19 pnpm build
     rm -rf out/site && mkdir -p out
     cp -r manual/build/site out/site
@@ -274,6 +275,7 @@ site: seks-wasm seks-web-install liu-wasm liu-web-install sia-wasm sia-web-insta
     cp -r digital/liu/web/dist out/site/liu
     cp -r digital/sia/web/dist out/site/sia
     cp -r digital/shesh/web/dist out/site/shesh
+    cp -r digital/conexao/web/dist out/site/conexao
     cp -r digital/missoes/web/dist out/site/missoes
     touch out/site/.nojekyll
 
@@ -340,6 +342,64 @@ missoes-web-check: missoes-web-install
     cd digital/missoes/web && nice -n 19 pnpm test
     cd digital/missoes/web && nice -n 19 pnpm build
 
+# --- Conexão (protótipo, sem nome) ------------------------------------------
+
+# Testes do motor do jogo de conexão em Rust
+[group('conexao')]
+conexao-engine-test:
+    cd digital && cargo test -p conexao-engine
+
+# Lote entre dois bots do jogo de conexão, trocando as cores (ex.: just conexao-batch lookahead,greedy --goal reach --no-block)
+[group('conexao')]
+conexao-batch bots *flags:
+    cd digital && CARGO_BUILD_JOBS=4 cargo build --release -q -p conexao-bots
+    cd digital && {{seks_limits}} ./target/release/conexao-bots batch --bots {{bots}} {{flags}}
+
+# Regenera os tipos TypeScript do jogo de conexão em digital/conexao/wasm/types (ts-rs)
+[group('conexao')]
+conexao-types:
+    rm -rf digital/conexao/wasm/types
+    cd digital && TS_RS_EXPORT_DIR="$PWD/conexao/wasm/types" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p conexao-wasm --lib export_bindings
+
+# Falha se digital/conexao/wasm/types está desatualizado em relação ao wire do conexao-wasm
+[group('conexao')]
+conexao-types-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    cd digital
+    TS_RS_EXPORT_DIR="$tmp" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p conexao-wasm --lib export_bindings
+    diff -r "$tmp" conexao/wasm/types || { echo "tipos desatualizados: rode just conexao-types" >&2; exit 1; }
+
+# Gera o pacote WebAssembly do jogo de conexão (motor e bots) em digital/conexao/wasm/pkg
+[group('conexao')]
+conexao-wasm:
+    cd digital && CARGO_BUILD_JOBS=4 nice -n 19 wasm-pack build conexao/wasm --target web --release
+
+# Gera o pacote WebAssembly do jogo de conexão e joga partidas inteiras pelo Game e pelo Bot no Node
+[group('conexao')]
+conexao-wasm-test: conexao-wasm
+    nice -n 19 node --test digital/conexao/wasm/tests/game.test.mjs digital/conexao/wasm/tests/bot.test.mjs
+
+# Instala as dependências da interface web do jogo de conexão (pnpm)
+[group('conexao')]
+conexao-web-install:
+    cd digital/conexao/web && nice -n 19 pnpm install --frozen-lockfile --prefer-offline
+
+# Serve a interface web do jogo de conexão em desenvolvimento (pede `just conexao-wasm` antes)
+[group('conexao')]
+conexao-web-dev:
+    cd digital/conexao/web && node scripts/check-wasm.mjs --warn && pnpm dev --open
+
+# Tipos, testes e build da interface web do jogo de conexão, em digital/conexao/web/dist (pede `just conexao-wasm` antes)
+[group('conexao')]
+conexao-web-check: conexao-web-install
+    cd digital/conexao/web && node scripts/check-wasm.mjs
+    cd digital/conexao/web && nice -n 19 pnpm typecheck
+    cd digital/conexao/web && nice -n 19 pnpm test
+    cd digital/conexao/web && nice -n 19 pnpm build
+
 # --- Shesh (protótipo) -------------------------------------------------------
 
 # Testes do motor do Shesh em Rust
@@ -400,7 +460,7 @@ shesh-web-check: shesh-web-install
 
 # --- Verificações -----------------------------------------------------------
 
-# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu, motor, bots, WASM e interface web do Sia, motor, bots, WASM e interface web do Shesh e WASM e interface web do jogo de missões
+# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu, motor, bots, WASM e interface web do Sia, motor, bots, WASM e interface web do Shesh, WASM e interface web do jogo de conexão e WASM e interface web do jogo de missões
 [group('check')]
 check:
     make -C manual build
@@ -424,6 +484,9 @@ check:
     just shesh-wasm-test
     just shesh-web-check
     cd digital && cargo build -q -p shesh-bots --lib --target wasm32-unknown-unknown
+    just conexao-types-check
+    just conexao-wasm-test
+    just conexao-web-check
     just missoes-types-check
     just missoes-wasm-test
     just missoes-web-check

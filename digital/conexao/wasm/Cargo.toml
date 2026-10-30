@@ -1,0 +1,16 @@
+[package]
+name = "conexao-wasm"
+version = "0.1.0"
+edition.workspace = true
+description = "WebAssembly bindings of the dice connection game engine and bots (prototype)"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+conexao-bots = { path = "../bots" }
+conexao-engine = { path = "../engine" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ts-rs = "10"
+wasm-bindgen = "0.2"

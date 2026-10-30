@@ -15,6 +15,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 
 [[package]]
+name = "conexao-bots"
+version = "0.1.0"
+dependencies = [
+ "conexao-engine",
+]
+
+[[package]]
+name = "conexao-engine"
+version = "0.1.0"
+
+[[package]]
+name = "conexao-wasm"
+version = "0.1.0"
+dependencies = [
+ "conexao-bots",
+ "conexao-engine",
+ "serde",
+ "serde_json",
+ "ts-rs",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"

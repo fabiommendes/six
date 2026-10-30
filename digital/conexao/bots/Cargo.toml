@@ -1,0 +1,8 @@
+[package]
+name = "conexao-bots"
+version = "0.1.0"
+edition.workspace = true
+description = "Bots of the dice connection game and bot-versus-bot batches (prototype)"
+
+[dependencies]
+conexao-engine = { path = "../engine" }

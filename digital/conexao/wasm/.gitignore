@@ -1,0 +1,4 @@
+# wasm-pack output (just conexao-wasm)
+pkg/
+# ts-rs output of a plain `cargo test` (just conexao-types writes to types/)
+bindings/
