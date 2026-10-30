@@ -74,6 +74,10 @@ pub struct Rules {
     /// Whether the fourth neighbor of a die 4 takes it out of the game, and
     /// a player who loses `dice - size + 1` dice loses the game.
     pub capture: bool,
+    /// Whether a die taken from the board must land on a row nearer the
+    /// goal. Absent in the JSON, off.
+    #[serde(default)]
+    pub advance: bool,
     /// Turns, summed over both players, after which the game is a draw.
     pub max_turns: u32,
 }
@@ -93,6 +97,7 @@ impl From<engine::Rules> for Rules {
             block_home: r.block_home,
             block_from_board: r.block_from_board,
             capture: r.capture,
+            advance: r.advance,
             max_turns: r.max_turns,
         }
     }
@@ -134,6 +139,7 @@ impl Rules {
             block_home: self.block_home,
             block_from_board: self.block_from_board,
             capture: self.capture,
+            advance: self.advance,
             max_turns: self.max_turns,
         })
     }

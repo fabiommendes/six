@@ -501,6 +501,22 @@ por linha.
 - As Brancas oscilam de 39% a 59%; com 100 partidas, a margem é de uns 10
   pontos.
 
+### Dado do tabuleiro só para a frente
+
+9x9, linha, 12 dados, captura, `--advance`: o dado tirado do tabuleiro só
+vai para uma fileira mais perto da meta. lookahead x lookahead, as mesmas
+200 partidas da referência (13,5% de empates, mediana 151).
+
+| Regra | Empates | Mediana de turnos | p10 | p90 | Fim por falta de lance | Aumentos por bot |
+|---|---|---|---|---|---|---|
+| referência | 13,5% | 151 | 71 | 300 | | 24 |
+| só para a frente | 0% | 182 | 163 | 198 | 94% (em 50 partidas) | 49 |
+
+- Os empates somem, mas a partida fica mais longa, e quase toda termina
+  porque um jogador fica sem lance: os dados avançam até não ter para onde
+  ir, e sobram só aumentos até tudo virar 6. Ninguém forma a linha.
+- Rejeitada: a regra troca o fim por linha por um fim por esgotamento.
+
 ## Outcome
 
 Pendente.

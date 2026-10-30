@@ -3,7 +3,7 @@
 //! ```text
 //! conexao-bots batch --bots A,B [--games G] [--seed S] [--no-rotate]
 //!                    [--threads T] [--size N] [--goal line|reach] [--no-block] [--block-home] [--block-reserve] [--capture]
-//!                    [--max-turns N] [--dice D] [--placed-value V] [--extra V,V,..]
+//!                    [--max-turns N] [--dice D] [--placed-value V] [--extra V,V,..] [--advance]
 //! ```
 //!
 //! `--extra` lists reserve dice that start with another value than
@@ -16,7 +16,7 @@ use conexao_bots::batch::{self, Config};
 use conexao_bots::DEFAULT_THREADS;
 use conexao_engine::{Goal, Rules};
 
-const USAGE: &str = "usage: conexao-bots batch --bots A,B [--games G] [--seed S] [--no-rotate] [--threads T] [--size N] [--goal line|reach] [--no-block] [--block-home] [--block-reserve] [--capture] [--max-turns N] [--dice D] [--placed-value V] [--extra V,V,..]";
+const USAGE: &str = "usage: conexao-bots batch --bots A,B [--games G] [--seed S] [--no-rotate] [--threads T] [--size N] [--goal line|reach] [--no-block] [--block-home] [--block-reserve] [--capture] [--max-turns N] [--dice D] [--placed-value V] [--extra V,V,..] [--advance]";
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -78,6 +78,7 @@ fn run_batch(args: &[String]) -> Result<(), String> {
             "--block-home" => rules.block_home = true,
             "--block-reserve" => rules.block_from_board = false,
             "--capture" => rules.capture = true,
+            "--advance" => rules.advance = true,
             "--size" => {
                 rules.size = number(value(args, &mut i, flag)?, flag)?;
                 if !(5..=conexao_engine::SIZE).contains(&rules.size) {

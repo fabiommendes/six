@@ -43,6 +43,8 @@ pub struct Record {
     pub lost: [u8; 2],
     /// Whether the loser lost to the capture limit, not to a line.
     pub by_capture: bool,
+    /// Whether the loser lost for having no legal move.
+    pub no_move: bool,
 }
 
 pub fn play(config: &Config, seed: u64, swap: bool) -> Result<Record, String> {
@@ -92,6 +94,7 @@ pub fn play(config: &Config, seed: u64, swap: bool) -> Result<Record, String> {
             && game
                 .capture_limit()
                 .is_some_and(|limit| game.captured[c.other().index()] >= limit);
+        record.no_move = !game.has_won(c) && !record.by_capture;
         let moves: u32 = record.actions[bot_of(c)].iter().sum();
         record.straight = moves as usize == config.rules.size - 1;
     }
@@ -169,8 +172,9 @@ pub fn summary(config: &Config, records: &[Record]) -> String {
     );
     let _ = writeln!(
         out,
-        "  won by the capture limit: {:.1}%",
-        pct(count(&|r| r.by_capture))
+        "  won by the capture limit: {:.1}%, by the opponent having no move: {:.1}%",
+        pct(count(&|r| r.by_capture)),
+        pct(count(&|r| r.no_move))
     );
     let _ = writeln!(
         out,

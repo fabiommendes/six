@@ -93,6 +93,9 @@ pub struct Rules {
     /// player who loses too many dice to make a line loses: see
     /// [`Game::capture_limit`].
     pub capture: bool,
+    /// Whether a die taken from the board must land on a row nearer the
+    /// goal of its owner than the one it left.
+    pub advance: bool,
     /// Turns, summed over both players, after which the game is a draw.
     pub max_turns: u32,
 }
@@ -124,6 +127,7 @@ impl Default for Rules {
             block_home: false,
             block_from_board: true,
             capture: false,
+            advance: false,
             max_turns: 300,
         }
     }
@@ -311,6 +315,11 @@ impl Game {
                 Source::Board(f) => {
                     let die = g.at(f).filter(|d| d.owner == me)?;
                     (g.reserve_size(me) == 0 && f != to).then_some(())?;
+                    let ahead = match me {
+                        Color::White => to as usize / SIZE > f as usize / SIZE,
+                        Color::Black => (to as usize / SIZE) < f as usize / SIZE,
+                    };
+                    (!g.rules.advance || ahead).then_some(())?;
                     g.set(f, None);
                     Some(die.value)
                 }
@@ -722,6 +731,41 @@ mod tests {
         g.play(mv).unwrap();
         assert_eq!(g.at(pos(2, 6)), die(W, 2));
         assert_eq!(g.at(pos(0, 5)), None);
+    }
+
+    #[test]
+    fn with_advance_a_die_from_the_board_moves_forward() {
+        let mut g = empty(Rules {
+            advance: true,
+            ..Rules::default()
+        });
+        g.reserve[0] = [0; 7];
+        g.set(pos(3, 5), die(W, 6));
+        g.set(pos(3, 4), die(W, 2));
+        g.set(pos(1, 5), die(W, 2));
+        let from = |p| Source::Board(p);
+        assert!(g.is_legal(Move::Place {
+            to: pos(4, 5),
+            from: from(pos(3, 4))
+        }));
+        assert!(
+            !g.is_legal(Move::Place {
+                to: pos(3, 6),
+                from: from(pos(3, 4))
+            }),
+            "the same row"
+        );
+        assert!(
+            !g.is_legal(Move::Place {
+                to: pos(2, 5),
+                from: from(pos(3, 4))
+            }),
+            "backwards"
+        );
+        assert!(g.is_legal(Move::Place {
+            to: pos(2, 5),
+            from: from(pos(1, 5))
+        }));
     }
 
     #[test]
