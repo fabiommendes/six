@@ -62,7 +62,7 @@ describe("resultText: the winner and the reason, or the draw and the reason", ()
     const { view } = game.command("e5-e11");
     expect(resultText(view.outcome!, view)).toEqual({
       title: "Vitória das Brancas",
-      reason: "Um dado das Brancas terminou o movimento na fileira de fundo das Pretas.",
+      reason: "Um dado das Brancas chegou à fileira de fundo das Pretas.",
       winner: "white",
     });
   });

@@ -24,7 +24,7 @@ describe("the end of the game: the card (feedback of the designer)", () => {
     const { snapshot } = await played(winFixture(), "c8", "c11");
     expect(endCard(snapshot)).toEqual({
       title: "Você venceu",
-      reason: "Um dado das Brancas terminou o movimento na fileira de fundo das Pretas.",
+      reason: "Um dado seu chegou à fileira de fundo das Pretas.",
       tone: "win",
     });
   });
@@ -39,7 +39,7 @@ describe("the end of the game: the card (feedback of the designer)", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     const card = endCard(match.snapshot());
     expect(card).toMatchObject({ title: "Você perdeu", tone: "loss" });
-    expect(card?.reason).toContain("fileira de fundo");
+    expect(card?.reason).toBe("Um dado das Brancas chegou à sua fileira de fundo.");
   });
 
   it("in hotseat the card names the side that won, with no point of view", async () => {

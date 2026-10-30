@@ -177,14 +177,26 @@ function botsTurn(snapshot: MatchSnapshot): boolean {
   return snapshot.view.outcome === null && snapshot.mode.kind === "bot" && snapshot.view.to_move !== snapshot.mode.human;
 }
 
+/** The center cell, where a 6 can shoot. */
+const CENTER: Cell = "f6";
+
+/** The row a side wins on: the back row of the other side. */
+const GOAL_ROW: Record<Side, number> = { white: 11, black: 1 };
+
+/** The side to move has a 6 on the center cell, so it can shoot. */
+function canShoot(view: View): boolean {
+  return view.dice.some((die) => die.cell === CENTER && die.side === view.to_move && die.value === 6);
+}
+
 /** The line under the turn title. */
 export function turnSubtitle(snapshot: MatchSnapshot): string {
   if (snapshot.view.outcome !== null) return "";
   if (snapshot.mode.kind === "bots") return snapshot.mode.stopped ? "Os bots pararam." : "Os bots estão jogando.";
   if (snapshot.thinking || botsTurn(snapshot)) return "O bot está pensando…";
   if ((snapshot.mode.kind === "correspondence" || snapshot.mode.kind === "live") && !snapshot.humanToMove) return `Aguardando as ${SIDE_NAME[snapshot.view.to_move]}.`;
-  if (snapshot.mode.kind !== "hotseat") return "Sua vez: mova ou incremente um dado.";
-  return "Mova ou incremente um dado.";
+  const plays = canShoot(snapshot.view) ? "mova, incremente ou atire" : "mova ou incremente um dado";
+  if (snapshot.mode.kind !== "hotseat") return `Sua vez: ${plays}.`;
+  return `${capitalize(plays)}.`;
 }
 
 /** The mark of each side in the list of sides: who plays it against the bot. */
@@ -231,11 +243,15 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
   }
   const selection = snapshot.selection;
   if (selection === null) {
-    const whose = snapshot.mode.kind !== "hotseat" ? "num dos seus dados" : `num dado das ${SIDE_NAME[snapshot.view.to_move]}`;
+    const side = snapshot.view.to_move;
+    const mine = snapshot.mode.kind !== "hotseat";
+    const whose = mine ? "num dos seus dados" : `num dado das ${SIDE_NAME[side]}`;
+    const goal = `${mine ? "Você vence" : `As ${SIDE_NAME[side]} vencem`} ao levar um dado à fileira ${GOAL_ROW[side]}.`;
     if (snapshot.view.first_turn) {
-      return { strong: "Escolha um dado.", rest: `${Verb} ${whose} para ver aonde ele vai. No primeiro turno, as Brancas precisam mover.` };
+      return { strong: "Escolha um dado.", rest: `${Verb} ${whose} para ver aonde ele vai. No primeiro turno, as Brancas precisam mover. ${goal}` };
     }
-    return { strong: "Escolha um dado.", rest: `${Verb} ${whose} para ver aonde ele vai; ${verb} nele de novo para incrementar.` };
+    const shot = canShoot(snapshot.view) ? ` ${mine ? "Seu 6" : `O 6 das ${SIDE_NAME[side]}`} em ${CENTER} pode atirar.` : "";
+    return { strong: "Escolha um dado.", rest: `${Verb} ${whose} para ver aonde ele vai; ${verb} nele de novo para incrementar.${shot} ${goal}` };
   }
   const value = snapshot.view.dice.find((die) => die.cell === selection.at)?.value ?? 0;
   const strong = `${value} em ${selection.at} selecionado.`;
@@ -308,9 +324,19 @@ export function endCard(snapshot: MatchSnapshot): EndCard | null {
   const mode = snapshot.mode;
   if (result.winner !== null && (mode.kind === "bot" || mode.kind === "correspondence" || mode.kind === "live")) {
     const won = result.winner === mode.human;
-    return { title: won ? "Você venceu" : "Você perdeu", reason: result.reason, tone: won ? "win" : "loss" };
+    return { title: won ? "Você venceu" : "Você perdeu", reason: personalReason(outcome, mode.human), tone: won ? "win" : "loss" };
   }
   return { title: result.title, reason: result.reason, tone: "neutral" };
+}
+
+/** The reason of a win, told to the player who won or lost it. */
+function personalReason(outcome: Outcome, human: Side): string {
+  if (outcome.kind !== "win") return "";
+  const other = SIDE_NAME[human === "white" ? "black" : "white"];
+  if (outcome.reason === "back_row") {
+    return outcome.winner === human ? `Um dado seu chegou à fileira de fundo das ${other}.` : `Um dado das ${other} chegou à sua fileira de fundo.`;
+  }
+  return outcome.winner === human ? `As ${other} ficaram sem jogada.` : "Você ficou sem jogada.";
 }
 
 /** The end of a game as the screen words it: a headline and the reason. */
@@ -327,7 +353,7 @@ export function resultText(outcome: Outcome, view: View): ResultText {
     const title = `Vitória das ${SIDE_NAME[winner]}`;
     const reason =
       outcome.reason === "back_row"
-        ? `Um dado das ${SIDE_NAME[winner]} terminou o movimento na fileira de fundo das ${SIDE_NAME[loser]}.`
+        ? `Um dado das ${SIDE_NAME[winner]} chegou à fileira de fundo das ${SIDE_NAME[loser]}.`
         : `As ${SIDE_NAME[loser]} ficaram sem jogada.`;
     return { title, reason, winner };
   }

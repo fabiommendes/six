@@ -124,7 +124,7 @@ describe("the note under the title", () => {
     await match.start();
     expect(hint(match.snapshot(), "toque")).toEqual({
       strong: "Escolha um dado.",
-      rest: "Toque num dado das Brancas para ver aonde ele vai. No primeiro turno, as Brancas precisam mover.",
+      rest: "Toque num dado das Brancas para ver aonde ele vai. No primeiro turno, as Brancas precisam mover. As Brancas vencem ao levar um dado à fileira 11.",
     });
     await match.click("b2");
     expect(hint(match.snapshot(), "toque").rest).toBe(
@@ -140,7 +140,7 @@ describe("the note under the title", () => {
     await match.start();
     expect(hint(match.snapshot(), "toque")).toEqual({
       strong: "Escolha um dado.",
-      rest: "Toque num dado das Brancas para ver aonde ele vai; toque nele de novo para incrementar.",
+      rest: "Toque num dado das Brancas para ver aonde ele vai; toque nele de novo para incrementar. As Brancas vencem ao levar um dado à fileira 11.",
     });
     expect(hint(match.snapshot(), "clique").rest.startsWith("Clique num dado")).toBe(true);
   });
@@ -173,6 +173,10 @@ describe("the note under the title", () => {
     const rows = Array.from({ length: 11 }, (_, i) => (i === 5 ? ".. .. .. .. .. w6 .. .. .. .. .." : i === 0 ? ".. .. .. .. .. .. .. .. .. .. b1" : i === 10 ? "w1 .. .. .. .. .. .. .. .. .. .." : ".. ".repeat(10) + ".."));
     const { match } = newMatch(SeksGame.fromDiagram(rows.join("\n"), "white"), { kind: "hotseat" });
     await match.start();
+    expect(turnSubtitle(match.snapshot())).toBe("Mova, incremente ou atire.");
+    expect(hint(match.snapshot(), "clique").rest).toBe(
+      "Clique num dado das Brancas para ver aonde ele vai; clique nele de novo para incrementar. O 6 das Brancas em f6 pode atirar. As Brancas vencem ao levar um dado à fileira 11.",
+    );
     await match.click("f6");
     const note = hint(match.snapshot(), "clique");
     expect(note.strong).toBe("6 em f6 selecionado.");
@@ -189,6 +193,7 @@ describe("the note under the title", () => {
     await match.start();
     expect(turnSubtitle(match.snapshot())).toBe("Sua vez: mova ou incremente um dado.");
     expect(hint(match.snapshot(), "toque").rest).toContain("num dos seus dados");
+    expect(hint(match.snapshot(), "toque").rest).toContain("Você vence ao levar um dado à fileira 11.");
     await match.click("b2");
     const playing = match.click("b4");
     await new Promise((resolve) => setTimeout(resolve, 0));
