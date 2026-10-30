@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ConexaoGame, defaultRules, squareOf, type Die, type Rules, type State, type View } from "../src/engine/game";
+import { ConexaoGame, squareOf, type Die, type Rules, type State, type View } from "../src/engine/game";
+import { fullBoard } from "./rules";
 import { blockRaises, blockTargets, chooseValue, click, NONE, origins, placeTargets, valueChoices, type Selection } from "../src/logic/selection";
 
 const sq = squareOf;
@@ -13,7 +14,7 @@ function reserveOf(rules: Rules, n: number): number[] {
 
 /** A position of the engine, White to move: `dice` maps squares to [owner, value]. */
 function position(dice: Record<number, [number, number]>, changes: Partial<Rules> = {}): View {
-  const rules = { ...defaultRules(), ...changes };
+  const rules = { ...fullBoard(), ...changes };
   const cells: (Die | null)[] = Array.from({ length: 121 }, () => null);
   const count = [0, 0];
   for (const [square, [owner, value]] of Object.entries(dice)) {
@@ -41,13 +42,13 @@ function taps(view: View, squares: number[]): { selection: Selection; move: unkn
 
 describe("taps on the board", () => {
   it("place a die on a ringed square at once", () => {
-    const view = ConexaoGame.create().view();
+    const view = ConexaoGame.create(fullBoard()).view();
     expect(placeTargets(view)).toContain(sq(1, 5));
     expect(click(view, NONE, sq(1, 5)).move).toEqual({ kind: "place", to: sq(1, 5), from: { reserve: 2 } });
   });
 
   it("increase a die with two taps on it", () => {
-    const view = ConexaoGame.create().view();
+    const view = ConexaoGame.create(fullBoard()).view();
     const first = click(view, NONE, sq(0, 5));
     expect(first.selection).toEqual({ kind: "raise", at: sq(0, 5) });
     expect(first.move).toBeNull();
@@ -90,7 +91,7 @@ describe("taps on the board", () => {
   });
 
   it("ask for the value of the reserve die when there are several, and spend that one", () => {
-    const view = ConexaoGame.create({ ...defaultRules(), extra: [0, 0, 0, 1, 1, 1, 1] }).view();
+    const view = ConexaoGame.create({ ...fullBoard(), extra: [0, 0, 0, 1, 1, 1, 1] }).view();
     const first = click(view, NONE, sq(1, 5));
     expect(first.move).toBeNull();
     expect(first.selection).toEqual({ kind: "value", to: sq(1, 5), raise: null });
@@ -124,7 +125,7 @@ describe("taps on the board", () => {
   });
 
   it("do nothing once the game is over", () => {
-    const game = ConexaoGame.create({ ...defaultRules(), maxTurns: 1 });
+    const game = ConexaoGame.create({ ...fullBoard(), maxTurns: 1 });
     game.play(game.view().moves[0]!);
     expect(click(game.view(), NONE, sq(1, 5))).toEqual({ selection: NONE, move: null, note: null });
   });

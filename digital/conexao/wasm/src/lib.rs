@@ -55,11 +55,11 @@ impl Game {
 
 #[wasm_bindgen]
 impl Game {
-    /// A new game with the rules of the proposal (11 by 11, the line, 16
-    /// dice, no capture).
+    /// A new game with the rules of the proposal (9 by 9, the line, 12
+    /// dice, capture).
     #[wasm_bindgen(constructor)]
     pub fn new() -> Game {
-        Game::from_parts(conexao_engine::Game::new(Rules::default()))
+        Game::from_parts(conexao_engine::Game::new(Rules::proposal()))
     }
 
     /// A new game with the rules as `Rules` JSON. Throws on rules out of
@@ -75,7 +75,7 @@ impl Game {
     /// The rules of the proposal, as `Rules` JSON.
     #[wasm_bindgen(js_name = defaultRules)]
     pub fn default_rules() -> String {
-        wire::to_json(&wire::Rules::from(Rules::default()))
+        wire::to_json(&wire::Rules::from(Rules::proposal()))
     }
 
     /// A game that continues from a `State` JSON, with nothing to undo.

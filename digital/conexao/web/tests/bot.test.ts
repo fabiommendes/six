@@ -3,7 +3,8 @@ import { BotCancelled, WorkerBot, type WorkerLike } from "../src/bot/client";
 import { handleBotRequest } from "../src/bot/handler";
 import { BOT_LEVELS } from "../src/bot/levels";
 import type { BotRequest } from "../src/bot/protocol";
-import { ConexaoBot, ConexaoGame, defaultRules } from "../src/engine/game";
+import { ConexaoBot, ConexaoGame } from "../src/engine/game";
+import { fullBoard } from "./rules";
 
 /** A Worker that answers in-process, through the same handler as the real one. */
 class InProcessWorker implements WorkerLike {
@@ -29,7 +30,7 @@ class InProcessWorker implements WorkerLike {
   terminate(): void {}
 }
 
-const small = () => ConexaoGame.create({ ...defaultRules(), size: 9, dice: 12, goal: "reach", maxTurns: 40 });
+const small = () => ConexaoGame.create({ ...fullBoard(), size: 9, dice: 12, goal: "reach", maxTurns: 40 });
 
 describe("levels", () => {
   it("offers the greedy, the lookahead and the search bots, which exist", () => {

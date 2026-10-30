@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ConexaoGame, defaultRules, squareOf, type Rules } from "../src/engine/game";
+import { ConexaoGame, squareOf, type Rules } from "../src/engine/game";
+import { fullBoard } from "./rules";
 import { NONE } from "../src/logic/selection";
 import { capturedText, endText, hint, limitText, moveText, rulesCard, rulesSummary, squareName, winnerText } from "../src/logic/texts";
 
@@ -12,7 +13,7 @@ describe("texts", () => {
   });
 
   it("tell how the game ended", () => {
-    const rules = defaultRules();
+    const rules = fullBoard();
     expect(endText({ kind: "goal", winner: 1 }, names, rules)).toBe("Bia ligou a sua fileira de fundo à do adversário.");
     expect(endText({ kind: "goal", winner: 0 }, names, { ...rules, goal: "reach" })).toMatch(/chegou/);
     expect(endText({ kind: "noMove", winner: 0 }, names, rules)).toBe("Bia ficou sem jogada e perdeu.");
@@ -22,7 +23,7 @@ describe("texts", () => {
   });
 
   it("describe moves and captures", () => {
-    const view = ConexaoGame.create().view();
+    const view = ConexaoGame.create(fullBoard()).view();
     expect(moveText({ kind: "increase", at: squareOf(0, 5) }, view, names)).toBe("Ana aumentou o dado de f1 para 2.");
     expect(moveText({ kind: "place", to: squareOf(1, 5), from: { reserve: 2 } }, view, names)).toBe("Ana colocou um dado 2 em f2.");
     expect(moveText({ kind: "place", to: squareOf(1, 5), from: { reserve: 4 } }, view, names)).toBe("Ana colocou um dado 4 em f2.");
@@ -32,29 +33,29 @@ describe("texts", () => {
   });
 
   it("count the neighbors of a die against its limit", () => {
-    const game = ConexaoGame.create();
+    const game = ConexaoGame.create(fullBoard());
     game.play({ kind: "place", to: squareOf(1, 5), from: { reserve: 2 } });
     expect(limitText(game.view(), squareOf(0, 5))).toBe("O 1 tem 1 vizinho: está cheio.");
     expect(limitText(game.view(), squareOf(1, 5))).toBe("O 2 tem 1 vizinho: cabe mais 1.");
   });
 
   it("describe a varied reserve and the loss by captures", () => {
-    const rules = { ...defaultRules(), size: 9, dice: 12, capture: true, extra: [0, 0, 0, 1, 1, 1, 1] as Rules["extra"] };
+    const rules = { ...fullBoard(), size: 9, dice: 12, capture: true, extra: [0, 0, 0, 1, 1, 1, 1] as Rules["extra"] };
     expect(rulesSummary(rules)).toContain("reserva: um 6, um 5, um 4, um 3 e 7 dados 2");
     expect(rulesCard(rules).find((r) => r.title === "Colocar")!.text).toMatch(/à sua escolha/);
     expect(rulesCard(rules).find((r) => r.title === "Captura")!.text).toMatch(/4 dados capturados perde/);
-    expect(rulesCard(defaultRules()).find((r) => r.title === "Colocar")!.text).not.toMatch(/escolha/);
+    expect(rulesCard(fullBoard()).find((r) => r.title === "Colocar")!.text).not.toMatch(/escolha/);
     expect(endText({ kind: "noMove", winner: 1 }, names, rules, [4, 0])).toBe("Ana perdeu dados demais: 4 dados capturados.");
     expect(endText({ kind: "noMove", winner: 1 }, names, rules, [1, 0])).toBe("Ana ficou sem jogada e perdeu.");
   });
 
   it("show the variants in the rules", () => {
-    const rules = { ...defaultRules(), size: 9, capture: true, blockFromBoard: false };
+    const rules = { ...fullBoard(), size: 9, capture: true, blockFromBoard: false };
     expect(rulesSummary(rules)).toBe("9x9 · meta: linha · 16 dados · com captura · bloqueante só da reserva");
     const card = rulesCard(rules);
     expect(card.map((r) => r.title)).toContain("Captura");
     expect(card.find((r) => r.title === "Aumentar e bloquear")!.text).toMatch(/fileiras 4, 5 e 6/);
-    expect(rulesCard(defaultRules()).find((r) => r.title === "Aumentar e bloquear")!.text).toMatch(/fileiras 5, 6 e 7/);
-    expect(hint(ConexaoGame.create().view(), NONE)).toMatch(/anel/);
+    expect(rulesCard(fullBoard()).find((r) => r.title === "Aumentar e bloquear")!.text).toMatch(/fileiras 5, 6 e 7/);
+    expect(hint(ConexaoGame.create(fullBoard()).view(), NONE)).toMatch(/anel/);
   });
 });

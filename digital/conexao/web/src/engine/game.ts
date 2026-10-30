@@ -42,7 +42,7 @@ export function neighborCount(view: Pick<View, "cells" | "rules">, square: numbe
   return neighborsOf(square, view.rules.size).filter((n) => view.cells[n] != null).length;
 }
 
-/** The rules of the proposal: 11 by 11, the line, 16 dice, no capture. */
+/** The rules of the proposal: 9 by 9, the line, 12 dice, capture. */
 export function defaultRules(): Rules {
   return JSON.parse(Game.defaultRules()) as Rules;
 }

@@ -36,7 +36,7 @@ const MODES = [
 const SWITCHES = [
   { key: "size", legend: "Tabuleiro", options: [{ value: 11, label: "11x11" }, { value: 9, label: "9x9" }] },
   { key: "goal", legend: "Meta", options: [{ value: "line", label: "Linha", detail: "de fundo a fundo" }, { value: "reach", label: "Chegar", detail: "à fileira de fundo" }] },
-  { key: "capture", legend: "Captura", options: [{ value: false, label: "Sem captura" }, { value: true, label: "Com captura", detail: "o 4º vizinho tira um 4" }] },
+  { key: "capture", legend: "Captura", options: [{ value: false, label: "Sem captura" }, { value: true, label: "Com captura", detail: "dado de 4 ou mais cheio sai" }] },
   { key: "extra", legend: "Reserva", options: [{ value: [0, 0, 0, 0, 0, 0, 0], label: "Dados iguais" }, { value: [0, 0, 0, 1, 1, 1, 1], label: "Variada", detail: "um 6, um 5, um 4 e um 3" }] },
   { key: "blockFromBoard", legend: "Bloqueante", options: [{ value: true, label: "Reserva ou tabuleiro" }, { value: false, label: "Só da reserva" }] },
 ] as const satisfies readonly { key: keyof Rules; legend: string; options: readonly { value: Rules[keyof Rules]; label: string; detail?: string }[] }[];

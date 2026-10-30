@@ -21,15 +21,19 @@ freio da própria linha e a ferramenta de bloqueio.
 
 ### Componentes
 
-Os do Seks: o tabuleiro de 11 por 11 e 32 dados, 16 de cada cor. Cabe no kit
-sem mudança.
+Os do Seks: o tabuleiro de 11 por 11, do qual o jogo usa as 9 fileiras e as
+9 colunas centrais, e 24 dados, 12 de cada cor. Cabe no kit sem mudança.
+
+> **Design:** o motor numera o 9x9 a partir do canto da grade de 11x11; na
+> mesa, a proposta é usar o quadrado central, deixando uma fileira e uma
+> coluna livres em cada borda. A confirmar com o designer.
 
 ### Preparação
 
-- Cada jogador tem 16 dados da sua cor: 15 na reserva, com valor 2, e 1 no
+- Cada jogador tem 12 dados da sua cor: 11 na reserva, com valor 2, e 1 no
   tabuleiro, com valor 1.
-- O dado inicial das Brancas fica na coluna 6 da fileira 1; o das Pretas, na
-  coluna 6 da fileira 11.
+- O dado inicial das Brancas fica na coluna central (5) da fileira 1; o das
+  Pretas, na coluna 5 da fileira 9.
 
 > **Proposta:** para acelerar a partida, parte da reserva começa com outros
 > valores: um 6, um 5, um 4 e um 3, e o resto com valor 2. Ao colocar, o
@@ -95,8 +99,7 @@ salvo se for colocado como bloqueante: nesse caso vira 1. Tirar do tabuleiro
 
 > **Proposta:** quem tiver dados capturados em número igual a dados por
 > jogador menos lado do tabuleiro mais 1 perde na hora: sobram menos dados
-> que fileiras, e a linha fica impossível. Com 16 dados, são 8 em 9x9 e 6
-> em 11x11. O jogo passa a ter duas metas: a linha ou a captura.
+> que fileiras, e a linha fica impossível. Com 12 dados em 9x9, são 4. O jogo passa a ter duas metas: a linha ou a captura.
 
 > **Design:** o protótipo captura dados de qualquer cor e só os vizinhos do
 > dado colocado; o próprio dado colocado não é capturado, mesmo que chegue
@@ -107,7 +110,8 @@ salvo se for colocado como bloqueante: nesse caso vira 1. Tirar do tabuleiro
 
 Vence quem forma uma linha contínua de dados próprios, de vizinho em vizinho
 pelo lado ou pela quina, da sua fileira de fundo até a do adversário (da
-fileira 1 à 11).
+fileira 1 à 9), ou quem deixa o adversário com dados capturados demais (ver
+Captura).
 
 Quem não tem ação válida na sua vez perde.
 
@@ -158,6 +162,8 @@ Quem não tem ação válida na sua vez perde.
 - 2026-10-30, designer: a captura vale para todo dado de 4 ou mais, quando
   recebe tantos vizinhos quanto o seu valor. Antes era só o dado 4, e
   aumentar para 5 o protegia.
+- 2026-10-30, designer: tabuleiro 9x9 com 12 dados por jogador. Meta de
+  duração ainda em aberto (hoje uns 75 turnos por jogador).
 
 ## Open questions
 
@@ -182,7 +188,7 @@ Quem não tem ação válida na sua vez perde.
 - Uma linha reta de dados 2 tem os dados do meio cheios. Sem aumento,
   ninguém encosta nela; com o aumento de dado adversário, o oponente abre
   espaço, mas gasta a ação.
-- Ir de uma fileira à outra pede 11 dados em linha. Com 16 dados, cada
+- Ir de uma fileira à outra pede 9 dados em linha. Com 12 dados, cada
   bloqueante custa um dado da reserva, mas pode entrar na linha depois.
 - A ação 3 faz duas coisas no turno. Medir se ela domina a ação 1.
 - Corrida pura favorece quem começa: medir a vantagem das Brancas nos bots.

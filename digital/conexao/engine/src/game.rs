@@ -97,6 +97,21 @@ pub struct Rules {
     pub max_turns: u32,
 }
 
+impl Rules {
+    /// The rules the designer settled on: 9 by 9, the line, 12 dice and
+    /// capture. [`Rules::default`] keeps the first proposal, on the full
+    /// board, as the base of the tests and the batches.
+    pub fn proposal() -> Rules {
+        Rules {
+            size: 9,
+            dice: 12,
+            capture: true,
+            ..Rules::default()
+        }
+    }
+}
+
+/// The first proposal: 11 by 11, the line, 16 dice, no capture.
 impl Default for Rules {
     fn default() -> Rules {
         Rules {
