@@ -25,7 +25,8 @@ Nível 1 do ADR 0002 do tooling-root:
   `cargo test` do motor e dos bots em Rust, build WASM dos bots, tipos e teste
   em Node do `seks-wasm`, tipos, testes e build da interface web do Seks, e
   o mesmo para o Liu, motor, bots, WASM e interface web do Sia, e o mesmo
-  para o Shesh). Define "pronto".
+  para o Shesh, e o WASM e a interface web do jogo de missões). Define
+  "pronto".
 - Motor do Seks: `just seks-engine-test`.
 - Motor em WebAssembly: `just seks-wasm` (pacote em `digital/seks/wasm/pkg`),
   `just seks-wasm-test` (partidas inteiras no Node), `just seks-types` (tipos
@@ -62,11 +63,19 @@ Nível 1 do ADR 0002 do tooling-root:
   `digital/shesh/web/README.md`.
 - Bots do Shesh: `just shesh-batch A B` (lote entre dois bots, com variantes
   de regra por flag).
+- Jogo de missões (protótipo sem nome, regras em `dev/rfc/jogo-de-missoes.md`):
+  `just missoes-engine-test` e `just missoes-batch A,B[,C,D]` (lote entre 2 a
+  4 bots, com variantes de regra por flag). `just missoes-wasm` e `just
+  missoes-wasm-test` (pacote WASM e partidas no Node, com o bot), `just
+  missoes-types`, `just missoes-web-dev` e `just missoes-web-check`
+  (interface web, pede `just missoes-wasm` antes). Detalhes em
+  `digital/missoes/wasm/README.md` e `digital/missoes/web/README.md`.
 - Manual: `just manual` (site e PDF), `just manual-serve`, `just manual-check`
   (trechos do manual cujas fontes em `regras/` mudaram). Detalhes em
   `manual/README.md`.
 - Site publicado: `just site` (manual na raiz e as interfaces do Seks em
-  `seks/`, do Liu em `liu/`, do Sia em `sia/` e do Shesh em `shesh/`, em
+  `seks/`, do Liu em `liu/`, do Sia em `sia/`, do Shesh em `shesh/` e do
+  jogo de missões em `missoes/`, em
   `out/site`) e `just site-serve`. Cada push na `main` publica o site no GitHub Pages (`.github/workflows/pages.yml`).
 - Issues, RFCs e ADRs: `r2 issue list`, `r2 rfc list`, `r2 adr list`.
 
@@ -94,6 +103,10 @@ Nível 1 do ADR 0002 do tooling-root:
 | `digital/shesh/bots/` | Bots do Shesh (`shesh-bots`): aleatório, guloso e expectimax, lotes |
 | `digital/shesh/wasm/` | `shesh-wasm`: o motor (`Game`) e o bot (`Bot`) do Shesh em WebAssembly e os tipos TypeScript |
 | `digital/shesh/web/` | Interface web do Shesh (Vite, TypeScript e Three.js): mesa em 3D sobre o tabuleiro do Seks com a trilha destacada, dois jogadores no mesmo aparelho, contra bot ou bot contra bot |
+| `digital/missoes/engine/` | Motor do jogo de missões (protótipo), em Rust (`missoes-engine`), que chama os jogadores a cada decisão (`Game`) ou espera cada resposta (`Steps`) |
+| `digital/missoes/bots/` | Bots do jogo de missões (`missoes-bots`): aleatório e guloso, com variantes sem compra e sem lance, lotes |
+| `digital/missoes/wasm/` | `missoes-wasm`: o jogo de missões em WebAssembly, uma decisão por vez, com os bots dos lugares de bot e os tipos TypeScript |
+| `digital/missoes/web/` | Interface web do jogo de missões (Vite, TypeScript e Three.js): mesa em 3D com 2 a 4 jogadores no mesmo aparelho, pessoas ou bots |
 | `arte/` | Identidade visual (ADR 0005); `esbocos/` guarda as quatro direções esboçadas, como referência |
 | `dev/` | `rfc/`, `adr/`, `issues/`, `notes/`; `handoffs/` e `esbocos/` (temporários) ficam fora do git |
 

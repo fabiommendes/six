@@ -60,6 +60,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
+name = "missoes-bots"
+version = "0.1.0"
+dependencies = [
+ "missoes-engine",
+]
+
+[[package]]
+name = "missoes-engine"
+version = "0.1.0"
+
+[[package]]
+name = "missoes-wasm"
+version = "0.1.0"
+dependencies = [
+ "missoes-bots",
+ "missoes-engine",
+ "serde",
+ "serde_json",
+ "ts-rs",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"

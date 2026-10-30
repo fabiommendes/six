@@ -1,0 +1,8 @@
+[package]
+name = "missoes-bots"
+version = "0.1.0"
+edition.workspace = true
+description = "Bots of the mission and dice-pool game and bot-versus-bot batches (prototype)"
+
+[dependencies]
+missoes-engine = { path = "../engine" }

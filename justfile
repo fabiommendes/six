@@ -259,26 +259,86 @@ sia-web-check: sia-web-install
 
 # --- Site publicado ---------------------------------------------------------
 
-# Site publicado em out/site: o manual (site e PDF) na raiz e as interfaces web do Seks em seks/, do Liu em liu/, do Sia em sia/ e do Shesh em shesh/
+# Site publicado em out/site: o manual (site e PDF) na raiz e as interfaces web do Seks em seks/, do Liu em liu/, do Sia em sia/, do Shesh em shesh/ e do jogo de missões em missoes/
 [group('site')]
-site: seks-wasm seks-web-install liu-wasm liu-web-install sia-wasm sia-web-install shesh-wasm shesh-web-install
+site: seks-wasm seks-web-install liu-wasm liu-web-install sia-wasm sia-web-install shesh-wasm shesh-web-install missoes-wasm missoes-web-install
     make -C manual build
     cd digital/seks/web && nice -n 19 pnpm build
     cd digital/liu/web && nice -n 19 pnpm build
     cd digital/sia/web && nice -n 19 pnpm build
     cd digital/shesh/web && nice -n 19 pnpm build
+    cd digital/missoes/web && nice -n 19 pnpm build
     rm -rf out/site && mkdir -p out
     cp -r manual/build/site out/site
     cp -r digital/seks/web/dist out/site/seks
     cp -r digital/liu/web/dist out/site/liu
     cp -r digital/sia/web/dist out/site/sia
     cp -r digital/shesh/web/dist out/site/shesh
+    cp -r digital/missoes/web/dist out/site/missoes
     touch out/site/.nojekyll
 
 # Gera o site publicado e serve em http://127.0.0.1:PORT
 [group('site')]
 site-serve port="8080": site
     python3 -m http.server -d out/site -b 127.0.0.1 {{port}}
+
+# --- Missões (protótipo, sem nome) ------------------------------------------
+
+# Testes do motor do jogo de missões em Rust
+[group('missoes')]
+missoes-engine-test:
+    cd digital && cargo test -p missoes-engine
+
+# Lote entre 2 a 4 bots do jogo de missões, em todos os assentos (ex.: just missoes-batch greedy,nobuy --goal 20 --without negative)
+[group('missoes')]
+missoes-batch bots *flags:
+    cd digital && CARGO_BUILD_JOBS=4 cargo build --release -q -p missoes-bots
+    cd digital && {{seks_limits}} ./target/release/missoes-bots batch --bots {{bots}} {{flags}}
+
+# Regenera os tipos TypeScript do jogo de missões em digital/missoes/wasm/types (ts-rs)
+[group('missoes')]
+missoes-types:
+    rm -rf digital/missoes/wasm/types
+    cd digital && TS_RS_EXPORT_DIR="$PWD/missoes/wasm/types" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p missoes-wasm --lib export_bindings
+
+# Falha se digital/missoes/wasm/types está desatualizado em relação ao wire do missoes-wasm
+[group('missoes')]
+missoes-types-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    cd digital
+    TS_RS_EXPORT_DIR="$tmp" CARGO_BUILD_JOBS=4 nice -n 19 cargo test -q -p missoes-wasm --lib export_bindings
+    diff -r "$tmp" missoes/wasm/types || { echo "tipos desatualizados: rode just missoes-types" >&2; exit 1; }
+
+# Gera o pacote WebAssembly do jogo de missões (motor e bots) em digital/missoes/wasm/pkg
+[group('missoes')]
+missoes-wasm:
+    cd digital && CARGO_BUILD_JOBS=4 nice -n 19 wasm-pack build missoes/wasm --target web --release
+
+# Gera o pacote WebAssembly do jogo de missões e joga partidas inteiras pelo Game no Node
+[group('missoes')]
+missoes-wasm-test: missoes-wasm
+    nice -n 19 node --test digital/missoes/wasm/tests/game.test.mjs
+
+# Instala as dependências da interface web do jogo de missões (pnpm)
+[group('missoes')]
+missoes-web-install:
+    cd digital/missoes/web && nice -n 19 pnpm install --frozen-lockfile --prefer-offline
+
+# Serve a interface web do jogo de missões em desenvolvimento (pede `just missoes-wasm` antes)
+[group('missoes')]
+missoes-web-dev:
+    cd digital/missoes/web && node scripts/check-wasm.mjs --warn && pnpm dev --open
+
+# Tipos, testes e build da interface web do jogo de missões, em digital/missoes/web/dist (pede `just missoes-wasm` antes)
+[group('missoes')]
+missoes-web-check: missoes-web-install
+    cd digital/missoes/web && node scripts/check-wasm.mjs
+    cd digital/missoes/web && nice -n 19 pnpm typecheck
+    cd digital/missoes/web && nice -n 19 pnpm test
+    cd digital/missoes/web && nice -n 19 pnpm build
 
 # --- Shesh (protótipo) -------------------------------------------------------
 
@@ -340,7 +400,7 @@ shesh-web-check: shesh-web-install
 
 # --- Verificações -----------------------------------------------------------
 
-# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu, motor, bots, WASM e interface web do Sia, e motor, bots, WASM e interface web do Shesh
+# Tudo o que define "pronto": manual (build, lint e sincronia), protótipo, motores e bots em Rust (e o build WASM dos bots), interfaces web do Seks e do Liu, motor, bots, WASM e interface web do Sia, motor, bots, WASM e interface web do Shesh e WASM e interface web do jogo de missões
 [group('check')]
 check:
     make -C manual build
@@ -364,3 +424,6 @@ check:
     just shesh-wasm-test
     just shesh-web-check
     cd digital && cargo build -q -p shesh-bots --lib --target wasm32-unknown-unknown
+    just missoes-types-check
+    just missoes-wasm-test
+    just missoes-web-check
