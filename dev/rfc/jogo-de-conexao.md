@@ -24,9 +24,11 @@ freio da própria linha e a ferramenta de bloqueio.
 Os do Seks: o tabuleiro de 11 por 11, do qual o jogo usa as 9 fileiras e as
 9 colunas centrais, e 24 dados, 12 de cada cor. Cabe no kit sem mudança.
 
-> **Design:** o motor numera o 9x9 a partir do canto da grade de 11x11; na
-> mesa, a proposta é usar o quadrado central, deixando uma fileira e uma
-> coluna livres em cada borda. A confirmar com o designer.
+O 9x9 é o quadrado central do tabuleiro: fica livre uma fileira e uma coluna
+em cada borda.
+
+> **Design:** o motor numera o 9x9 a partir do canto da grade de 11x11; a
+> interface web o desenha no centro.
 
 ### Preparação
 
@@ -164,6 +166,7 @@ Quem não tem ação válida na sua vez perde.
   aumentar para 5 o protegia.
 - 2026-10-30, designer: tabuleiro 9x9 com 12 dados por jogador. Meta de
   duração ainda em aberto (hoje uns 75 turnos por jogador).
+- 2026-10-30, designer: o 9x9 é o quadrado central do tabuleiro do Seks.
 
 ## Open questions
 
