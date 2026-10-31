@@ -126,10 +126,14 @@ describe("the note under the title", () => {
       strong: "Escolha um dado.",
       rest: "Toque num dado das Brancas para ver aonde ele vai. No primeiro turno, as Brancas precisam mover. As Brancas vencem ao levar um dado à fileira\u00a011.",
     });
+    expect(turnSubtitle(match.snapshot())).toBe("Mova um dado.");
     await match.click("b2");
-    expect(hint(match.snapshot(), "toque").rest).toBe(
-      "Toque numa casa marcada para mover: 6 casas ao alcance. No primeiro turno, as Brancas não incrementam; toque no dado de novo para tirar a seleção.",
-    );
+    expect(hint(match.snapshot(), "toque").rest).toBe("Toque numa casa marcada para mover: 6 casas ao alcance. No primeiro turno, as Brancas precisam mover.");
+    await match.click("b2");
+    expect(hint(match.snapshot(), "toque")).toEqual({
+      strong: "No primeiro turno, as Brancas precisam mover.",
+      rest: "Toque numa casa marcada para mover: 6 casas ao alcance. Toque em outra casa para tirar a seleção.",
+    });
   });
 
   it("asks for a die before anything is selected", async () => {
@@ -165,7 +169,9 @@ describe("the note under the title", () => {
     await match.click("e6");
     const note = hint(match.snapshot(), "toque");
     expect(note.strong).toBe("6 em e6 selecionado.");
-    expect(note.rest).toContain("Um 6 não pode ser incrementado; toque nele de novo para tirar a seleção.");
+    expect(note.rest).toContain("Um 6 não pode ser incrementado.");
+    await match.click("e6");
+    expect(hint(match.snapshot(), "toque").strong).toBe("Um 6 não pode ser incrementado.");
   });
 
   it("tells a 6 in the center what it can shoot, and words the shot", async () => {
@@ -191,7 +197,7 @@ describe("the note under the title", () => {
     const bot = new ScriptedBot();
     const { match } = newMatch(SeksGame.create(), { kind: "bot", human: "white", level: BOT_LEVELS[1]! }, bot);
     await match.start();
-    expect(turnSubtitle(match.snapshot())).toBe("Sua vez: mova ou incremente um dado.");
+    expect(turnSubtitle(match.snapshot())).toBe("Sua vez: mova um dado.");
     expect(hint(match.snapshot(), "toque").rest).toContain("num dos seus dados");
     expect(hint(match.snapshot(), "toque").rest).toContain("Você vence ao levar um dado à fileira\u00a011.");
     await match.click("b2");

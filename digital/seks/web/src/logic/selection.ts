@@ -9,6 +9,8 @@ export interface Selection {
   readonly canIncrement: boolean;
   /** The dice it can shoot: only a 6 in the center cell has any. */
   readonly shots: readonly Cell[];
+  /** The player clicked the die again to increment it, and it cannot be incremented. */
+  readonly refused?: boolean;
 }
 
 /** What the selection needs to know about the position. */
@@ -36,8 +38,10 @@ function select(cell: Cell, board: SelectionBoard): Selection {
  * - on a die of the player, with nothing selected, selects it;
  * - on a marked cell, moves the selected die there;
  * - on a marked die of the opponent, the selected 6 in the center shoots it;
- * - on the selected die, increments it; a 6 cannot be incremented (and a
- *   die that cannot do anything has nothing to do), so the selection goes away;
+ * - on the selected die, increments it; a die that cannot be incremented (a
+ *   6, or any die of the Whites on the first turn) stays selected and the
+ *   selection says the increment was refused, and a die that cannot do
+ *   anything at all is let go;
  * - on another die of the player, changes the selection;
  * - anywhere else, clears the selection.
  */
@@ -45,6 +49,7 @@ export function click(selection: Selection | null, cell: Cell, board: SelectionB
   if (selection !== null) {
     if (cell === selection.at) {
       if (selection.canIncrement) return { selection: null, command: `${cell}+` };
+      if (selection.moves.length > 0 || selection.shots.length > 0) return { selection: { ...selection, refused: true }, command: null };
       return { selection: null, command: null };
     }
     if (selection.moves.includes(cell)) return { selection: null, command: `${selection.at}-${cell}` };

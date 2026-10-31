@@ -85,11 +85,25 @@ describe("click: increment", () => {
     expect(game.command(result.command!).events[0]).toMatchObject({ type: "incremented", at: "b2", value: 3 });
   });
 
-  it("on a 6 only clears the selection", () => {
+  it("on a 6, keeps the die selected and says the increment was refused", () => {
     const game = open({ f6: "w6", k11: "b1", a1: "w1" });
     const selection = selected(game, "f6");
     expect(selection.canIncrement).toBe(false);
-    expect(click(selection, "f6", boardOf(game))).toEqual({ selection: null, command: null });
+    expect(click(selection, "f6", boardOf(game))).toEqual({ selection: { ...selection, refused: true }, command: null });
+  });
+
+  it("on the first turn, keeps the die of the Whites selected", () => {
+    const game = SeksGame.create();
+    const selection = selected(game, "b2");
+    const result = click(selection, "b2", boardOf(game));
+    expect(result).toEqual({ selection: { ...selection, refused: true }, command: null });
+    // A destination still moves it.
+    expect(click(result.selection, "b4", boardOf(game)).command).toBe("b2-b4");
+  });
+
+  it("lets go of a die that has no play at all", () => {
+    const game = open({ a1: "w6", b1: "b1", a2: "b1", b2: "b1", k11: "w1" });
+    expect(click(selected(game, "a1"), "a1", boardOf(game))).toEqual({ selection: null, command: null });
   });
 
   it("on a die that can only be incremented, a second click increments it", () => {

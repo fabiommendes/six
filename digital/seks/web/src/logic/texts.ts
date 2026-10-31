@@ -195,7 +195,7 @@ export function turnSubtitle(snapshot: MatchSnapshot): string {
   if (snapshot.mode.kind === "bots") return snapshot.mode.stopped ? "Os bots pararam." : "Os bots estão jogando.";
   if (snapshot.thinking || botsTurn(snapshot)) return "O bot está pensando…";
   if ((snapshot.mode.kind === "correspondence" || snapshot.mode.kind === "live") && !snapshot.humanToMove) return `Aguardando as ${SIDE_NAME[snapshot.view.to_move]}.`;
-  const plays = canShoot(snapshot.view) ? "mova, incremente ou atire" : "mova ou incremente um dado";
+  const plays = snapshot.view.first_turn ? "mova um dado" : canShoot(snapshot.view) ? "mova, incremente ou atire" : "mova ou incremente um dado";
   if (snapshot.mode.kind !== "hotseat") return `Sua vez: ${plays}.`;
   return `${capitalize(plays)}.`;
 }
@@ -255,22 +255,18 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
     return { strong: "Escolha um dado.", rest: `${Verb} ${whose} para ver aonde ele vai; ${verb} nele de novo para incrementar.${shot} ${goal}` };
   }
   const value = snapshot.view.dice.find((die) => die.cell === selection.at)?.value ?? 0;
-  const strong = `${value} em ${selection.at} selecionado.`;
   const near = selection.moves.length;
   const targets = selection.shots.length;
-  if (targets > 0) {
-    const shoot = `${Verb} num dado marcado para atirar: ${targets === 1 ? "1 alvo" : `${targets} alvos`}.`;
-    const move = near > 0 ? ` Ou ${verb} numa casa marcada para mover.` : "";
-    return { strong, rest: `${shoot}${move}` };
-  }
+  const shoot = targets > 0 ? `${Verb} num dado marcado para atirar: ${targets === 1 ? "1 alvo" : `${targets} alvos`}.` : "";
+  const mark = targets > 0 ? (near > 0 ? `Ou ${verb} numa casa marcada para mover.` : "") : `${Verb} numa casa marcada para mover: ${moveCount(near)}.`;
+  const plays = [shoot, mark].filter((part) => part !== "").join(" ");
+  const noIncrement = snapshot.view.first_turn ? "No primeiro turno, as Brancas precisam mover." : `Um ${value} não pode ser incrementado.`;
+  if (selection.refused) return { strong: noIncrement, rest: `${plays} ${Verb} em outra casa para tirar a seleção.` };
+  const strong = `${value} em ${selection.at} selecionado.`;
+  if (targets > 0) return { strong, rest: plays };
   if (near > 0) {
-    const mark = `${Verb} numa casa marcada para mover: ${moveCount(near)}.`;
-    const again = selection.canIncrement
-      ? `${Verb} no dado de novo para incrementar.`
-      : snapshot.view.first_turn
-        ? `No primeiro turno, as Brancas não incrementam; ${verb} no dado de novo para tirar a seleção.`
-        : `Um ${value} não pode ser incrementado; ${verb} nele de novo para tirar a seleção.`;
-    return { strong, rest: `${mark} ${again}` };
+    const again = selection.canIncrement ? `${Verb} no dado de novo para incrementar.` : noIncrement;
+    return { strong, rest: `${plays} ${again}` };
   }
   if (selection.canIncrement) {
     return { strong, rest: `Nenhuma casa ao alcance: o dado está cercado. ${Verb} nele de novo para incrementar.` };

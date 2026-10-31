@@ -58,17 +58,17 @@ describe("Match in hotseat: the clicks of R2", () => {
     expect(stage.animations[0]?.marks).toMatchObject({ lastFrom: null, lastTo: "b2" });
   });
 
-  it("on a 6, the second click only clears the selection and the turn stays", async () => {
+  it("on a 6, the second click keeps the selection, refused, and the turn stays", async () => {
     const game = SeksGame.fromDiagram(diagram({ f6: "w6", a1: "w1", k11: "b1" }), "white");
     const { match, stage } = newMatch(game, hotseat);
     await match.start();
     await match.click("f6");
     expect(match.snapshot().selection?.canIncrement).toBe(false);
     await match.click("f6");
-    expect(match.snapshot().selection).toBeNull();
+    expect(match.snapshot().selection).toMatchObject({ at: "f6", refused: true });
     expect(match.snapshot().view.to_move).toBe("white");
     expect(stage.animations).toHaveLength(0);
-    expect(stage.lastMarks.selected).toBeNull();
+    expect(stage.lastMarks.selected).toBe("f6");
   });
 
   it("changes the selection to another die of the player", async () => {
