@@ -59,6 +59,7 @@ export const LEGEND = {
 
 export const START = {
   heading: "Nova partida",
+  pitch: "Estratégia para dois jogadores, sem sorte. Cada dado anda até o valor da face, e chega mostrando quantas casas andou.",
   modeLegend: "Como jogar",
   hotseat: "Dois jogadores",
   hotseatNote: "Os dois na mesma tela, um de cada vez.",
@@ -71,11 +72,11 @@ export const START = {
   sideBlackNote: "jogam em segundo",
   levelLegend: "Nível do bot",
   mail: "Por correspondência",
-  mailNote: "Cada jogada vai num link, pelo meio que você quiser. Sem conta e sem servidor.",
+  mailNote: "Cada jogada vai num link, no seu tempo. Sem conta.",
   rules: "Ler as regras",
   collection: "Os seis jogos do Six",
   live: "Ao vivo",
-  liveNote: "Cada um no seu navegador, ao mesmo tempo. Você manda um link de convite. Sem conta.",
+  liveNote: "Ao mesmo tempo, cada um no seu navegador, por convite. Sem conta.",
 } as const;
 
 /** Play by correspondence: the saved list on the start screen and the panel with the link. */

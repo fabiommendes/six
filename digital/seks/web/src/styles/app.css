@@ -53,7 +53,7 @@ h1 { font-weight: 800; font-size: 54px; line-height: 0.9; margin: 12px 0 4px; le
 .side .cap-dice svg { margin-left: -6px; }
 .side .cap-dice svg:first-child { margin-left: 0; }
 .side.active { box-shadow: inset 4px 0 0 var(--seks); padding-left: 12px; background: var(--wool); }
-.side .now { font-family: "Alegreya Sans SC", sans-serif; font-size: 14px; font-weight: 700; color: var(--seks); letter-spacing: 0.06em; margin-left: 8px; }
+.side .now { font-family: "Alegreya Sans SC", sans-serif; font-size: 14px; font-weight: 700; color: var(--seks); letter-spacing: 0.06em; margin-left: 8px; white-space: nowrap; }
 
 .count { margin-top: 12px; display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: end; }
 .count .num { font-size: 36px; font-weight: 800; line-height: 0.9; font-variant-numeric: lining-nums tabular-nums; }
@@ -73,6 +73,8 @@ button:disabled { color: var(--muted); border-color: var(--line); box-shadow: 0 
 button:focus-visible, input:focus-visible + .choice-body { outline: 3px solid var(--seks); outline-offset: 2px; }
 button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 
+.rules-link { align-self: flex-start; margin-top: 14px; font-size: 15px; font-weight: 700; color: var(--ink); text-underline-offset: 3px; }
+.rules-link:focus-visible, .start-links a:focus-visible { outline: 3px solid var(--seks); outline-offset: 2px; }
 .panel > * { flex-shrink: 0; }
 /* The decorative strip gives way first when the panel is too tall for the window, so the panel does not scroll. */
 .panel > .foot { flex-shrink: 1; min-height: 0; overflow: hidden; margin-top: auto; padding-top: 10px; line-height: 0; }
@@ -124,7 +126,7 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
   .last { font-size: 15px; margin-top: 8px; }
   .sides { margin-top: 10px; }
   .side { font-size: 15px; padding: 5px 0; grid-template-columns: 26px 1fr auto; gap: 10px; }
-  .side .cap { grid-column: auto; flex-wrap: nowrap; font-size: inherit; }
+  .side .cap { grid-column: auto; flex-wrap: nowrap; font-size: 14px; text-align: right; }
   .side .name { font-size: 16px; }
   .count { margin-top: 10px; }
   .count .num { font-size: 32px; }
@@ -149,6 +151,9 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 .choice .t { font-weight: 800; font-size: 20px; line-height: 1.1; }
 .choice .d { font-size: 15px; color: var(--muted); }
 .choice-icon { line-height: 0; flex: none; }
+.start .pitch { margin: 8px 0 0; font-size: 17px; line-height: 1.35; }
+.sides-choice { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.sides-choice .choice { margin: 0; }
 .levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .levels .choice { margin: 0; }
 .levels .choice-body { justify-content: center; text-align: center; padding: 10px 6px; }
@@ -157,6 +162,13 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 .start-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; margin-top: 16px; font-size: 17px; }
 .start-links a { color: var(--ink); font-weight: 700; text-underline-offset: 3px; }
 .start .foot { margin-top: 22px; padding-top: 0; }
+@media (max-width: 480px) {
+  .start { padding: 12px 10px; }
+  .start-card { padding: 18px 16px; }
+  .start h1 { font-size: 52px; }
+  .start .pitch { margin-bottom: 14px; font-size: 16px; }
+  .choice-body { padding: 8px 12px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; }

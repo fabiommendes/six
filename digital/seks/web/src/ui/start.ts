@@ -11,7 +11,7 @@ import { brandMark, dieIcon, motifStrip } from "./svg";
  * The published site puts the game in `seks/` under the rulebook site (`just site`),
  * so the rules chapter and the landing page of the collection are one level up.
  */
-const RULES_URL = "../seks.html";
+export const RULES_URL = "../seks.html";
 const COLLECTION_URL = "../";
 
 /** What the player chose on the start screen. */
@@ -21,7 +21,8 @@ export interface StartChoice {
   readonly level: BotLevelId;
 }
 
-export const DEFAULT_CHOICE: StartChoice = { mode: "hotseat", side: "white", level: DEFAULT_BOT_LEVEL.id };
+/** Who arrives from the site is most often alone: the bot comes first. */
+export const DEFAULT_CHOICE: StartChoice = { mode: "bot", side: "white", level: DEFAULT_BOT_LEVEL.id };
 
 /** The mode of a match from the choices of the start screen. */
 export function modeFromChoice(choice: StartChoice): Mode {
@@ -68,21 +69,22 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
       <div class="start-card">
         <div class="brand"><span class="mark"></span>${APP.brand}</div>
         <h1>${APP.title}</h1>
+        <p class="pitch">${START.pitch}</p>
         <div class="band"></div>
         ${extras.notice === null ? "" : `<p class="notice" role="alert">${esc(extras.notice)}</p>`}
         <form class="start-form">
           <fieldset>
             <legend>${START.modeLegend}</legend>
-            ${radio("mode", "hotseat", START.hotseat, START.hotseatNote, initial.mode === "hotseat")}
             ${radio("mode", "bot", START.bot, START.botNote, initial.mode === "bot")}
+            ${radio("mode", "hotseat", START.hotseat, START.hotseatNote, initial.mode === "hotseat")}
             ${radio("mode", "live", START.live, START.liveNote, initial.mode === "live")}
             ${radio("mode", "mail", START.mail, START.mailNote, initial.mode === "mail")}
           </fieldset>
           <div class="side-options"${initial.mode === "hotseat" ? " hidden" : ""}>
             <fieldset>
               <legend>${START.sideLegend}</legend>
-              ${radio("side", "white", START.sideWhite, START.sideWhiteNote, initial.side === "white", dieIcon(6, "white", 22))}
-              ${radio("side", "black", START.sideBlack, START.sideBlackNote, initial.side === "black", dieIcon(6, "black", 22))}
+              <div class="sides-choice">${radio("side", "white", START.sideWhite, START.sideWhiteNote, initial.side === "white", dieIcon(6, "white", 22))}
+              ${radio("side", "black", START.sideBlack, START.sideBlackNote, initial.side === "black", dieIcon(6, "black", 22))}</div>
             </fieldset>
           </div>
           <div class="bot-options"${initial.mode === "bot" ? "" : " hidden"}>
@@ -93,7 +95,7 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
           </div>
           <button type="submit" class="primary">${BUTTONS.play}</button>
         </form>
-        <nav class="start-links"><a href="${RULES_URL}">${START.rules}</a><a href="${COLLECTION_URL}">${START.collection}</a></nav>
+        <nav class="start-links"><a href="${RULES_URL}" target="_blank" rel="noopener">${START.rules}</a><a href="${COLLECTION_URL}">${START.collection}</a></nav>
         ${
           extras.games.length === 0
             ? ""

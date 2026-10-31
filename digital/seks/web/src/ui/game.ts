@@ -30,12 +30,14 @@ import {
   sideTag,
   turnSubtitle,
   SIDES,
+  START,
   turnTitle,
   type Gesture,
 } from "../logic/texts";
 import { ConfirmDialog, type Question } from "./confirm-dialog";
 import { esc, need } from "./dom";
 import { EndCardView } from "./end-card";
+import { RULES_URL } from "./start";
 import { flyToPanel } from "./flight";
 import { LivePanel } from "./live-panel";
 import { MailPanel } from "./mail-panel";
@@ -162,6 +164,7 @@ const SKELETON = `
         <button type="button" data-action="stop-bots" hidden>${BUTTONS.stopBots}</button>
         <button type="button" data-action="new">${BUTTONS.newGame}</button>
       </div>
+      <a class="rules-link" href="${RULES_URL}" target="_blank" rel="noopener">${START.rules}</a>
     </div>
     <div class="foot"></div>
   </div>`;
