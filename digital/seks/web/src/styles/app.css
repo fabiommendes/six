@@ -114,7 +114,7 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
   .screen { grid-template-rows: none; }
   .board-wrap { width: var(--board); height: var(--board); margin: 0 auto; }
   .panel { display: contents; }
-  .head { order: -1; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 0 6px 8px; }
+  .head { order: -1; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 0 6px 8px; width: 100%; max-width: 640px; margin: 0 auto; }
   .head .title { display: flex; align-items: center; gap: 12px; }
   .brand { font-size: 12px; gap: 6px; }
   h1 { font-size: 30px; margin: 0; }

@@ -415,8 +415,12 @@ export class GameScreen {
   }
 
   private ask(question: Question | null): void {
+    const asked = this.confirm.question;
     this.confirm.set(question);
     this.render(this.match.snapshot());
+    // The keyboard follows the question: to its first answer, and back to the button that asked once it closes.
+    if (question !== null) this.host.querySelector<HTMLButtonElement>(".ask-buttons button")?.focus();
+    else if (asked !== null) this.host.querySelector<HTMLButtonElement>(`.actions [data-action="${asked}"]`)?.focus();
   }
 
   /** The player leaves the game: it goes out of the list and the link that tells the opponent stays here. */
@@ -473,6 +477,7 @@ export class GameScreen {
     undo.hidden = live !== undefined || (over && undo.disabled);
     // While the panel asks for a confirmation, its answers are the only buttons.
     need(host, ".actions").hidden = this.confirm.question !== null;
+    if (this.confirm.question !== null) need(host, ".legend").hidden = true;
     need<HTMLButtonElement>(host, '[data-action="resign"]').hidden = (!mail && !live) || this.frozen || over;
     this.confirm.render(this.options.bot !== null || this.options.spawnBot !== undefined, live ? LIVE.resignAsk : MAIL.resignAsk);
 
