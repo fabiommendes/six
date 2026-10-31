@@ -133,8 +133,8 @@ const SKELETON = `
     ${EndCardView.html}
   </div>
   <div class="panel">
-    <div class="head top">
-      <div>
+    <div class="head">
+      <div class="title">
         <div class="brand"><span class="mark"></span>${APP.brand}</div>
         <h1>${APP.title}</h1>
       </div>

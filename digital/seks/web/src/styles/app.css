@@ -104,14 +104,16 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 
 /* Portrait, and narrow windows: the board over the panel (the phone sketch). */
 @media (max-aspect-ratio: 1/1), (max-width: 700px) {
-  .screen { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 10px 8px 16px; height: auto; min-height: 100dvh; --board: min(calc(100vw - 16px), 640px); }
+  /* The rows keep their height: when the notes under the board grow, nothing above them moves, so a second tap lands where the first one aimed. */
+  .screen { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 10px 8px 16px; height: auto; min-height: 100dvh; align-content: start; --board: min(calc(100vw - 16px), 640px); }
   .screen { grid-template-rows: none; }
   .board-wrap { width: var(--board); height: var(--board); margin: 0 auto; }
   .panel { display: contents; }
-  .top { display: grid; grid-template-columns: 1fr auto; align-items: center; }
-  .head { order: -1; padding: 0 6px 8px; }
+  .head { order: -1; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 0 6px 8px; }
+  .head .title { display: flex; align-items: center; gap: 12px; }
   .brand { font-size: 12px; gap: 6px; }
-  h1 { font-size: 34px; margin: 6px 0 0; }
+  h1 { font-size: 30px; margin: 0; }
+  .last:empty { display: none; }
   .sub, .band, .foot { display: none; }
   .turn { justify-content: flex-end; gap: 8px; }
   .turn .who { font-size: 20px; }
@@ -193,8 +195,8 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 /* The end of the game: a card over the board, on the side away from the last play. */
 .board-wrap { position: relative; }
 .end-card { position: absolute; left: 50%; transform: translateX(-50%); width: min(460px, 88%); box-sizing: border-box; padding: 16px 20px 18px; background: var(--wool); border: 2px solid var(--ink); box-shadow: 0 4px 0 var(--ink); text-align: center; z-index: 3; }
-.end-card.top { top: 4%; }
-.end-card.bottom { bottom: 4%; }
+.end-card.at-top { top: 4%; }
+.end-card.at-bottom { bottom: 4%; }
 .end-card[data-tone="win"] { border-color: var(--seks); box-shadow: 0 4px 0 var(--seks); }
 .end-title { margin: 0; font: 800 44px/1 "Alegreya", serif; color: var(--seks); }
 .end-card[data-tone="loss"] .end-title { color: var(--ink); }
@@ -207,4 +209,8 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 @media (prefers-reduced-motion: no-preference) {
   .end-card:not([hidden]) { animation: end-rise 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.1); }
 }
-@media (max-width: 760px) { .end-title { font-size: 34px; } .end-card { padding: 12px 14px 14px; } }
+@media (max-width: 760px) {
+  .end-card { padding: 12px 14px 14px; }
+  .end-title { font-size: 32px; }
+  .end-reason { font-size: 16px; }
+}

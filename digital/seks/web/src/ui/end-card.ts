@@ -49,7 +49,7 @@ export class EndCardView {
     // Seen from the bottom, a play in the upper half of the board is far from a card at the bottom.
     const row = snapshot.last === null ? 1 : Number(snapshot.last.to.slice(1));
     const fromBottom = viewpoint === "white" ? row : 12 - row;
-    element.classList.toggle("top", fromBottom <= 6);
-    element.classList.toggle("bottom", fromBottom > 6);
+    element.classList.toggle("at-top", fromBottom <= 6);
+    element.classList.toggle("at-bottom", fromBottom > 6);
   }
 }
