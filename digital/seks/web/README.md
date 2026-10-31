@@ -3,7 +3,13 @@
 Vite, TypeScript e Three.js. O motor roda no navegador em WebAssembly
 (`digital/seks/wasm`). Contexto: `dev/issues/interface-web-do-seks.md`.
 Hotseat, jogo contra o bot, partida por correspondência (link) e partida ao vivo
-(P2P), com toque ou mouse, em retrato e paisagem.
+(P2P), com toque, mouse ou teclado, em retrato e paisagem.
+
+No teclado, o tabuleiro recebe o foco com Tab: as setas movem um cursor
+pelas casas (a seta para cima afasta de quem joga, mesmo com o tabuleiro
+girado), Enter ou Espaço fazem o clique na casa e Esc tira a seleção. Um
+texto escondido anuncia a casa do cursor ao leitor de tela. U desfaz e T
+inclina o tabuleiro, como os botões do painel.
 
 ## Comandos
 

@@ -19,7 +19,7 @@ import {
   type Material,
 } from "three";
 import type { Event } from "@wire/Event";
-import type { Cell } from "../engine/cells";
+import { BOARD_SIZE, cellName, parseCell, type Cell } from "../engine/cells";
 import type { Side, View } from "../engine/game";
 import { NO_MARKS, type Marks } from "../logic/marks";
 import type { Stage } from "../logic/match";
@@ -47,6 +47,8 @@ export interface BoardOptions {
   flyCaptured(flight: CapturedFlight): Promise<void>;
   /** The click or tap of the player on a cell, or outside the cells (`null`). */
   onCell(cell: Cell | null): void;
+  /** The keyboard cursor moved to `cell`. */
+  onCursor?(cell: Cell): void;
 }
 
 const FONT = '"Alegreya Sans", sans-serif';
@@ -119,6 +121,9 @@ export class Board3D implements Stage {
   private readonly selectedMark: Mesh;
   private readonly fromMark: Mesh;
   private readonly toMark: Mesh;
+  /** The keyboard cursor: shown while the board has the focus and the arrows moved it. */
+  private readonly cursorMark: Mesh;
+  private cursor: Cell | null = null;
   private readonly rings: Mesh[] = [];
   private readonly decisiveMarks: Mesh[] = [];
   private readonly targetMarks: Mesh[] = [];
@@ -169,12 +174,21 @@ export class Board3D implements Stage {
       return t;
     });
     this.ringMaterials = this.ringTextures.map((map) => new MeshBasicMaterial({ map, transparent: true, depthWrite: false }));
-    this.markTextures = { selected: markTexture("selected"), from: markTexture("from"), to: markTexture("to"), decisive: markTexture("decisive"), target: markTexture("target") };
+    this.markTextures = { selected: markTexture("selected"), from: markTexture("from"), to: markTexture("to"), decisive: markTexture("decisive"), target: markTexture("target"), cursor: markTexture("cursor") };
     const markMaterial = (kind: MarkKind) => new MeshBasicMaterial({ map: this.markTextures[kind], transparent: true, depthWrite: false });
-    this.markMaterials = { selected: markMaterial("selected"), from: markMaterial("from"), to: markMaterial("to"), decisive: markMaterial("decisive"), target: markMaterial("target") };
+    this.markMaterials = { selected: markMaterial("selected"), from: markMaterial("from"), to: markMaterial("to"), decisive: markMaterial("decisive"), target: markMaterial("target"), cursor: markMaterial("cursor") };
     this.selectedMark = this.newMark("selected");
     this.fromMark = this.newMark("from");
     this.toMark = this.newMark("to");
+    this.cursorMark = this.newMark("cursor");
+    this.cursorMark.renderOrder = 3;
+
+    // The board takes the keyboard: the arrows move a cursor over the cells, Enter or Space acts on it.
+    container.tabIndex = 0;
+    container.setAttribute("role", "application");
+    container.addEventListener("keydown", this.onKeyDown);
+    container.addEventListener("focus", this.onFocus);
+    container.addEventListener("blur", this.onBlur);
 
     this.canvas.addEventListener("pointerdown", this.onPointerDown);
     this.canvas.addEventListener("pointerup", this.onPointerUp);
@@ -476,6 +490,60 @@ export class Board3D implements Stage {
     this.renderer.render(this.scene, this.cameras.active);
   }
 
+  // --- Keyboard --------------------------------------------------------------
+
+  /** The arrows as steps on the board seen from the Whites: the view from the Blacks turns them round. */
+  private static readonly STEPS: Record<string, readonly [number, number]> = {
+    ArrowUp: [0, 1],
+    ArrowDown: [0, -1],
+    ArrowLeft: [-1, 0],
+    ArrowRight: [1, 0],
+  };
+
+  private readonly onKeyDown = (event: KeyboardEvent) => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    const step = Board3D.STEPS[event.key];
+    if (step) {
+      event.preventDefault();
+      const blacks = Math.round(this.yawTarget / Math.PI) % 2 !== 0;
+      const turn = blacks ? -1 : 1;
+      let cell = this.cursor ?? this.marks.selected ?? "f6";
+      if (this.cursor !== null) {
+        const { col, row } = parseCell(cell);
+        const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
+        cell = cellName(clamp(col + step[0] * turn, 0, BOARD_SIZE - 1), clamp(row + step[1] * turn, 1, BOARD_SIZE));
+      }
+      this.cursor = cell;
+      this.placeMark(this.cursorMark, cell, 0.003);
+      this.invalidate();
+      this.options.onCursor?.(cell);
+    } else if ((event.key === "Enter" || event.key === " ") && this.cursor !== null) {
+      event.preventDefault();
+      this.options.onCell(this.cursor);
+    } else if (event.key === "Escape") {
+      this.options.onCell(null);
+    }
+  };
+
+  private readonly onFocus = () => {
+    if (this.cursor === null) return;
+    this.placeMark(this.cursorMark, this.cursor, 0.003);
+    this.invalidate();
+  };
+
+  private readonly onBlur = () => {
+    this.cursorMark.visible = false;
+    this.invalidate();
+  };
+
+  /** A click or a tap puts the keyboard cursor away until the arrows bring it back. */
+  private hideCursor(): void {
+    if (this.cursor === null) return;
+    this.cursor = null;
+    this.cursorMark.visible = false;
+    this.invalidate();
+  }
+
   // --- Pointer ---------------------------------------------------------------
 
   private pick(event: PointerEvent): Cell | null {
@@ -494,6 +562,7 @@ export class Board3D implements Stage {
 
   /** A click or a tap is the same gesture: press and release on the same spot. */
   private readonly onPointerUp = (event: PointerEvent) => {
+    this.hideCursor();
     const down = this.down;
     this.down = null;
     if (!down || Math.hypot(event.clientX - down.x, event.clientY - down.y) > 14) return;
@@ -519,6 +588,9 @@ export class Board3D implements Stage {
     this.canvas.removeEventListener("pointerup", this.onPointerUp);
     this.canvas.removeEventListener("pointermove", this.onPointerMove);
     this.canvas.removeEventListener("pointerleave", this.onPointerLeave);
+    this.container.removeEventListener("keydown", this.onKeyDown);
+    this.container.removeEventListener("focus", this.onFocus);
+    this.container.removeEventListener("blur", this.onBlur);
     this.assets.dispose();
     for (const t of Object.values(this.markTextures)) t.dispose();
     for (const m of Object.values(this.markMaterials)) m.dispose();

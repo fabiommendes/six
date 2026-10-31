@@ -11,6 +11,7 @@
 }
 
 * { box-sizing: border-box; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 html, body { height: 100%; }
 body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Alegreya Sans", sans-serif; -webkit-text-size-adjust: 100%; }
 button, input { font: inherit; }
@@ -22,6 +23,8 @@ i { font-style: italic; }
 .board-wrap { min-width: 0; min-height: 0; }
 .panel { align-self: start; }
 .board { position: relative; width: 100%; height: 100%; }
+.board:focus { outline: none; }
+.board:focus-visible { outline: 3px solid var(--seks); outline-offset: -3px; }
 .board-canvas { display: block; width: 100%; height: 100%; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .board-error { margin: 0; padding: 24px; color: var(--muted); }
 

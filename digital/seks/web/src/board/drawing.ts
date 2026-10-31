@@ -211,7 +211,7 @@ export function drawShadow(px: number, share: number, blur: number): HTMLCanvasE
   return canvas;
 }
 
-export type MarkKind = "selected" | "from" | "to" | "decisive" | "target";
+export type MarkKind = "selected" | "from" | "to" | "decisive" | "target" | "cursor";
 
 /**
  * A cell the selected die can move to: a ring with the value the die shows
@@ -286,6 +286,13 @@ export function drawMark(kind: MarkKind, px: number): HTMLCanvasElement {
       ctx.strokeRect(px * 0.04, px * 0.04, px * 0.92, px * 0.92);
       ctx.lineWidth = px * 0.025 + widen;
       ctx.strokeRect(px * 0.14, px * 0.14, px * 0.72, px * 0.72);
+    }
+  } else if (kind === "cursor") {
+    // The keyboard cursor: an ink frame at the edge of the cell, with a halo in the colour of the plate.
+    for (const [color, width] of [[COLORS.wool, px * 0.11], [COLORS.ink, px * 0.05]] as const) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.strokeRect(px * 0.035, px * 0.035, px * 0.93, px * 0.93);
     }
   } else if (kind === "from") {
     const i = px * 0.2;

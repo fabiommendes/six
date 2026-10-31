@@ -21,6 +21,7 @@ import {
   MAIL,
   SIDE_NAME,
   boardLabel,
+  cellDescription,
   diceCount,
   hint,
   lastPlayText,
@@ -130,9 +131,13 @@ function browserStore(): PreferenceStore | null {
   }
 }
 
+/** The keys of the buttons of the panel. */
+const SHORTCUTS: Record<string, string> = { u: "undo", t: "tilt" };
+
 const SKELETON = `
   <div class="board-wrap">
     <div class="board" id="board"></div>
+    <p class="sr-only" id="cursor-say" aria-live="polite"></p>
     ${EndCardView.html}
   </div>
   <div class="panel">
@@ -221,6 +226,9 @@ export class GameScreen {
         reducedMotion: () => this.reducedMotion.matches,
         flyCaptured: (flight) => flyToPanel(flight, host.querySelector<HTMLElement>(`.side[data-side="${flight.side}"] .cap`)),
         onCell: (cell) => void this.onCell(cell),
+        onCursor: (cell) => {
+          need(host, "#cursor-say").textContent = cellDescription(this.match.snapshot(), cell);
+        },
       });
     } catch {
       container.innerHTML = `<p class="board-error">Não foi possível iniciar o gráfico 3D neste navegador.</p>`;
@@ -255,6 +263,7 @@ export class GameScreen {
       }),
     );
     host.addEventListener("click", this.onButton);
+    document.addEventListener("keydown", this.onShortcut);
     document.addEventListener("pointerdown", this.onOutside);
     const observer = new ResizeObserver(() => this.drawStrips());
     observer.observe(need(host, ".panel"));
@@ -297,6 +306,7 @@ export class GameScreen {
     this.extraBot?.dispose();
     for (const off of this.off) off();
     this.host.removeEventListener("click", this.onButton);
+    document.removeEventListener("keydown", this.onShortcut);
     document.removeEventListener("pointerdown", this.onOutside);
     this.host.className = "";
     this.host.innerHTML = "";
@@ -354,6 +364,18 @@ export class GameScreen {
     if (cell === null) this.match.clearSelection();
     else await this.match.click(cell);
   }
+
+  /** U undoes and T tilts the board, as their buttons do, when the buttons are there to press. */
+  private readonly onShortcut = (event: KeyboardEvent) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.repeat) return;
+    if ((event.target as Element | null)?.closest("input, select, textarea")) return;
+    const action = SHORTCUTS[event.key.toLowerCase()];
+    if (!action) return;
+    const button = this.host.querySelector<HTMLButtonElement>(`.actions [data-action="${action}"]`);
+    if (!button || button.hidden || button.disabled) return;
+    event.preventDefault();
+    button.click();
+  };
 
   private readonly onButton = (event: Event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>("button[data-action]");

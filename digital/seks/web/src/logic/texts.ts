@@ -305,7 +305,20 @@ export function repetitionWarning(snapshot: MatchSnapshot): string | null {
 export function boardLabel(snapshot: MatchSnapshot): string {
   const base = `${APP.boardLabel}: ${turnTitle(snapshot.view.to_move).toLowerCase()}`;
   const selected: Cell | undefined = snapshot.selection?.at;
-  return selected === undefined ? `${base}.` : `${base}; dado em ${selected} selecionado.`;
+  const keys = "Setas escolhem a casa, Enter joga.";
+  return selected === undefined ? `${base}. ${keys}` : `${base}; dado em ${selected} selecionado. ${keys}`;
+}
+
+/** What the keyboard cursor is on, read aloud: the cell, its die and what a play can do there. */
+export function cellDescription(snapshot: MatchSnapshot, cell: Cell): string {
+  const die = snapshot.view.dice.find((d) => d.cell === cell);
+  const parts = [die === undefined ? `${cell}, vazia` : `${cell}, ${die.value} das ${SIDE_NAME[die.side]}`];
+  const selection = snapshot.selection;
+  if (selection?.at === cell) parts.push("selecionado");
+  if (selection?.moves.includes(cell)) parts.push("casa ao alcance");
+  if (selection?.shots.includes(cell)) parts.push("alvo do tiro");
+  if (cell === CENTER) parts.push("casa central");
+  return `${parts.join(", ")}.`;
 }
 
 /** The card over the board when the game ends. */

@@ -12,6 +12,7 @@ import {
   SIDES,
   START,
   boardLabel,
+  cellDescription,
   diceCount,
   hint,
   lastPlayText,
@@ -211,6 +212,19 @@ describe("the note under the title", () => {
     expect(hint(match.snapshot(), "toque").strong).toBe("O bot está pensando.");
     bot.answer("b10-b8");
     await playing;
+  });
+});
+
+describe("the keyboard cursor", () => {
+  it("reads the cell, its die and what the selected die can do there", async () => {
+    const { match } = newMatch(SeksGame.create(), { kind: "hotseat" });
+    await match.start();
+    expect(cellDescription(match.snapshot(), "b2")).toBe("b2, 2 das Brancas.");
+    expect(cellDescription(match.snapshot(), "f6")).toBe("f6, vazia, casa central.");
+    await match.click("b2");
+    expect(cellDescription(match.snapshot(), "b2")).toBe("b2, 2 das Brancas, selecionado.");
+    expect(cellDescription(match.snapshot(), "b4")).toBe("b4, vazia, casa ao alcance.");
+    expect(boardLabel(match.snapshot())).toBe("Tabuleiro do Seks: vez das brancas; dado em b2 selecionado. Setas escolhem a casa, Enter joga.");
   });
 });
 
