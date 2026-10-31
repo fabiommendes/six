@@ -9,6 +9,7 @@ import {
   BUTTONS,
   COUNTER,
   LEGEND,
+  SIDES,
   START,
   boardLabel,
   diceCount,
@@ -66,6 +67,8 @@ describe("R9: the terms of the glossary", () => {
       ...Object.values(APP),
       ...Object.values(BUTTONS),
       ...Object.values(LEGEND),
+      SIDES.now,
+      ...[0, 1, 2].map(SIDES.captured),
       ...Object.values(START),
       COUNTER.label,
       COUNTER.limit(100),
@@ -104,6 +107,7 @@ describe("the sentences", () => {
     expect(turnTitle("black")).toBe("Vez das Pretas");
     expect(diceCount(1)).toBe("1 dado");
     expect(diceCount(15)).toBe("15 dados");
+    expect([0, 1, 3].map(SIDES.captured)).toEqual(["nenhum capturado", "1 capturado", "3 capturados"]);
   });
 
   it("words the last play", () => {
@@ -158,7 +162,7 @@ describe("the note under the title", () => {
     await match.click("b2");
     expect(hint(match.snapshot(), "toque")).toEqual({
       strong: "2 em b2 selecionado.",
-      rest: "Toque numa casa marcada para mover: 6 casas ao alcance. Toque no dado de novo para incrementar.",
+      rest: "Toque numa casa marcada para mover: 6 casas ao alcance. Toque no dado de novo para incrementar para 3.",
     });
   });
 

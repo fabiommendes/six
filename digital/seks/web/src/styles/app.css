@@ -53,7 +53,7 @@ h1 { font-weight: 800; font-size: 54px; line-height: 0.9; margin: 12px 0 4px; le
 .side .cap-dice svg { margin-left: -6px; }
 .side .cap-dice svg:first-child { margin-left: 0; }
 .side.active { box-shadow: inset 4px 0 0 var(--seks); padding-left: 12px; background: var(--wool); }
-.side .now { font-size: 12px; font-weight: 700; color: var(--seks); letter-spacing: 0.04em; margin-left: 8px; }
+.side .now { font-family: "Alegreya Sans SC", sans-serif; font-size: 14px; font-weight: 700; color: var(--seks); letter-spacing: 0.06em; margin-left: 8px; }
 
 .count { margin-top: 12px; display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: end; }
 .count .num { font-size: 36px; font-weight: 800; line-height: 0.9; font-variant-numeric: lining-nums tabular-nums; }

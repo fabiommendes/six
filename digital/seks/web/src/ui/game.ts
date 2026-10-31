@@ -29,6 +29,7 @@ import {
   resultText,
   sideTag,
   turnSubtitle,
+  SIDES,
   turnTitle,
   type Gesture,
 } from "../logic/texts";
@@ -550,11 +551,12 @@ export class GameScreen {
     const count = snapshot.view.dice.filter((die) => die.side === side).length;
     const active = snapshot.view.outcome === null && snapshot.view.to_move === side;
     const tag = sideTag(snapshot.mode, side);
-    const captured = snapshot.captured.filter((die) => die.side === side).map((die) => dieIcon(die.value, side, 20)).join("");
+    const lost = snapshot.captured.filter((die) => die.side === side);
+    const captured = lost.map((die) => dieIcon(die.value, side, 20)).join("");
     return `<div class="side${active ? " active" : ""}" data-side="${side}">
       <span>${dieIcon(6, side, compact ? 18 : 24)}</span>
-      <div><span class="name">${SIDE_NAME[side]}</span><span class="n">${diceCount(count)}${tag ? ` · ${tag}` : ""}</span>${active ? '<span class="now">JOGA AGORA</span>' : ""}</div>
-      <div class="cap">capturado <span class="cap-dice">${captured}</span></div>
+      <div><span class="name">${SIDE_NAME[side]}</span><span class="n">${diceCount(count)}${tag ? ` · ${tag}` : ""}</span>${active ? `<span class="now">${SIDES.now}</span>` : ""}</div>
+      <div class="cap">${SIDES.captured(lost.length)} <span class="cap-dice">${captured}</span></div>
     </div>`;
   }
 }

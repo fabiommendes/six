@@ -32,7 +32,7 @@ export class ConfirmDialog {
     if (this.asking === "leave") {
       need(this.host, ".ask-text").textContent = MAIL.leaveAsk;
       need(this.host, ".ask-buttons").innerHTML =
-        `<button type="button" data-action="new">${BUTTONS.backToStart}</button>` +
+        `<button type="button" data-action="new">${BUTTONS.home}</button>` +
         (canFinishWithBots ? `<button type="button" data-action="finish-with-bots">${BUTTONS.finishWithBots}</button>` : "") +
         `<button type="button" data-action="cancel">${BUTTONS.cancel}</button>`;
     }

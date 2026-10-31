@@ -35,11 +35,17 @@ export const BUTTONS = {
   home: "Voltar ao início",
   leave: "Sair da partida",
   stopBots: "Interromper",
-  backToStart: "Voltar para o início",
   finishWithBots: "Terminar com bots",
   resign: "Desistir",
   viewBoard: "Ver tabuleiro",
   cancel: "Cancelar",
+} as const;
+
+/** The rows of the sides in the panel. */
+export const SIDES = {
+  now: "joga agora",
+  /** The dice of the side that the other side captured. */
+  captured: (n: number) => (n === 0 ? "nenhum capturado" : n === 1 ? "1 capturado" : `${n} capturados`),
 } as const;
 
 export const LEGEND = {
@@ -265,11 +271,11 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
   const strong = `${value} em ${selection.at} selecionado.`;
   if (targets > 0) return { strong, rest: plays };
   if (near > 0) {
-    const again = selection.canIncrement ? `${Verb} no dado de novo para incrementar.` : noIncrement;
+    const again = selection.canIncrement ? `${Verb} no dado de novo para incrementar para ${value + 1}.` : noIncrement;
     return { strong, rest: `${plays} ${again}` };
   }
   if (selection.canIncrement) {
-    return { strong, rest: `Nenhuma casa ao alcance: o dado está cercado. ${Verb} nele de novo para incrementar.` };
+    return { strong, rest: `Nenhuma casa ao alcance: o dado está cercado. ${Verb} nele de novo para incrementar para ${value + 1}.` };
   }
   const why = snapshot.view.first_turn ? "as Brancas não incrementam no primeiro turno" : `um ${value} não pode ser incrementado`;
   return { strong, rest: `Este dado não tem jogada: está cercado e ${why}. ${Verb} nele de novo para tirar a seleção.` };
