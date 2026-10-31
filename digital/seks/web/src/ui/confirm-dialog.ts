@@ -34,11 +34,11 @@ export class ConfirmDialog {
       need(this.host, ".ask-buttons").innerHTML =
         `<button type="button" data-action="new">${BUTTONS.home}</button>` +
         (canFinishWithBots ? `<button type="button" data-action="finish-with-bots">${BUTTONS.finishWithBots}</button>` : "") +
-        `<button type="button" data-action="cancel">${BUTTONS.cancel}</button>`;
+        `<button type="button" data-action="cancel" class="quiet">${BUTTONS.cancel}</button>`;
     }
     if (this.asking === "resign") {
       need(this.host, ".ask-text").textContent = resignAsk;
-      need(this.host, ".ask-buttons").innerHTML = `<button type="button" data-action="confirm-resign">${MAIL.resignConfirm}</button><button type="button" data-action="cancel">${BUTTONS.cancel}</button>`;
+      need(this.host, ".ask-buttons").innerHTML = `<button type="button" data-action="confirm-resign">${MAIL.resignConfirm}</button><button type="button" data-action="cancel" class="quiet">${BUTTONS.cancel}</button>`;
     }
   }
 }

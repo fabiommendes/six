@@ -468,7 +468,11 @@ export class GameScreen {
     // While the invite is shown the panel says what to do; the hint on the board waits for the other player.
     need(host, ".note:not(.warn)").hidden = inviting;
     // Live there is no undo: the other player has the play as soon as it is made.
-    need<HTMLButtonElement>(host, '[data-action="undo"]').hidden = live !== undefined;
+    // After the end, an undo that can do nothing goes away rather than sit there greyed out.
+    const undo = need<HTMLButtonElement>(host, '[data-action="undo"]');
+    undo.hidden = live !== undefined || (over && undo.disabled);
+    // While the panel asks for a confirmation, its answers are the only buttons.
+    need(host, ".actions").hidden = this.confirm.question !== null;
     need<HTMLButtonElement>(host, '[data-action="resign"]').hidden = (!mail && !live) || this.frozen || over;
     this.confirm.render(this.options.bot !== null || this.options.spawnBot !== undefined, live ? LIVE.resignAsk : MAIL.resignAsk);
 
@@ -527,7 +531,8 @@ export class GameScreen {
     // The turn, or the end of the game.
     const title = over ? "Fim da partida" : turnTitle(view.to_move);
     const turnIcon = over ? "" : dieIcon(6, view.to_move, iconSize);
-    need(host, ".desk-turn").innerHTML = `<span>${turnIcon}</span><div><div class="who">${esc(title)}</div><div class="what">${esc(turnSubtitle(snapshot))}</div></div>`;
+    const subtitle = turnSubtitle(snapshot);
+    need(host, ".desk-turn").innerHTML = `${turnIcon ? `<span>${turnIcon}</span>` : ""}<div><div class="who">${esc(title)}</div>${subtitle ? `<div class="what">${esc(subtitle)}</div>` : ""}</div>`;
     need(host, ".mobile-turn").innerHTML = `${over ? "" : dieIcon(6, view.to_move, 22)}<div class="who">${esc(title)}</div>`;
 
     // The note: what to do, or how the game ended.

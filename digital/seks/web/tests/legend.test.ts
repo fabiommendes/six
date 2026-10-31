@@ -46,7 +46,8 @@ describe("the legend", () => {
     await match.click("b2");
     expect(marksOnBoard(match.snapshot()).map((m) => m.mark)).toEqual(["selected", "destination"]);
     await match.click("b4");
-    expect(marksOnBoard(match.snapshot()).map((m) => m.mark)).toEqual(["origin", "last"]);
+    // The line of the last play explains its marks: the legend leaves them out.
+    expect(marksOnBoard(match.snapshot()).map((m) => m.mark)).toEqual([]);
   });
 
   it(`explains a mark the first ${EXPLAINED_TIMES} times it is on the board, then leaves it out`, () => {

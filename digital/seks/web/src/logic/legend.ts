@@ -37,10 +37,7 @@ export function marksOnBoard(snapshot: MatchSnapshot): MarkOccasion[] {
     if (selection.moves.length > 0) out.push({ mark: "destination", occasion: key });
     if (selection.shots.length > 0) out.push({ mark: "target", occasion: key });
   }
-  if (last !== null) {
-    if (last.from !== null) out.push({ mark: "origin", occasion: lastKey });
-    out.push({ mark: "last", occasion: lastKey });
-  }
+  // The origin and the destination of the last play are explained by the line of the last play, with their icons.
   const outcome = snapshot.view.outcome;
   if (outcome !== null && outcome.kind === "win") out.push({ mark: "decisive", occasion: `${lastKey}/${outcome.reason}` });
   return out;
