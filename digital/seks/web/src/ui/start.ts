@@ -78,6 +78,11 @@ function radio(name: string, value: string, label: string, note: string, checked
     <span class="choice-body">${icon ? `<span class="choice-icon">${icon}</span>` : ""}<span class="choice-text"><span class="t">${label}</span>${note ? `<span class="d">${note}</span>` : ""}</span></span></label>`;
 }
 
+/** A short fade for text or a panel that has just changed in place; only opacity, so it stays with reduced motion too. */
+function fadeIn(element: Element): void {
+  element.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: "ease-out" });
+}
+
 /**
  * The start screen: hotseat, against the bot, live or by correspondence, with
  * the colour of the human and the level of the bot (R1). Calls `onPlay` with the choices.
@@ -149,7 +154,10 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
     const mode = read().mode;
     botOptions.disabled = mode !== "bot";
     sideOptions.disabled = mode === "hotseat";
-    modeNote.textContent = MODE_NOTES[mode];
+    if (modeNote.textContent !== MODE_NOTES[mode]) {
+      modeNote.textContent = MODE_NOTES[mode];
+      fadeIn(modeNote);
+    }
   };
   const onList = (event: Event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>("button[data-open], button[data-remove]");
@@ -163,7 +171,9 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
   const tabButtons = [...host.querySelectorAll<HTMLButtonElement>("[role=tab]")];
   const showTab = (id: string, focus: boolean) => {
     if (panels === null) return;
+    if (panels.dataset.tab === id) return;
     panels.dataset.tab = id;
+    fadeIn(need(host, id === "saved" ? ".mail-list" : ".start-form"));
     for (const button of tabButtons) {
       const selected = button.dataset.tab === id;
       button.setAttribute("aria-selected", String(selected));

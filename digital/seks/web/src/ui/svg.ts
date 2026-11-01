@@ -25,12 +25,18 @@ export function diceDefs(): string {
 }
 
 /** A die seen from above, as in the sketch: body with soft edges, a flat top face and the pips. */
-function dieMarkup(cx: number, cy: number, s: number, value: number, side: Side): string {
+/** The soft shadow a die of side `s` casts on the board, a little down and to the right. */
+function dieShadow(cx: number, cy: number, s: number): string {
+  const half = s / 2;
+  const off = s * 0.05;
+  return `<rect x="${f(cx - half + off * 0.6)}" y="${f(cy - half + off)}" width="${f(s)}" height="${f(s)}" rx="${f(s * 0.17)}" fill="#000" opacity="0.32" filter="url(#sh)"/>`;
+}
+
+function dieMarkup(cx: number, cy: number, s: number, value: number, side: Side, shadow = true): string {
   const white = side === "white";
   const r = s * 0.17;
   const half = s / 2;
-  const off = s * 0.05;
-  let out = `<rect x="${f(cx - half + off * 0.6)}" y="${f(cy - half + off)}" width="${f(s)}" height="${f(s)}" rx="${f(r)}" fill="#000" opacity="0.32" filter="url(#sh)"/>`;
+  let out = shadow ? dieShadow(cx, cy, s) : "";
   out += `<rect x="${f(cx - half)}" y="${f(cy - half)}" width="${f(s)}" height="${f(s)}" rx="${f(r)}" fill="url(#${white ? "dw" : "db"})" stroke="${white ? "#9C9282" : "#000"}" stroke-width="${f(s * 0.02)}"/>`;
   const i = s * 0.09;
   out += `<rect x="${f(cx - half + i)}" y="${f(cy - half + i)}" width="${f(s - 2 * i)}" height="${f(s - 2 * i)}" rx="${f(r * 0.7)}" fill="url(#${white ? "dwt" : "dbt"})"/>`;
@@ -52,8 +58,9 @@ export function dieIcon(value: number, side: Side, size: number): string {
 /**
  * The figure of the start screen, the rule of the game in one play: a row of
  * five cells, a 4 of the Whites in the first one and the rings of the cells it
- * reaches, 1 to 4. The CSS of `.start-figure` moves the die two cells, where
- * it lands as a 2; without motion the figure stays as drawn, before the play.
+ * reaches, 1 to 4. The CSS of `.start-figure` lifts the die, walks it two
+ * cells and turns it a quarter, to the 2 (a face next to the 4); without
+ * motion the figure stays as drawn, before the play.
  */
 export function startFigure(): string {
   const u = 72;
@@ -63,11 +70,12 @@ export function startFigure(): string {
   for (let i = 1; i < 5; i++) s += `<line x1="${i * u}" y1="1" x2="${i * u}" y2="${h - 1}" stroke="#cdc3b0" stroke-width="1.5"/>`;
   for (let i = 1; i <= 4; i++) {
     const c = i * u + u / 2;
-    s += `<g class="ring${i === 2 ? " ring-kept" : ""}"><circle cx="${c}" cy="${u / 2}" r="${f(u * 0.27)}" fill="none" stroke="${COLORS.seks}" stroke-width="3"/>`;
+    s += `<g class="ring" style="--i:${i - 1}"><circle cx="${c}" cy="${u / 2}" r="${f(u * 0.27)}" fill="none" stroke="${COLORS.seks}" stroke-width="3"/>`;
     s += `<text x="${c}" y="${f(u / 2 + 1)}" text-anchor="middle" dominant-baseline="central" font-family="Alegreya Sans, sans-serif" font-weight="800" font-size="${f(u * 0.34)}" fill="${COLORS.seks}">${i}</text></g>`;
   }
-  const die = (value: number) => dieMarkup(u / 2, u / 2, u * 0.7, value, "white");
-  s += `<g class="walker"><g class="face-4">${die(4)}</g><g class="face-2">${die(2)}</g></g>`;
+  // The shadow stays apart from the faces: it does not turn with the die, and it falls further while the die is lifted.
+  const die = (value: number) => dieMarkup(u / 2, u / 2, u * 0.7, value, "white", false);
+  s += `<g class="walker"><g class="die-shadow">${dieShadow(u / 2, u / 2, u * 0.7)}</g><g class="die-body"><g class="face-4">${die(4)}</g><g class="face-2">${die(2)}</g></g></g>`;
   return `<svg class="start-figure" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="start-figure-caption">${s}</svg>`;
 }
 
