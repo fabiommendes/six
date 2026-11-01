@@ -12,12 +12,8 @@ export type State = {
  */
 dice: Array<DieAt>, to_move: Side, 
 /**
- * Plays in a row, by both sides, since the last capture.
- */
-plies_without_capture: number, 
-/**
  * Zobrist hashes of the positions since the last capture, oldest first,
- * as 16 hexadecimal digits. The last one is the current position and
- * there is one more hash than plies without a capture.
+ * as 16 hexadecimal digits, at most the last 101. The last one is the
+ * current position.
  */
 history: Array<string>, outcome: Outcome | null, };

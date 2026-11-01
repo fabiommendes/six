@@ -5,20 +5,17 @@
 //! 1. the mover's die ended a move, or a shot, on the opponent's back row:
 //!    the mover wins;
 //! 2. the opponent has no play: the mover wins;
-//! 3. the position has now occurred 3 times, or 100 plays in a row had no
-//!    capture: draw.
+//! 3. the position has now occurred 3 times: draw.
 //!
 //! A win comes before a draw, as checkmate on the 50th move wins in chess.
-//! When both draws happen at once, the reported reason is the repetition.
+//! There is no draw for plies without a capture: the shot from the center
+//! cell breaks the stuck positions and the repetition covers the cycles.
 
 use crate::board::Board;
 use crate::cell::DIRECTIONS;
 use crate::command::shots;
 use crate::die::{Side, MAX_VALUE};
 use crate::state::GameState;
-
-/// Plays in a row without a capture that draw the game: 50 by each player.
-pub const MAX_PLIES_WITHOUT_CAPTURE: u8 = 100;
 
 /// Occurrences of a position that draw the game.
 pub const REPETITIONS_FOR_DRAW: usize = 3;
@@ -38,8 +35,6 @@ pub enum WinReason {
 pub enum DrawReason {
     /// The same position, with the same side to move, for the third time.
     Repetition,
-    /// 100 plays in a row without a capture.
-    NoCapture,
 }
 
 /// The result of a finished game.
@@ -85,9 +80,6 @@ pub(crate) fn after_play(state: &GameState, reached_goal: bool) -> Option<Outcom
     }
     if state.history.current_occurrences() >= REPETITIONS_FOR_DRAW {
         return Some(Outcome::Draw(DrawReason::Repetition));
-    }
-    if state.plies_without_capture() >= MAX_PLIES_WITHOUT_CAPTURE {
-        return Some(Outcome::Draw(DrawReason::NoCapture));
     }
     None
 }

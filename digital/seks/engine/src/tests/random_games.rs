@@ -3,15 +3,11 @@
 use crate::outcome::has_play;
 use crate::testing::TestRng;
 use crate::zobrist::hash_position;
-use crate::{
-    captures, legal_commands, Engine, GameEvent, GameState, Outcome, Side,
-    MAX_PLIES_WITHOUT_CAPTURE,
-};
+use crate::{captures, legal_commands, Engine, GameEvent, GameState, Outcome, Side};
 
 use super::commands::assert_consistent;
 
-/// More than any game can last: a capture is needed every 100 plies and
-/// there are 32 dice.
+/// More than a random game lasts: it ends by repetition, a win or a capture.
 const PLY_LIMIT: usize = 4000;
 
 fn check_invariants(state: &GameState) {
@@ -19,11 +15,7 @@ fn check_invariants(state: &GameState) {
         state.position_hash(),
         hash_position(state.board(), state.to_move())
     );
-    assert!(state.plies_without_capture() <= MAX_PLIES_WITHOUT_CAPTURE);
-    assert_eq!(
-        state.history.as_slice().len(),
-        state.plies_without_capture() as usize + 1
-    );
+    assert!(state.history.as_slice().len() <= crate::history::CAPACITY);
     assert!(state.board().count(Side::White) <= 16);
     assert!(state.board().count(Side::Black) <= 16);
     if state.outcome().is_none() {

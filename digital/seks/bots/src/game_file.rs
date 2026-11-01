@@ -20,9 +20,9 @@ pub enum End {
     NoPlay,
     /// Draw: the same position for the third time.
     Repetition,
-    /// Draw: 100 plies without a capture.
-    NoCapture,
-    /// The batch's ply limit stopped the game.
+    /// The batch's ply limit stopped the game. The limit is a technical one
+    /// of the bots' tooling, not a rule: the game has no draw for plies
+    /// without a capture.
     PlyLimit,
 }
 
@@ -39,7 +39,6 @@ impl End {
                 },
             ),
             Some(Outcome::Draw(DrawReason::Repetition)) => (None, End::Repetition),
-            Some(Outcome::Draw(DrawReason::NoCapture)) => (None, End::NoCapture),
             None => (None, End::PlyLimit),
         }
     }
@@ -50,7 +49,6 @@ impl End {
             End::BackRow => "back_row",
             End::NoPlay => "no_play",
             End::Repetition => "repetition",
-            End::NoCapture => "no_capture",
             End::PlyLimit => "ply_limit",
         }
     }

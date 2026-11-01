@@ -212,7 +212,6 @@ mod tests {
         let view = session.view();
         assert_eq!(view.to_move, Side::Black);
         assert_eq!(view.dice.len(), 3);
-        assert_eq!(view.plies_without_capture, 0);
         assert!(!session.can_undo());
         assert!(Session::from_diagram(diagram, "green").is_err());
         assert!(Session::from_diagram("..", "white").is_err());

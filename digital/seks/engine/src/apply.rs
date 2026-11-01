@@ -77,10 +77,8 @@ pub(crate) fn apply(state: &mut GameState, command: Command) -> Applied {
     state.to_move = mover.opponent();
     if shot.is_some() || captured.iter().any(Option::is_some) {
         // The only irreversible play: no earlier position can come back.
-        state.plies_without_capture = 0;
         state.history.restart(hash);
     } else {
-        state.plies_without_capture += 1;
         state.history.push(hash);
     }
     state.outcome = outcome::after_play(state, reached_goal);

@@ -3,4 +3,4 @@
 /**
  * Why the game was drawn.
  */
-export type DrawReason = "repetition" | "no_capture";
+export type DrawReason = "repetition";

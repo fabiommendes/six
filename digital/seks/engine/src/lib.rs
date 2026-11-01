@@ -93,7 +93,5 @@ pub use die::{Die, Side, MAX_VALUE};
 pub use engine::Engine;
 pub use event::{GameError, GameEvent, Transition};
 pub use notation::NotationError;
-pub use outcome::{
-    DrawReason, Outcome, WinReason, MAX_PLIES_WITHOUT_CAPTURE, REPETITIONS_FOR_DRAW,
-};
+pub use outcome::{DrawReason, Outcome, WinReason, REPETITIONS_FOR_DRAW};
 pub use state::GameState;

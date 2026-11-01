@@ -1,16 +1,17 @@
 //! Hashes of the positions since the last capture, for the repetition draw.
 //!
 //! Only a capture is irreversible, so no position from before it can come
-//! back: the list restarts at every capture. Without a capture the game is
-//! drawn after 100 plays, so the list never has more than 101 hashes (the
-//! position after the last capture plus one per play). It is a fixed array,
-//! which keeps the whole state `Copy`.
+//! back: the list restarts at every capture. It is a fixed array, which keeps
+//! the whole state `Copy`.
+//!
+//! The rules have no limit on plies without a capture, so a long stretch
+//! without one could outgrow the array. When it is full the oldest hash is
+//! dropped: a technical limit, not a rule. The repetition draw then only sees
+//! the last [`CAPACITY`] positions, which misses a position that comes back
+//! after more than 100 plies.
 
-use crate::outcome::MAX_PLIES_WITHOUT_CAPTURE;
-
-/// The most hashes the list holds: the position after the last capture and
-/// one per play up to the draw.
-pub(crate) const CAPACITY: usize = MAX_PLIES_WITHOUT_CAPTURE as usize + 1;
+/// The most hashes the list holds; older ones are dropped.
+pub(crate) const CAPACITY: usize = 101;
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct PositionHistory {
@@ -47,8 +48,13 @@ impl PositionHistory {
         self.len = 1;
     }
 
-    /// Appends the hash of the position after a play.
+    /// Appends the hash of the position after a play, dropping the oldest
+    /// one if the list is full.
     pub(crate) fn push(&mut self, hash: u64) {
+        if self.len as usize == CAPACITY {
+            self.hashes.copy_within(1.., 0);
+            self.len -= 1;
+        }
         self.hashes[self.len as usize] = hash;
         self.len += 1;
     }
@@ -130,5 +136,16 @@ mod tests {
             history.push(hash);
         }
         assert_eq!(history.as_slice().len(), CAPACITY);
+    }
+
+    #[test]
+    fn a_full_list_drops_the_oldest_hash() {
+        let mut history = PositionHistory::new(0);
+        for hash in 1..=150 {
+            history.push(hash);
+        }
+        assert_eq!(history.as_slice().len(), CAPACITY);
+        assert_eq!(history.as_slice()[0], 50);
+        assert_eq!(history.current(), 150);
     }
 }

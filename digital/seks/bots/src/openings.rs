@@ -116,7 +116,10 @@ mod tests {
         let openings = read("# base\n\ne2-e4 e10-e8 b2+\n").unwrap();
         assert_eq!(openings.len(), 1);
         assert_eq!(openings[0].to_line(), "e2-e4 e10-e8 b2+");
-        assert_eq!(openings[0].state().unwrap().plies_without_capture(), 3);
+        assert_eq!(
+            openings[0].state().unwrap().to_move(),
+            seks_engine::Side::Black
+        );
     }
 
     #[test]

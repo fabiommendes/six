@@ -129,8 +129,6 @@ pub enum WinReason {
 pub enum DrawReason {
     /// The same position for the third time.
     Repetition,
-    /// 100 plays in a row without a capture.
-    NoCapture,
 }
 
 /// The result of a finished game.
@@ -155,7 +153,6 @@ impl From<engine::Outcome> for Outcome {
             engine::Outcome::Draw(reason) => Outcome::Draw {
                 reason: match reason {
                     engine::DrawReason::Repetition => DrawReason::Repetition,
-                    engine::DrawReason::NoCapture => DrawReason::NoCapture,
                 },
             },
         }
@@ -174,7 +171,6 @@ impl From<Outcome> for engine::Outcome {
             },
             Outcome::Draw { reason } => engine::Outcome::Draw(match reason {
                 DrawReason::Repetition => engine::DrawReason::Repetition,
-                DrawReason::NoCapture => engine::DrawReason::NoCapture,
             }),
         }
     }
@@ -246,11 +242,9 @@ pub struct State {
     /// The dice, in cell index order (row 1 first).
     pub dice: Vec<DieAt>,
     pub to_move: Side,
-    /// Plays in a row, by both sides, since the last capture.
-    pub plies_without_capture: u8,
     /// Zobrist hashes of the positions since the last capture, oldest first,
-    /// as 16 hexadecimal digits. The last one is the current position and
-    /// there is one more hash than plies without a capture.
+    /// as 16 hexadecimal digits, at most the last 101. The last one is the
+    /// current position.
     pub history: Vec<String>,
     pub outcome: Option<Outcome>,
 }
@@ -260,7 +254,6 @@ impl From<&engine::GameState> for State {
         State {
             dice: dice(state.board()),
             to_move: state.to_move().into(),
-            plies_without_capture: state.plies_without_capture(),
             history: state
                 .history
                 .as_slice()
@@ -275,8 +268,8 @@ impl From<&engine::GameState> for State {
 impl State {
     /// The engine state this describes, after checking that it is one the
     /// engine could have reached: dice in different cells with values 1 to 6,
-    /// a history as long as the plies without capture say, and the last hash
-    /// equal to the hash of the position.
+    /// a history of 1 to 101 hashes, and the last hash equal to the hash of
+    /// the position.
     pub fn into_state(self) -> Result<engine::GameState, WireError> {
         let mut board = engine::Board::empty();
         for die in &self.dice {
@@ -295,13 +288,9 @@ impl State {
             );
         }
         let to_move = engine::Side::from(self.to_move);
-        if self.plies_without_capture > engine::MAX_PLIES_WITHOUT_CAPTURE
-            || self.history.len() != self.plies_without_capture as usize + 1
-            || self.history.len() > CAPACITY
-        {
+        if self.history.len() > CAPACITY {
             return Err(WireError::new(format!(
-                "{} plies without capture do not match {} hashes",
-                self.plies_without_capture,
+                "{} hashes in the history, at most {CAPACITY}",
                 self.history.len()
             )));
         }
@@ -320,7 +309,6 @@ impl State {
         Ok(engine::GameState {
             board,
             to_move,
-            plies_without_capture: self.plies_without_capture,
             history,
             outcome: self.outcome.map(engine::Outcome::from),
         })
@@ -343,10 +331,6 @@ fn parse_hash(text: &str) -> Result<u64, WireError> {
 pub struct View {
     pub dice: Vec<DieAt>,
     pub to_move: Side,
-    /// Plays in a row, by both sides, since the last capture.
-    pub plies_without_capture: u8,
-    /// The count at which the game is drawn (100).
-    pub max_plies_without_capture: u8,
     /// How many times the current position has occurred since the last
     /// capture, this time included.
     pub repetitions: u8,
@@ -366,8 +350,6 @@ impl View {
         View {
             dice: dice(state.board()),
             to_move: state.to_move().into(),
-            plies_without_capture: state.plies_without_capture(),
-            max_plies_without_capture: engine::MAX_PLIES_WITHOUT_CAPTURE,
             repetitions: state.repetitions() as u8,
             repetitions_for_draw: engine::REPETITIONS_FOR_DRAW as u8,
             repetition_draws: engine::legal_commands(state)
@@ -502,7 +484,6 @@ mod tests {
                 assert_eq!(back, state);
                 assert_eq!(back.position_hash(), state.position_hash());
                 assert_eq!(back.repetitions(), state.repetitions());
-                assert_eq!(back.plies_without_capture(), state.plies_without_capture());
                 checked += 1;
             }
         }
@@ -510,17 +491,15 @@ mod tests {
     }
 
     #[test]
-    fn the_state_keeps_the_repetition_count_and_the_plies_without_capture() {
+    fn the_state_keeps_the_repetition_count() {
         let shuffle = ["b2-b4", "b10-b8", "b4-b2", "b8-b10"];
         let mut state = Engine::new_game();
         for text in shuffle.iter().cycle().take(6) {
             state = play(&state, text.parse().unwrap()).state;
         }
         assert_eq!(state.repetitions(), 2);
-        assert_eq!(state.plies_without_capture(), 6);
         let back = round_trip(&state);
         assert_eq!(back.repetitions(), 2);
-        assert_eq!(back.plies_without_capture(), 6);
         // The restored game still draws by repetition on the next cycle.
         let mut state = back;
         for text in shuffle.iter().cycle().skip(6).take(2) {
@@ -615,8 +594,6 @@ mod tests {
             view.repetition_draws,
             vec![Command("b8-b10".parse().unwrap())]
         );
-        assert_eq!(view.plies_without_capture, 7);
-        assert_eq!(view.max_plies_without_capture, 100);
         assert_eq!(view.repetitions_for_draw, 3);
     }
 
@@ -666,8 +643,8 @@ mod tests {
             ),
             ("hash", json_with(|v| v["history"][0] = "xyz".into())),
             (
-                "plies",
-                json_with(|v| v["plies_without_capture"] = 3.into()),
+                "history too long",
+                json_with(|v| v["history"] = vec!["0000000000000001"; 102].into()),
             ),
             ("side", json_with(|v| v["to_move"] = "Black".into())),
         ];

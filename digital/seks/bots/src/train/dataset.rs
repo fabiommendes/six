@@ -37,7 +37,6 @@ pub enum Result {
 pub struct Sample {
     pub board: Board,
     pub to_move: Side,
-    pub plies_without_capture: u8,
     /// For the Whites.
     pub result: Result,
     /// The search's score, from the side to move.
@@ -73,7 +72,7 @@ impl Sample {
             bytes[index / 2] |= nibble << (4 * (index % 2));
         }
         bytes[61] = u8::from(self.to_move == Side::Black) | (self.result as u8) << 1;
-        bytes[62] = self.plies_without_capture;
+        // Byte 62 is reserved: it held the plies without a capture.
         bytes[64..66].copy_from_slice(&self.score.to_le_bytes());
         bytes[66..68].copy_from_slice(&self.ply.to_le_bytes());
         bytes[68..72].copy_from_slice(&self.game.to_le_bytes());
@@ -105,7 +104,6 @@ impl Sample {
             } else {
                 Side::White
             },
-            plies_without_capture: bytes[62],
             result,
             score: i16::from_le_bytes([bytes[64], bytes[65]]),
             ply: u16::from_le_bytes([bytes[66], bytes[67]]),
@@ -218,7 +216,6 @@ mod tests {
         let sample = Sample {
             board,
             to_move: Side::Black,
-            plies_without_capture: 37,
             result: Result::Draw,
             score: -1234,
             ply: 301,
@@ -245,7 +242,6 @@ mod tests {
         let mut sample = Sample {
             board: Board::initial(),
             to_move: Side::White,
-            plies_without_capture: 0,
             result: Result::Win,
             score: 0,
             ply: 0,

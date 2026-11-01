@@ -93,12 +93,13 @@ fn the_shot_captures_the_target_and_the_6_takes_its_cell() {
 }
 
 #[test]
-fn the_shot_resets_the_count_of_plies_without_capture() {
+fn the_shot_restarts_the_history_of_positions() {
     let state = sparse(Side::White, &["w5@6,6", "b3@6,9", "b1@1,11"]);
     let state = after(&state, crate::testing::inc((6, 6)));
     let state = after(&state, crate::testing::mv((1, 11), (2, 11)));
-    assert_eq!(state.plies_without_capture(), 2);
-    assert_eq!(after(&state, shoot((6, 9))).plies_without_capture(), 0);
+    assert_eq!(state.history.as_slice().len(), 3);
+    let state = after(&state, shoot((6, 9)));
+    assert_eq!(state.history.as_slice(), &[state.position_hash()]);
 }
 
 #[test]

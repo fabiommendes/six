@@ -11,14 +11,13 @@ use crate::zobrist;
 /// A game in progress or finished.
 ///
 /// Besides the board and whose turn it is, it keeps as rule state what the
-/// draws need: the number of plays since the last capture and the hashes of
-/// the positions since then (`dev/adr/0003-*`). It is about 1.1 KB and
-/// `Copy`, so searches may copy it freely.
+/// repetition draw needs: the hashes of the positions since the last capture
+/// (`dev/adr/0003-*`). It is about 1.1 KB and `Copy`, so searches may copy it
+/// freely.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct GameState {
     pub(crate) board: Board,
     pub(crate) to_move: Side,
-    pub(crate) plies_without_capture: u8,
     pub(crate) history: PositionHistory,
     pub(crate) outcome: Option<Outcome>,
 }
@@ -42,7 +41,6 @@ impl GameState {
         GameState {
             board,
             to_move,
-            plies_without_capture: 0,
             history: PositionHistory::new(zobrist::hash_position(&board, to_move)),
             outcome: None,
         }
@@ -72,18 +70,12 @@ impl GameState {
     /// Whether this is the first turn of the game, when the Whites must move
     /// and cannot increment (`regras/seks/02-preparacao.md`): the initial
     /// position, the Whites to move, no play made. Plays without a capture
-    /// can bring the board back to the initial position, but then the count
-    /// of plies without a capture is not 0.
+    /// can bring the board back to the initial position, but then the
+    /// history holds more than the current position.
     pub fn is_first_turn(&self) -> bool {
         self.to_move == Side::White
-            && self.plies_without_capture == 0
+            && self.history.as_slice().len() == 1
             && self.board == Board::initial()
-    }
-
-    /// Plays in a row, by both sides, since the last capture. The game is
-    /// drawn at 100.
-    pub fn plies_without_capture(&self) -> u8 {
-        self.plies_without_capture
     }
 
     /// How many times the current position has occurred since the last
@@ -110,7 +102,6 @@ mod tests {
         let state = GameState::initial();
         assert_eq!(state.to_move(), Side::White);
         assert_eq!(state.outcome(), None);
-        assert_eq!(state.plies_without_capture(), 0);
     }
 
     #[test]

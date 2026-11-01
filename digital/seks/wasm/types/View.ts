@@ -11,14 +11,6 @@ import type { Side } from "./Side";
  */
 export type View = { dice: Array<DieAt>, to_move: Side, 
 /**
- * Plays in a row, by both sides, since the last capture.
- */
-plies_without_capture: number, 
-/**
- * The count at which the game is drawn (100).
- */
-max_plies_without_capture: number, 
-/**
  * How many times the current position has occurred since the last
  * capture, this time included.
  */

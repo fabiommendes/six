@@ -153,17 +153,14 @@ test("a move reports the value walked and an increment the new value", () => {
   game.free();
 });
 
-test("the view counts the plies without capture and warns before a repetition draw", () => {
+test("the view warns before a repetition draw", () => {
   const game = new Game();
   const cycle = ["b2-b4", "b10-b8", "b4-b2", "b8-b10"];
   let view = json(game.view());
-  assert.equal(view.plies_without_capture, 0);
-  assert.equal(view.max_plies_without_capture, 100);
   assert.deepEqual(view.repetition_draws, []);
   for (const command of [...cycle, ...cycle.slice(0, 3)]) {
     view = json(game.command(command)).view;
   }
-  assert.equal(view.plies_without_capture, 7);
   assert.equal(view.repetitions, 2);
   assert.deepEqual(view.repetition_draws, ["b8-b10"]);
 

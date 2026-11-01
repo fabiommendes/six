@@ -150,7 +150,6 @@ impl SelfPlay {
             samples.push(Sample {
                 board: *state.board(),
                 to_move: state.to_move(),
-                plies_without_capture: state.plies_without_capture(),
                 result: Result::Draw,
                 score: decision
                     .score

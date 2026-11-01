@@ -269,7 +269,6 @@ fn two_occurrences_do_not_draw() {
     let cycle = out_and_back((1, 1), (2, 1), (1, 11), (2, 11));
     let state = play_all(GameState::initial(), &cycle);
     assert_eq!(state.outcome(), None);
-    assert_eq!(state.plies_without_capture(), 4);
 }
 
 #[test]
@@ -357,30 +356,10 @@ fn the_walk_helper_never_repeats_a_position() {
 }
 
 #[test]
-fn a_hundred_plies_without_a_capture_draw() {
+fn plies_without_a_capture_do_not_draw() {
     let start = sparse(Side::White, &["w1@1,1", "b1@1,11"]);
-    let commands = walk(100);
-    let state = play_all(start, &commands[..99]);
+    let state = play_all(start, &walk(100));
     assert_eq!(state.outcome(), None);
-    assert_eq!(state.plies_without_capture(), 99);
-    let last = play(&state, commands[99]);
-    assert_eq!(
-        last.state.outcome(),
-        Some(Outcome::Draw(DrawReason::NoCapture))
-    );
-    assert_eq!(
-        last.events.last(),
-        Some(&GameEvent::GameEnded {
-            outcome: Outcome::Draw(DrawReason::NoCapture)
-        })
-    );
-}
-
-#[test]
-fn increments_count_as_plies_without_a_capture() {
-    let start = sparse(Side::White, &["w1@1,1", "b1@1,11"]);
-    let state = play_all(start, &[inc((1, 1)), inc((1, 11))]);
-    assert_eq!(state.plies_without_capture(), 2);
 }
 
 /// A position for the capture tests: a white die at (3, 6) that captures by
@@ -393,54 +372,13 @@ fn with_capture_available() -> GameState {
 }
 
 #[test]
-fn a_capture_resets_the_count_of_plies() {
-    let mut state = with_capture_available();
-    state.plies_without_capture = 60;
+fn a_capture_restarts_the_history_of_positions() {
+    let state = with_capture_available();
+    let state = play_all(state, &[mv((1, 1), (2, 1)), mv((1, 11), (2, 11))]);
+    assert_eq!(state.history.as_slice().len(), 3);
     let state = after(&state, mv((3, 6), (5, 6)));
     assert_eq!(state.board().count(Side::Black), 1);
-    assert_eq!(state.plies_without_capture(), 0);
     assert_eq!(state.history.as_slice(), &[state.position_hash()]);
-}
-
-#[test]
-fn the_hundred_plies_are_counted_from_the_last_capture() {
-    // 60 plies before the capture would draw the game after 40 more if the
-    // capture did not reset the count.
-    let mut state = with_capture_available();
-    state.plies_without_capture = 60;
-    let mut state = after(&state, mv((3, 6), (5, 6)));
-    // The black die at (1, 11) and the white die at (1, 1) snake for 99 plies.
-    let white = snake(1, 1, 60);
-    let black = snake(11, -1, 60);
-    for ply in 0..99 {
-        let path = if ply % 2 == 0 { &black } else { &white };
-        state = after(&state, mv(path[ply / 2], path[ply / 2 + 1]));
-        assert_eq!(state.outcome(), None, "ply {ply}");
-    }
-    assert_eq!(state.plies_without_capture(), 99);
-}
-
-#[test]
-fn the_hundredth_ply_after_a_capture_draws() {
-    let mut state = with_capture_available();
-    state.plies_without_capture = 60;
-    let mut state = after(&state, mv((3, 6), (5, 6)));
-    let white = snake(1, 1, 60);
-    let black = snake(11, -1, 60);
-    for ply in 0..100 {
-        let path = if ply % 2 == 0 { &black } else { &white };
-        state = after(&state, mv(path[ply / 2], path[ply / 2 + 1]));
-    }
-    assert_eq!(state.outcome(), Some(Outcome::Draw(DrawReason::NoCapture)));
-}
-
-#[test]
-fn a_capture_on_the_hundredth_ply_does_not_draw() {
-    let mut state = with_capture_available();
-    state.plies_without_capture = 99;
-    let next = after(&state, mv((3, 6), (5, 6)));
-    assert_eq!(next.outcome(), None);
-    assert_eq!(next.plies_without_capture(), 0);
 }
 
 #[test]
@@ -455,25 +393,6 @@ fn the_history_never_outgrows_its_capacity() {
 // ---------------------------------------------------------------------------
 // Order: a win comes before a draw
 // ---------------------------------------------------------------------------
-
-#[test]
-fn reaching_the_back_row_on_the_hundredth_ply_wins() {
-    let mut state = sparse(Side::White, &["w3@6,8", "b1@1,1"]);
-    state.plies_without_capture = 99;
-    let next = after(&state, mv((6, 8), (6, 11)));
-    assert_eq!(next.outcome(), white_wins(WinReason::BackRow));
-}
-
-#[test]
-fn leaving_the_opponent_without_a_play_on_the_hundredth_ply_wins() {
-    let mut state = sparse(
-        Side::White,
-        &["b6@1,11", "w1@2,11", "w1@1,10", "w1@2,10", "w1@6,3"],
-    );
-    state.plies_without_capture = 99;
-    let next = after(&state, mv((6, 3), (6, 4)));
-    assert_eq!(next.outcome(), white_wins(WinReason::NoPlay));
-}
 
 /// Makes the position that `command` would reach count as already seen twice.
 fn seen_twice_after(state: &GameState, command: Command) -> GameState {
@@ -495,17 +414,5 @@ fn a_win_comes_before_a_repetition_draw() {
     assert_eq!(
         after(&state, command).outcome(),
         white_wins(WinReason::BackRow)
-    );
-}
-
-#[test]
-fn a_repetition_comes_before_the_hundred_plies_in_the_reported_reason() {
-    let state = sparse(Side::White, &["w1@5,5", "b1@8,8"]);
-    let command = mv((5, 5), (5, 6));
-    let mut state = seen_twice_after(&state, command);
-    state.plies_without_capture = 99;
-    assert_eq!(
-        after(&state, command).outcome(),
-        Some(Outcome::Draw(DrawReason::Repetition))
     );
 }
