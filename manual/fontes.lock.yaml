@@ -17,7 +17,7 @@ capitulos/03-seks.md#componentes:
 capitulos/03-seks.md#fim-do-jogo:
   regras/seks/05-fim-do-jogo.md:
     hash: sha256:c2dc40df4bf4c4a3
-    commit: d64e7e8f5923
+    commit: f81fbaa94957
 capitulos/03-seks.md#o-turno:
   regras/seks/03-turno.md:
     hash: sha256:bf1d112caa33388d
@@ -67,7 +67,7 @@ capitulos/04-liu.md#visao-geral:
 capitulos/A1-glossario.md:
   regras/liu/GLOSSARY.md:
     hash: sha256:a88a73ad2b7fa8a9
-    commit: d64e7e8f5923
+    commit: f81fbaa94957
   regras/seks/GLOSSARY.md:
     hash: sha256:ee87c0702e3543e0
-    commit: d64e7e8f5923
+    commit: f81fbaa94957
