@@ -254,7 +254,7 @@ button.quiet { border-color: var(--line); box-shadow: 0 2px 0 var(--line); }
 .end-card.at-bottom { bottom: 4%; }
 .end-card[data-tone="win"] { border-color: var(--seks); box-shadow: 0 4px 0 var(--seks); }
 .end-title { margin: 0; font: 800 44px/1 "Alegreya", serif; color: var(--seks); }
-.end-card[data-tone="loss"] .end-title { color: var(--ink); }
+.end-card[data-tone="loss"] .end-title, .end-card[data-tone="neutral"] .end-title { color: var(--ink); }
 .end-reason { margin: 8px 0 0; font-size: 17px; line-height: 1.25; }
 .end-extra { margin: 6px 0 0; font-size: 15px; color: var(--muted); }
 .end-buttons { display: flex; gap: 8px; margin-top: 14px; }

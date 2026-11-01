@@ -598,7 +598,7 @@ export class GameScreen {
     warn.textContent = warning ?? "";
 
     const last = need(host, ".last");
-    setHtml(last, snapshot.last ? `<span>${markIcon("origin", 20)} ${markIcon("last", 20)}</span>${esc(lastPlayText(snapshot.last))}` : "");
+    setHtml(last, snapshot.last ? `<span>${snapshot.last.from ? `${markIcon("origin", 20)} ` : ""}${markIcon("last", 20)}</span>${esc(lastPlayText(snapshot.last))}` : "");
     // The cell under the keyboard cursor may have changed with the play: read it again.
     const cursor = this.board?.keyboardCell ?? null;
     if (cursor !== null) setText(need(host, "#cursor-say"), cellDescription(snapshot, cursor));
