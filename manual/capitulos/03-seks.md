@@ -222,14 +222,10 @@ Você vence assim que:
 
 ### Empate
 
-A partida termina [[Empate|empatada]], como no xadrez, quando:
+A partida termina [[Empate|empatada]], como no xadrez, quando a mesma
+[[Posição]] aparece pela terceira vez, com o mesmo jogador da vez.
 
-- a mesma [[Posição]] aparece pela terceira vez, com o mesmo jogador da vez;
-  ou
-- cada jogador fez 50 jogadas seguidas sem que nenhum dado fosse capturado.
-
-Uma jogada que vence não empata, mesmo que repita a posição pela terceira vez
-ou seja a 100ª sem captura.
+Uma jogada que vence não empata, mesmo que repita a posição pela terceira vez.
 
 No jogo físico, o empate vale quando um jogador o declara. Anote a partida se
-quiser poder provar a repetição ou a contagem.
+quiser poder provar a repetição.

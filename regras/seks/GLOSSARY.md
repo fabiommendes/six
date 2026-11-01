@@ -69,8 +69,8 @@ Não usar: peça
 
 ## Empate
 
-Fim do jogo sem vencedor: a mesma posição aparece pela terceira vez, ou cada
-jogador faz 50 jogadas seguidas sem captura.
+Fim do jogo sem vencedor: a mesma posição aparece pela terceira vez, com o
+mesmo jogador da vez.
 
 en: draw
 Ver também: Posição

@@ -25,28 +25,28 @@ que não podem atirar.
 
 ## Empate
 
-O jogo empata, como no xadrez, em dois casos:
-
-- **Repetição**: a mesma posição aparece pela terceira vez, com o mesmo
-  jogador da vez. As três vezes não precisam ser seguidas.
-- **50 turnos sem captura**: cada jogador fez 50 jogadas seguidas, 100 no
-  total, sem que nenhum dado fosse capturado.
+O jogo empata por **repetição**, como no xadrez: a mesma posição aparece pela
+terceira vez, com o mesmo jogador da vez. As três vezes não precisam ser
+seguidas.
 
 A posição é a casa, a cor e o valor de cada dado no tabuleiro.
 
-> **Playtest:** os limites de 3 repetições e 50 turnos vêm do xadrez. Se não
-> bastarem para acabar com partidas travadas, o designer escolhe outra regra.
+> **Playtest:** o limite de 3 repetições vem do xadrez. Não há empate por
+> falta de captura: o tiro da casa central (ver [03-turno.md](03-turno.md#atirar))
+> cobre as partidas travadas, mas ele ainda é uma **Proposta**. Se o tiro não
+> bastar para acabar com elas, o designer reavalia a regra de empate.
 
 > **Detalhe:** a vitória vale antes do empate. Uma jogada que leva um dado à
 > fileira de fundo do adversário, ou deixa o adversário sem jogada, vence
-> mesmo que seja a 100ª jogada sem captura ou repita uma posição pela
-> terceira vez.
+> mesmo que repita uma posição pela terceira vez.
 
 > **Detalhe:** no jogo físico, o empate só vale quando um jogador o declara,
-> e precisa de anotação da partida para provar a repetição ou a contagem. Na
+> e precisa de anotação da partida para provar a repetição. Na
 > versão digital, o empate é automático.
 
 > **Design:** mover e incrementar sempre existem enquanto um jogador tiver um dado
-> abaixo de 6, então, sem empate, uma partida podia não acabar se os dois
-> jogadores evitassem o risco. Só a captura é irreversível no Seks: avançar e
-> incrementar podem ser desfeitos. Por isso só ela zera a contagem de turnos.
+> abaixo de 6, então uma partida podia não acabar se os dois jogadores
+> evitassem o risco. O tiro do centro quebra as posições travadas: quem
+> segura a casa central com um 6 captura sem depender de o adversário se
+> expor. Os ciclos de posições que sobram, com os dois lados andando em
+> círculos, a repetição cobre.
