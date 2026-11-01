@@ -165,11 +165,6 @@ export function linkErrorText(error: LinkError): string {
   }
 }
 
-export const COUNTER = {
-  label: "jogadas sem captura",
-  limit: (max: number) => `o empate vem em ${max}`,
-} as const;
-
 export function diceCount(n: number): string {
   return `${n} ${n === 1 ? "dado" : "dados"}`;
 }
@@ -388,9 +383,6 @@ export function resultText(outcome: Outcome, view: View): ResultText {
         : `As ${SIDE_NAME[loser]} ficaram sem jogada.`;
     return { title, reason, winner };
   }
-  const reason =
-    outcome.reason === "repetition"
-      ? `A mesma posição apareceu pela ${view.repetitions_for_draw}ª vez.`
-      : `${view.max_plies_without_capture} jogadas seguidas sem captura, ${view.max_plies_without_capture / 2} de cada jogador.`;
+  const reason = `A mesma posição apareceu pela ${view.repetitions_for_draw}ª vez.`;
   return { title: "Empate", reason, winner: null };
 }

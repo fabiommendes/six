@@ -6,8 +6,9 @@ import type { BotLevel } from "./protocol";
  * 100). Measured in 400 games against a random player with the weights of
  * `weights/default.json` (`dev/notes/bots-do-seks.md`):
  *
- * - Easy: 360 wins and 39 draws. More noise only adds draws by 100 plies
- *   without capture: the bot wanders instead of advancing.
+ * - Easy: 360 wins and 39 draws. More noise only adds draws (measured
+ *   when the game still drew by 100 plies without capture): the bot wanders
+ *   instead of advancing.
  * - Medium: 399 wins and 1 draw; loses every game to the default level.
  * - Hard: the default level of the bots (`SeksBot.defaultNodes()` nodes per
  *   play, no noise), the strongest one. `nodes: null` follows the default of

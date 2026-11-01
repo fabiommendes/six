@@ -10,15 +10,13 @@ export interface Fixture {
   readonly last: LastPlay | null;
   readonly captured: readonly Captured[];
   readonly select: Cell | null;
-  /** Plies without capture from which the count shows (0 shows it always). */
-  readonly counterFrom: number | null;
 }
 
 /**
  * The game of the art sketch (`arte/esbocos/c-motivos-por-lingua/jogo.html`):
  * the Whites to move with the 6 of f6 selected, after the Blacks played g8 to
- * g6, 23 plies without a capture. The engine does not keep a history of
- * captures, so the captured dice come with the fixture.
+ * g6. The engine does not keep a history of captures, so the captured dice
+ * come with the fixture.
  */
 export const SKETCH_DIAGRAM = `
   b1 .. b1 .. .. .. b1 .. b1 .. b1
@@ -33,18 +31,9 @@ export const SKETCH_DIAGRAM = `
   w2 .. w2 w2 .. .. w2 .. .. w2 ..
   w1 .. w1 .. w1 .. w1 .. w1 .. w1`;
 
-/** The same position with `plies` plies without a capture (placeholder hashes before the current one). */
-export function withPliesWithoutCapture(game: SeksGame, plies: number): SeksGame {
-  const state = game.state();
-  state.plies_without_capture = plies;
-  const earlier = Array.from({ length: plies }, (_, i) => (i + 1).toString(16).padStart(16, "0"));
-  state.history = [...earlier, state.history.at(-1)!];
-  return SeksGame.fromState(state);
-}
-
 export function sketchFixture(): Fixture {
   return {
-    game: withPliesWithoutCapture(SeksGame.fromDiagram(SKETCH_DIAGRAM, "white"), 23),
+    game: SeksGame.fromDiagram(SKETCH_DIAGRAM, "white"),
     mode: { kind: "hotseat" },
     last: { side: "black", from: "g8", to: "g6", value: 2, captures: 0 },
     captured: [
@@ -52,14 +41,7 @@ export function sketchFixture(): Fixture {
       { side: "white", value: 2 },
     ],
     select: "f6",
-    counterFrom: 0,
   };
-}
-
-/** The sketch position at 85 plies without a capture: the count shows by the rule of R7. */
-export function counterFixture(): Fixture {
-  const sketch = sketchFixture();
-  return { ...sketch, game: withPliesWithoutCapture(sketch.game, 85), select: null, counterFrom: null };
 }
 
 const ENDING_DIAGRAM = `
@@ -83,7 +65,6 @@ export function endingFixture(): Fixture {
     last: null,
     captured: [],
     select: null,
-    counterFrom: null,
   };
 }
 
@@ -97,10 +78,12 @@ export function lossFixture(): Fixture {
   return { ...endingFixture(), mode: { kind: "bot", human: "black", level: DEFAULT_BOT_LEVEL } };
 }
 
-/** The sketch position at 99 plies without a capture: any play that does not capture draws (b4 to b5 is one). */
+/** Seven plies of a cycle of four: the next play, b8 to b10, repeats a position for the third time and draws. */
 export function drawFixture(): Fixture {
-  const sketch = sketchFixture();
-  return { ...sketch, game: withPliesWithoutCapture(sketch.game, 99), select: null, counterFrom: null };
+  const game = SeksGame.create();
+  const cycle = ["b2-b4", "b10-b8", "b4-b2", "b8-b10"];
+  for (const command of [...cycle, ...cycle.slice(0, 3)]) game.command(command);
+  return { game, mode: { kind: "hotseat" }, last: null, captured: [], select: null };
 }
 
 const STUCK_DIAGRAM = `
@@ -118,13 +101,12 @@ const STUCK_DIAGRAM = `
 
 /** The only Black die is a 6 boxed in a corner: any play of the Whites, such as a1 to a2, leaves the Blacks with no play. */
 export function stuckFixture(): Fixture {
-  return { game: SeksGame.fromDiagram(STUCK_DIAGRAM, "white"), mode: { kind: "hotseat" }, last: null, captured: [], select: null, counterFrom: null };
+  return { game: SeksGame.fromDiagram(STUCK_DIAGRAM, "white"), mode: { kind: "hotseat" }, last: null, captured: [], select: null };
 }
 
 /** The fixtures that the page opens with `?fixture=NAME`. */
 export const FIXTURES: Readonly<Record<string, () => Fixture>> = {
   esboco: sketchFixture,
-  contador: counterFixture,
   fim: endingFixture,
   vitoria: winFixture,
   derrota: lossFixture,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SeksGame, type Side } from "../src/engine/game";
-import { COUNTER_FROM, drawStatus } from "../src/logic/status";
+import { drawStatus } from "../src/logic/status";
 import { resultText } from "../src/logic/texts";
 
 function diagram(dice: Record<string, string>): string {
@@ -10,31 +10,6 @@ function diagram(dice: Record<string, string>): string {
   }
   return rows.join("\n");
 }
-
-/** A game that has gone `plies` plies without a capture (the hashes before are placeholders). */
-function withPlies(game: SeksGame, plies: number): SeksGame {
-  const state = game.state();
-  state.plies_without_capture = plies;
-  const fake = Array.from({ length: plies }, (_, i) => (i + 1).toString(16).padStart(16, "0"));
-  state.history = [...fake, state.history.at(-1)!];
-  return SeksGame.fromState(state);
-}
-
-describe("drawStatus: the count of plies without a capture", () => {
-  it("shows the count from 80 and not before", () => {
-    const start = SeksGame.create();
-    expect(COUNTER_FROM).toBe(80);
-    expect(drawStatus(start.view()).showCounter).toBe(false);
-    expect(drawStatus(withPlies(start, 79).view()).showCounter).toBe(false);
-    const at80 = drawStatus(withPlies(start, 80).view());
-    expect(at80).toMatchObject({ showCounter: true, plies: 80, max: 100 });
-    expect(drawStatus(withPlies(start, 99).view()).plies).toBe(99);
-  });
-
-  it("can start the count earlier, for a screenshot of the sketch position", () => {
-    expect(drawStatus(withPlies(SeksGame.create(), 23).view(), 0).showCounter).toBe(true);
-  });
-});
 
 describe("drawStatus: the repetition warning", () => {
   it("warns when a play of the side to move would repeat a position the third time", () => {
@@ -88,12 +63,5 @@ describe("resultText: the winner and the reason, or the draw and the reason", ()
     for (const command of [...cycle, ...cycle.slice(0, 3)]) game.command(command);
     const { view } = game.command("b8-b10");
     expect(resultText(view.outcome!, view)).toEqual({ title: "Empate", reason: "A mesma posição apareceu pela 3ª vez.", winner: null });
-  });
-
-  it("a draw by plies without a capture", () => {
-    const game = withPlies(SeksGame.fromDiagram(diagram({ a1: "w1", k11: "b1" }), "white"), 99);
-    const { view } = game.command("a1+");
-    expect(view.outcome).toMatchObject({ kind: "draw", reason: "no_capture" });
-    expect(resultText(view.outcome!, view)).toMatchObject({ title: "Empate", reason: "100 jogadas seguidas sem captura, 50 de cada jogador." });
   });
 });

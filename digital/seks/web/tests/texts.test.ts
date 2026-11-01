@@ -7,7 +7,6 @@ import type { Mode } from "../src/logic/match";
 import {
   APP,
   BUTTONS,
-  COUNTER,
   LEGEND,
   SIDES,
   START,
@@ -71,8 +70,6 @@ describe("R9: the terms of the glossary", () => {
       SIDES.now,
       ...[0, 1, 2].map(SIDES.captured),
       ...Object.values(START),
-      COUNTER.label,
-      COUNTER.limit(100),
       diceCount(1),
       diceCount(15),
     ];

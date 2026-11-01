@@ -69,13 +69,11 @@ vista enquanto dura; um valor inválido no storage é ignorado.
 
 `?fixture=NOME` abre uma posição pronta, para olhar a tela sem jogar até lá:
 
-- `esboco`: a partida do esboço de arte (`arte/esbocos/c-motivos-por-lingua/jogo.png`),
-  com o contador visível.
-- `contador`: a mesma posição com 85 jogadas sem captura.
+- `esboco`: a partida do esboço de arte (`arte/esbocos/c-motivos-por-lingua/jogo.png`).
 - `fim`: as Brancas ganham jogando c8 para c11 (hotseat).
 - `vitoria` e `derrota`: a mesma posição contra o bot, com o jogador nas
   Brancas (joga c8 para c11) ou nas Pretas (o bot joga c8 para c11).
-- `empate`: 99 jogadas sem captura; b4 para b5 empata.
+- `empate`: sete jogadas de um ciclo de quatro; b8 para b10 repete a posição pela terceira vez e empata.
 - `sem-jogada`: a1 para a2 deixa as Pretas sem jogada.
 
 ## Bot

@@ -325,7 +325,6 @@ async function openFixture(name: string): Promise<boolean> {
     game: fixture.game,
     seed: { last: fixture.last, captured: fixture.captured },
     select: fixture.select,
-    counterFrom: fixture.counterFrom ?? undefined,
     tilted: preferredTilt(),
     onTilt: keepTilt,
     bot: fixture.mode.kind === "bot" ? spawnBot() : null,

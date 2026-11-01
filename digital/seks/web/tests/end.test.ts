@@ -60,11 +60,11 @@ describe("the end of the game: the card (feedback of the designer)", () => {
   });
 
   it("a draw shows its reason and no side as the winner", async () => {
-    const { snapshot } = await played(drawFixture(), "b4", "b5");
-    expect(snapshot.view.outcome).toEqual({ kind: "draw", reason: "no_capture" });
+    const { snapshot } = await played(drawFixture(), "b8", "b10");
+    expect(snapshot.view.outcome).toEqual({ kind: "draw", reason: "repetition" });
     const card = endCard(snapshot);
     expect(card).toMatchObject({ title: "Empate", tone: "neutral" });
-    expect(card?.reason).toBe("100 jogadas seguidas sem captura, 50 de cada jogador.");
+    expect(card?.reason).toBe("A mesma posição apareceu pela 3ª vez.");
   });
 
   it("a win because the other side has no play says so", async () => {
@@ -74,7 +74,7 @@ describe("the end of the game: the card (feedback of the designer)", () => {
   });
 
   it("repetition says the position came a third time", () => {
-    const view = { repetitions_for_draw: 3, max_plies_without_capture: 100 } as never;
+    const view = { repetitions_for_draw: 3 } as never;
     expect(resultText({ kind: "draw", reason: "repetition" }, view).reason).toBe("A mesma posição apareceu pela 3ª vez.");
   });
 
@@ -96,7 +96,7 @@ describe("what decided the game is marked on the board", () => {
   });
 
   it("nothing in a draw or while the game goes on", async () => {
-    const draw = await played(drawFixture(), "b4", "b5");
+    const draw = await played(drawFixture(), "b8", "b10");
     expect(draw.stage.animations.at(-1)!.marks.decisive).toEqual([]);
     const { match, stage } = newMatch(endingFixture().game, endingFixture().mode);
     await match.start();

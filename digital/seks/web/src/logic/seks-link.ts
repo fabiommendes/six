@@ -12,7 +12,7 @@ import type { Ruleset } from "./link";
  * Any other position is `p`, the side to move (`w` or `b`) and 121 digits, one
  * per cell in cell index order (row 1 first, file a first): `0` empty, `1` to
  * `6` a white die of that value, `a` to `f` a black die. Only positions that
- * start a count (no plies without capture, no history, no result) fit: that
+ * start a count (no history, no result) fit: that
  * is what `Game.fromDiagram` builds.
  */
 
@@ -61,8 +61,8 @@ let standard: string | null = null;
  */
 export function startOf(game: SeksGame): string {
   const state = game.state();
-  if (state.outcome !== null || state.plies_without_capture !== 0 || state.history.length !== 1) {
-    throw new Error("a link carries only a position that starts a count of plies without capture");
+  if (state.outcome !== null || state.history.length !== 1) {
+    throw new Error("a link carries only a position that starts a count of repetitions");
   }
   const text = token(state.dice, state.to_move);
   if (standard === null) {

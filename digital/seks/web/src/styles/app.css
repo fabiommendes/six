@@ -58,12 +58,7 @@ h1 { font-weight: 800; font-size: 54px; line-height: 0.9; margin: 12px 0 4px; le
 .side.active { padding-left: 10px; background: var(--wool); }
 .side .now { font-family: "Alegreya Sans SC", sans-serif; font-size: 14px; font-weight: 700; color: var(--seks); letter-spacing: 0.06em; margin-left: 8px; white-space: nowrap; }
 
-.count { margin-top: 12px; display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: end; }
-.count .num { font-size: 36px; font-weight: 800; line-height: 0.9; font-variant-numeric: lining-nums tabular-nums; }
-.count .lbl { font-size: 15px; line-height: 1.2; }
-.count .lbl span { color: var(--muted); }
-.count .tally { grid-column: 1 / 3; margin-top: 6px; line-height: 0; }
-.count[hidden], .warn[hidden] { display: none; }
+.warn[hidden] { display: none; }
 
 .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 12px; font-size: 14px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
@@ -104,7 +99,6 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
   .note { margin-top: 8px; font-size: 15px; padding: 8px 10px; min-height: 0; }
   .sides { margin-top: 10px; }
   .side { padding: 4px 0; font-size: 15px; }
-  .count { margin-top: 8px; }
   .actions { margin-top: 10px; gap: 6px; flex-wrap: nowrap; position: sticky; bottom: 0; padding: 8px 0 2px; background: var(--paper); }
   button { padding: 8px 14px; font-size: 16px; }
   .actions button { flex: 1 1 auto; padding: 8px 6px; font-size: 14px; white-space: nowrap; }
@@ -136,9 +130,6 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
   .side .cap { grid-column: auto; flex-wrap: nowrap; font-size: 14px; text-align: right; }
   .side .name { font-size: 16px; }
   .side .n { white-space: nowrap; }
-  .count { margin-top: 10px; }
-  .count .num { font-size: 32px; }
-  .count .lbl { font-size: 15px; }
   .actions { margin-top: 14px; gap: 8px; }
   .actions button { flex: 1; font-size: 15px; padding: 10px 4px; white-space: nowrap; }
 }

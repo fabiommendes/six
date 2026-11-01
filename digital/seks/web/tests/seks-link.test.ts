@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SeksGame } from "../src/engine/game";
-import { SKETCH_DIAGRAM, withPliesWithoutCapture } from "../src/logic/fixtures";
+import { SKETCH_DIAGRAM } from "../src/logic/fixtures";
 import { decodeLink, encodeLink, LinkError } from "../src/logic/link";
 import { gameFromStart, seksRuleset, startOf } from "../src/logic/seks-link";
 
@@ -13,9 +13,8 @@ function rng(seed: number): () => number {
 }
 
 /**
- * A game of up to `plies` plies by a player that looks for captures (they
- * reset the count of plies without capture, so the game lasts) and avoids
- * ending the game. Deterministic for a seed.
+ * A game of up to `plies` plies by a player that looks for captures (so the
+ * game lasts) and avoids ending the game. Deterministic for a seed.
  */
 function playGame(seed: number, plies: number, game: SeksGame = SeksGame.create()): string[] {
   const random = rng(seed);
@@ -91,7 +90,9 @@ describe("Seks in the link: whole games", () => {
   });
 
   it("a link that ends the game rebuilds the result", () => {
-    const commands = playGame(1, 400);
+    // A cycle of four plies that repeats the start position the third time.
+    const cycle = ["b2-b4", "b10-b8", "b4-b2", "b8-b10"];
+    const commands = [...cycle, ...cycle];
     const link = decodeLink(encodeLink({ id: "teste", start: "", commands }, seksRuleset), seksRuleset);
     expect(link.commands).toHaveLength(commands.length);
     const game = SeksGame.create();
@@ -122,7 +123,6 @@ describe("Seks in the link: start positions", () => {
     const game = SeksGame.create();
     game.command("b2-b4");
     expect(() => startOf(game)).toThrow();
-    expect(() => startOf(withPliesWithoutCapture(SeksGame.fromDiagram(SKETCH_DIAGRAM, "white"), 23))).toThrow();
   });
 
   it("refuses texts that are not a position", () => {

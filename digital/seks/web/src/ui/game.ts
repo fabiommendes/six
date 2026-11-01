@@ -11,11 +11,9 @@ import { Match, type Mode, type Seed } from "../logic/match";
 import type { PreferenceStore } from "../logic/view-preference";
 import type { Session } from "../logic/session";
 import type { LiveStatus } from "../net/live-session";
-import { drawStatus } from "../logic/status";
 import {
   APP,
   BUTTONS,
-  COUNTER,
   LEGEND,
   LIVE,
   MAIL,
@@ -42,7 +40,7 @@ import { RULES_URL } from "./start";
 import { flyToPanel } from "./flight";
 import { LivePanel } from "./live-panel";
 import { MailPanel } from "./mail-panel";
-import { brandMark, dieIcon, markIcon, motifStrip, tally } from "./svg";
+import { brandMark, dieIcon, markIcon, motifStrip } from "./svg";
 
 /** What a match by correspondence needs from the page around it (the links and the saved list). */
 export interface MailOptions {
@@ -95,8 +93,6 @@ export interface GameScreenOptions {
   readonly seed?: Seed;
   /** A die to select once the match starts (a loaded position). */
   readonly select?: Cell | null;
-  /** From how many plies without capture the count shows. */
-  readonly counterFrom?: number;
   /** The bot, when `mode` is against it. */
   readonly bot: BotPlayer | null;
   /** Commands already played from `game` (a match that resumes), replayed without animation. */
@@ -159,7 +155,6 @@ const SKELETON = `
       ${ConfirmDialog.html}
       <div class="last" aria-live="polite"></div>
       <div class="sides"></div>
-      <div class="count" hidden></div>
       <div class="legend" hidden></div>
       <div class="actions">
         <button type="button" data-action="undo">${BUTTONS.undo}</button>
@@ -606,15 +601,6 @@ export class GameScreen {
     // The side the board is seen from is at the bottom, as on the board.
     const order = this.viewpoint === "white" ? (["black", "white"] as const) : (["white", "black"] as const);
     need(host, ".sides").innerHTML = order.map((side) => this.sideRow(snapshot, side)).join("");
-
-    // The count of plies without a capture, from 80.
-    const status = drawStatus(view, this.options.counterFrom);
-    const count = need(host, ".count");
-    count.hidden = !status.showCounter;
-    if (status.showCounter) {
-      const width = Math.min(need(host, ".panel").clientWidth || 492, 492);
-      count.innerHTML = `<div class="num">${status.plies}</div><div class="lbl">${COUNTER.label}<br><span>${esc(COUNTER.limit(status.max))}</span></div><div class="tally">${tally(status.plies, status.max, compact ? Math.min(362, width) : width)}</div>`;
-    }
 
     need<HTMLButtonElement>(host, '[data-action="undo"]').disabled = !snapshot.canUndo;
     const tilt = need<HTMLButtonElement>(host, '[data-action="tilt"]');

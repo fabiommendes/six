@@ -115,20 +115,3 @@ export function markIcon(kind: LegendMark, size = 22): string {
   if (kind === "last") s = `<path d="M1 ${f(1 + k)}V1H${f(1 + k)}M${f(size - 1 - k)} 1H${size - 1}V${f(1 + k)}M${size - 1} ${f(size - 1 - k)}V${size - 1}H${f(size - 1 - k)}M${f(1 + k)} ${size - 1}H1V${f(size - 1 - k)}" fill="none" stroke="${COLORS.ink}" stroke-width="2.2"/>`;
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">${s}</svg>`;
 }
-
-/** The count of plies without a capture as a row of stitches: `n` knitted of `total`. */
-export function tally(n: number, total: number, width: number): string {
-  const cols = 50;
-  const rows = Math.ceil(total / cols);
-  const u = width / cols;
-  const r = u * 0.32;
-  let s = "";
-  for (let i = 0; i < total; i++) {
-    const x = (i % cols + 0.5) * u;
-    const y = (Math.floor(i / cols) + 0.5) * u;
-    s += i < n
-      ? `<circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" fill="${COLORS.seks}"/>`
-      : `<circle cx="${f(x)}" cy="${f(y)}" r="${f(r * 0.75)}" fill="none" stroke="${COLORS.line}" stroke-width="1"/>`;
-  }
-  return `<svg width="${f(width)}" height="${f(rows * u)}" role="img" aria-label="${n} de ${total}">${s}</svg>`;
-}
