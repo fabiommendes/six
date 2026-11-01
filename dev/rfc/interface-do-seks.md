@@ -96,8 +96,9 @@ Respostas do designer às perguntas abertas:
 - **Visual**: neutro (madeira clara, dados brancos e pretos com pontos) até o
   RFC de identidade visual decidir.
 - **Toque**: entra na primeira entrega; tocar e clicar são o mesmo gesto.
-- **Empate próximo**: a interface mostra o contador de jogadas sem captura a
-  partir de 80 e avisa quando a próxima repetição da posição empata.
+- **Empate próximo**: a interface avisa quando a próxima repetição da posição
+  empata. (A decisão original também mostrava o contador de jogadas sem captura
+  a partir de 80; o contador saiu junto com o empate por 100 jogadas sem captura.)
 
 ## Outcome
 

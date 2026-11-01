@@ -113,7 +113,7 @@ Pesos à mão (`hand.json`):
 O Elo vem de 2000 partidas com `ab:nodes=5000` em `openings/gate.txt`.
 A geração 2 venceu a 1 por +278 [+260, +297], mas empatou 126 de 400
 partidas contra si mesma (31%; no lote do portão, 174 dos 177 empates
-foram por 100 jogadas sem captura), e o portão a recusou; o treino parou aí. Mudanças grandes em relação aos
+foram por 100 jogadas sem captura, regra que saiu depois), e o portão a recusou; o treino parou aí. Mudanças grandes em relação aos
 pesos à mão: material de 138 (dado 1) a 276 (dado 6), em vez de 90 a 110;
 `gap_them` -51 em vez de -60; `blockers_us` 19 e `blockers_them` -18.
 `threats_*` e `at_risk_them` não mudam: o tune só vê posições quietas, em

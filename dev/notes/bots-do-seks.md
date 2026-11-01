@@ -11,6 +11,12 @@ Resultados da issue `dev/issues/bots-do-seks.md`. Os números de Elo e de
 taxa de vitória vêm com o intervalo de 95% (Elo pela variância trinomial,
 taxa de vitória pelo intervalo de Wilson).
 
+> **Atualização:** o empate por 100 jogadas sem captura saiu das regras (o
+> tiro do centro cobre as partidas travadas). Os empates "por 100 jogadas sem
+> captura" abaixo são medições feitas com a regra antiga e não se repetem: hoje
+> uma partida sem plano só acaba por repetição, e os lotes param no limite de
+> jogadas (`--max-plies`), que é um teto técnico das ferramentas, não regra.
+
 ## Como rodar sem travar a máquina
 
 A máquina de treino (Ryzen 5 3600, 12 threads, 32 GB) é dividida com outras

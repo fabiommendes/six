@@ -45,3 +45,11 @@ eventos: o ADR 0001 do Rio continua valendo.
   posições comparadas, a chance é desprezível.
 - Um save ou uma posição montada no meio da partida precisa trazer os hashes e
   o contador, ou começa a contagem do zero.
+
+## Atualização
+
+O empate por 100 jogadas sem captura saiu das regras. O estado não guarda mais
+o contador, e a lista de hashes deixou de ter o teto das regras: é um vetor
+fixo de 101 posições que descarta a mais antiga quando enche. Esse teto é
+técnico, não regra, e só deixa de ver uma posição que volte depois de mais de
+100 jogadas sem captura.
