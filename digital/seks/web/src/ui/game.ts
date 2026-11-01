@@ -262,7 +262,10 @@ export class GameScreen {
       animate: () => Promise.resolve(),
     };
     this.match = new Match(options.game, options.mode, stage, options.bot, options.seed);
-    if (board) board.canActivate = (cell) => this.canActivate(cell);
+    if (board) {
+      board.canActivate = (cell) => this.canActivate(cell);
+      board.canSelect = (cell) => this.canSelect(cell);
+    }
     if (options.live) this.off.push(this.match.onHumanPlay(() => options.live?.onPlay()));
     this.shared = options.mail?.shared ?? 0;
     if (options.mail?.resigned) this.resignedLink = options.mail.linkFor(options.resume ?? [], true);
@@ -370,6 +373,13 @@ export class GameScreen {
     if (side === this.viewpoint) return;
     this.viewpoint = side;
     this.board?.setViewpoint(side);
+  }
+
+  /** A die of the side to move, on the turn of a person here. */
+  private canSelect(cell: Cell): boolean {
+    const snapshot = this.match.snapshot();
+    if (this.frozen || !snapshot.humanToMove || snapshot.busy || snapshot.thinking) return false;
+    return snapshot.view.dice.some((d) => d.cell === cell && d.side === snapshot.view.to_move);
   }
 
   private canActivate(cell: Cell): boolean {

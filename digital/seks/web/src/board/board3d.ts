@@ -98,6 +98,8 @@ export class Board3D implements Stage {
   readonly canvas: HTMLCanvasElement;
   /** Whether a cell answers to a click: the pointer cursor shows over it. */
   canActivate: (cell: Cell) => boolean = () => false;
+  /** Whether a cell holds a die the player can pick: a tap that misses one by a little still picks it. */
+  canSelect: (cell: Cell) => boolean = () => false;
 
   private readonly renderer: WebGLRenderer;
   private readonly scene = new Scene();
@@ -558,7 +560,7 @@ export class Board3D implements Stage {
 
   // --- Pointer ---------------------------------------------------------------
 
-  private pick(event: PointerEvent): Cell | null {
+  private pick(event: { clientX: number; clientY: number }): Cell | null {
     const rect = this.canvas.getBoundingClientRect();
     const ndc = new Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -(((event.clientY - rect.top) / rect.height) * 2 - 1));
     this.raycaster.setFromCamera(ndc, this.cameras.active);
@@ -578,8 +580,27 @@ export class Board3D implements Stage {
     const down = this.down;
     this.down = null;
     if (!down || Math.hypot(event.clientX - down.x, event.clientY - down.y) > 14) return;
-    this.options.onCell(this.pick(event));
+    const cell = this.pick(event);
+    this.options.onCell(event.pointerType === "touch" ? this.nearDie(event, cell) : cell);
   };
+
+  /**
+   * On a phone a cell is about as wide as a fingertip. A tap on a cell that
+   * does nothing, next to one die the player can pick, picks that die. Only
+   * a die: a tap never lands on a destination it did not touch, so no play is
+   * made by a near miss.
+   */
+  private nearDie(event: PointerEvent, cell: Cell | null): Cell | null {
+    if (cell !== null && (this.canActivate(cell) || this.canSelect(cell))) return cell;
+    const reach = (this.canvas.getBoundingClientRect().width / 13) * 0.45;
+    const found = new Set<Cell>();
+    for (let k = 0; k < 8; k++) {
+      const angle = (k * Math.PI) / 4;
+      const near = this.pick({ clientX: event.clientX + reach * Math.cos(angle), clientY: event.clientY + reach * Math.sin(angle) });
+      if (near !== null && near !== cell && this.canSelect(near)) found.add(near);
+    }
+    return found.size === 1 ? [...found][0]! : cell;
+  }
 
   private readonly onPointerMove = (event: PointerEvent) => {
     if (event.pointerType === "touch") return;
