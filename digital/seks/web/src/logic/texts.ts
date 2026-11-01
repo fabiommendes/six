@@ -63,7 +63,8 @@ export const LEGEND = {
 export const START = {
   heading: "Nova partida",
   pitch: "Estratégia para dois jogadores, sem sorte. Cada dado anda até o valor da face, e chega mostrando quantas casas andou.",
-  modeLegend: "Como jogar",
+  figure: "Um 4 anda até 4 casas. Se andar 2, chega como 2.",
+  modeLegend: "Contra quem",
   hotseat: "Dois jogadores",
   hotseatNote: "Os dois na mesma tela, um de cada vez.",
   bot: "Contra o bot",
@@ -86,6 +87,9 @@ export const START = {
 export const MAIL = {
   listHeading: "Suas partidas guardadas",
   you: (side: Side) => `Você joga com as ${SIDE_NAME[side]}`,
+  /** How far the game went and when it last changed, to tell the games apart. */
+  when: (plies: number, updated: number) =>
+    `${plies === 1 ? "1 jogada" : `${plies} jogadas`}, ${new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short" }).format(updated).replace(".", "")}`,
   yours: "Sua vez",
   waiting: (side: Side) => `Aguardando as ${SIDE_NAME[side]}`,
   over: "Partida terminada",

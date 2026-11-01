@@ -5,7 +5,7 @@ import type { Mode } from "../logic/match";
 import type { MailGame } from "../logic/mail-games";
 import { APP, BUTTONS, MAIL, mailGameStatus, START } from "../logic/texts";
 import { esc, need } from "./dom";
-import { brandMark, dieIcon, motifStrip } from "./svg";
+import { brandMark, dieIcon, motifStrip, startFigure } from "./svg";
 
 /**
  * The published site puts the game in `seks/` under the rulebook site (`just site`),
@@ -48,9 +48,15 @@ function gameItem(game: MailGame): string {
   const over = game.over || game.leftBy !== null;
   return `<li class="mail-game" data-id="${esc(game.id)}">
     <span>${dieIcon(6, game.player, 22)}</span>
-    <div class="mail-game-text"><span class="t">${esc(MAIL.you(game.player))}</span><span class="d">${esc(mailGameStatus(game))}</span></div>
+    <div class="mail-game-text"><span class="t">${esc(MAIL.you(game.player))}</span><span class="d">${esc(mailGameStatus(game))} · ${esc(MAIL.when(game.commands.length, game.updated))}</span></div>
     <button type="button" data-open>${MAIL.open}</button>${over ? `<button type="button" data-remove>${MAIL.remove}</button>` : ""}
   </li>`;
+}
+
+/** The games kept here, above the choices: who comes back most often wants to go on. */
+function savedGames(games: readonly MailGame[]): string {
+  if (games.length === 0) return "";
+  return `<section class="mail-list"><h2>${MAIL.listHeading}</h2><ul>${games.map(gameItem).join("")}</ul></section>`;
 }
 
 function radio(name: string, value: string, label: string, note: string, checked: boolean, icon = ""): string {
@@ -64,14 +70,22 @@ function radio(name: string, value: string, label: string, note: string, checked
  */
 export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choice: StartChoice) => void, extras: StartExtras): () => void {
   host.className = "";
+  // The links go under the rule on wide screens and under the choices on narrow ones (see `app.css`).
+  const links = `<nav class="start-links"><a href="${RULES_URL}" target="_blank" rel="noopener">${START.rules}</a><a href="${COLLECTION_URL}">${START.collection}</a></nav>`;
   host.innerHTML = `
     <main class="start">
       <div class="start-card">
-        <div class="brand"><span class="mark"></span>${APP.brand}</div>
-        <h1>${APP.title}</h1>
-        <p class="pitch">${START.pitch}</p>
-        <div class="band"></div>
+        <div class="start-intro">
+          <div class="brand"><span class="mark"></span>${APP.brand}</div>
+          <h1>${APP.title}</h1>
+          <p class="pitch">${START.pitch}</p>
+          <figure class="start-show">${startFigure()}<figcaption id="start-figure-caption">${START.figure}</figcaption></figure>
+          <div class="band"></div>
+          ${links}
+        </div>
+        <div class="start-play">
         ${extras.notice === null ? "" : `<p class="notice" role="alert">${esc(extras.notice)}</p>`}
+        ${savedGames(extras.games)}
         <form class="start-form">
           <fieldset>
             <legend>${START.modeLegend}</legend>
@@ -95,12 +109,8 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
           </div>
           <button type="submit" class="primary">${BUTTONS.play}</button>
         </form>
-        <nav class="start-links"><a href="${RULES_URL}" target="_blank" rel="noopener">${START.rules}</a><a href="${COLLECTION_URL}">${START.collection}</a></nav>
-        ${
-          extras.games.length === 0
-            ? ""
-            : `<section class="mail-list"><h2>${MAIL.listHeading}</h2><ul>${extras.games.map(gameItem).join("")}</ul></section>`
-        }
+        ${links}
+        </div>
         <div class="foot"></div>
       </div>
     </main>`;
@@ -138,9 +148,9 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
   form.addEventListener("submit", onSubmit);
 
   const strips = () => {
-    const width = Math.floor(need(host, ".start-card").getBoundingClientRect().width - 2 * 28) || 400;
-    need(host, ".band").innerHTML = motifStrip("thin", width, 3);
-    need(host, ".foot").innerHTML = motifStrip("band", width, 3.6);
+    const width = (selector: string) => Math.floor(need(host, selector).getBoundingClientRect().width) || 400;
+    need(host, ".band").innerHTML = motifStrip("thin", width(".start-intro"), 3);
+    need(host, ".foot").innerHTML = motifStrip("band", width(".foot"), 3.6);
   };
   strips();
   const observer = new ResizeObserver(strips);

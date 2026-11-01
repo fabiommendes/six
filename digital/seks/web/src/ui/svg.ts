@@ -49,6 +49,28 @@ export function dieIcon(value: number, side: Side, size: number): string {
   return `<svg width="${box}" height="${box}" viewBox="0 0 ${box} ${box}" aria-hidden="true">${dieMarkup(size / 2 + pad * 0.3, size / 2 + pad * 0.3, size, value, side)}</svg>`;
 }
 
+/**
+ * The figure of the start screen, the rule of the game in one play: a row of
+ * five cells, a 4 of the Whites in the first one and the rings of the cells it
+ * reaches, 1 to 4. The CSS of `.start-figure` moves the die two cells, where
+ * it lands as a 2; without motion the figure stays as drawn, before the play.
+ */
+export function startFigure(): string {
+  const u = 72;
+  const w = 5 * u;
+  const h = u;
+  let s = `<rect x="1" y="1" width="${w - 2}" height="${h - 2}" fill="${COLORS.wool}" stroke="${COLORS.ink}" stroke-width="2"/>`;
+  for (let i = 1; i < 5; i++) s += `<line x1="${i * u}" y1="1" x2="${i * u}" y2="${h - 1}" stroke="#cdc3b0" stroke-width="1.5"/>`;
+  for (let i = 1; i <= 4; i++) {
+    const c = i * u + u / 2;
+    s += `<g class="ring${i === 2 ? " ring-kept" : ""}"><circle cx="${c}" cy="${u / 2}" r="${f(u * 0.27)}" fill="none" stroke="${COLORS.seks}" stroke-width="3"/>`;
+    s += `<text x="${c}" y="${f(u / 2 + 1)}" text-anchor="middle" dominant-baseline="central" font-family="Alegreya Sans, sans-serif" font-weight="800" font-size="${f(u * 0.34)}" fill="${COLORS.seks}">${i}</text></g>`;
+  }
+  const die = (value: number) => dieMarkup(u / 2, u / 2, u * 0.7, value, "white");
+  s += `<g class="walker"><g class="face-4">${die(4)}</g><g class="face-2">${die(2)}</g></g>`;
+  return `<svg class="start-figure" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="start-figure-caption">${s}</svg>`;
+}
+
 /** The face of six, the mark of the collection, with the pip of the Seks filled. */
 export function brandMark(size: number): string {
   const d = size * 0.25 * 0.92;

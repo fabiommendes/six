@@ -144,7 +144,7 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 .start { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; }
 .start-card { width: min(520px, 100%); padding: 28px; background: var(--wool); border: 2px solid var(--ink); box-shadow: 0 3px 0 var(--ink); }
 .start h1 { font-size: 64px; }
-.start .band { margin: 10px 0 18px; }
+.start .band { margin: 0 0 18px; }
 .start-form fieldset { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
 .start-form legend { padding: 0; margin-bottom: 8px; font-family: "Alegreya Sans SC", sans-serif; font-weight: 700; letter-spacing: 0.1em; font-size: 14px; color: var(--muted); }
 .choice { display: block; margin-bottom: 8px; cursor: pointer; }
@@ -159,6 +159,29 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 .choice .d { font-size: 15px; color: var(--muted); }
 .choice-icon { line-height: 0; flex: none; }
 .start .pitch { margin: 8px 0 0; font-size: 17px; line-height: 1.35; }
+/* The rule in one play: a 4 walks two cells and lands as a 2. */
+.start-show { margin: 16px 0 18px; }
+.start-figure { display: block; width: 100%; height: auto; overflow: visible; }
+.start-show figcaption { margin-top: 6px; font-size: 15px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) {
+  .start-figure .walker { animation: walk 6s cubic-bezier(0.3, 0, 0.2, 1) infinite; }
+  .start-figure .face-2 { animation: land-face 6s step-end infinite; }
+  .start-figure .face-4 { animation: leave-face 6s step-end infinite; }
+  .start-figure .ring:not(.ring-kept) { animation: rings-out 6s ease-out infinite; }
+  .start-figure .ring-kept { animation: ring-kept 6s ease-out infinite; }
+}
+.start-figure .face-2 { opacity: 0; }
+@keyframes walk {
+  0%, 22% { transform: translateX(0); opacity: 1; }
+  42%, 86% { transform: translateX(144px); opacity: 1; }
+  94% { transform: translateX(144px); opacity: 0; }
+  95% { transform: translateX(0); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+@keyframes land-face { 0% { opacity: 0; } 42% { opacity: 1; } 94% { opacity: 0; } }
+@keyframes leave-face { 0% { opacity: 1; } 42% { opacity: 0; } 94% { opacity: 1; } }
+@keyframes rings-out { 0%, 30% { opacity: 1; } 40%, 92% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes ring-kept { 0%, 40% { opacity: 1; } 48%, 92% { opacity: 0; } 100% { opacity: 1; } }
 .sides-choice { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .sides-choice .choice { margin: 0; }
 .levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -169,6 +192,14 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 .start-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; margin-top: 16px; font-size: 17px; }
 .start-links a { color: var(--ink); font-weight: 700; text-underline-offset: 3px; }
 .start .foot { margin-top: 22px; padding-top: 0; }
+.start-intro .start-links { justify-content: flex-start; }
+/* Wide screens: the game and its rule on the left, the choices on the right, all above the fold. */
+@media (min-width: 900px) {
+  .start-card { width: min(980px, 100%); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 40px; align-items: start; }
+  .start-card .foot { grid-column: 1 / -1; }
+}
+@media (max-width: 899px) { .start-intro .start-links { display: none; } }
+@media (min-width: 900px) { .start-play .start-links { display: none; } }
 @media (max-width: 480px) {
   .start { padding: 12px 10px; }
   .start-card { padding: 18px 16px; }
@@ -203,7 +234,7 @@ button.quiet { border-color: var(--line); box-shadow: 0 2px 0 var(--line); }
 .live-fallback { margin-top: 8px; padding-top: 8px; border-top: 2px solid var(--line); }
 .live-fallback-text { margin: 0 0 8px; font-size: 15px; line-height: 1.3; }
 .live-fallback button { width: 100%; }
-.mail-list { margin-top: 22px; }
+.mail-list { margin: 0 0 22px; }
 .mail-list h2 { margin: 0 0 8px; font: 800 20px "Alegreya", serif; }
 .mail-list ul { list-style: none; margin: 0; padding: 0; }
 .mail-game { display: flex; align-items: center; gap: 12px; padding: 8px 10px; margin-bottom: 8px; border: 2px solid var(--line); background: var(--paper); }
