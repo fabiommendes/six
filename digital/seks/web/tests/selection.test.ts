@@ -8,6 +8,7 @@ function boardOf(game: SeksGame): SelectionBoard {
   return {
     isOwnDie: (cell) => view.dice.some((die) => die.cell === cell && die.side === view.to_move),
     options: (cell) => game.options(cell),
+    captures: (command) => game.capturesOf(command),
   };
 }
 
@@ -33,8 +34,19 @@ describe("click: select", () => {
     const result = click(null, "b2", boardOf(game));
     expect(result.command).toBeNull();
     // The Whites must move on the first turn.
-    expect(result.selection).toEqual({ at: "b2", moves: game.options("b2").moves, canIncrement: false, shots: [] });
+    expect(result.selection).toEqual({ at: "b2", moves: game.options("b2").moves, captures: game.options("b2").moves.map(() => []), canIncrement: false, shots: [] });
     expect([...result.selection!.moves].sort()).toEqual(["a3", "b1", "b3", "b4", "c3", "d4"]);
+  });
+
+  it("says, from the engine, which destinations capture and what", () => {
+    // The 2 in e2 lands on e4 and holds the 1 of the Blacks in e5 against the die in e6.
+    const game = open({ e2: "w2", e5: "b1", e6: "w1", k11: "b1" });
+    const selection = selected(game, "e2");
+    const at = (cell: string) => selection.captures[selection.moves.indexOf(cell)];
+    expect(at("e4")).toEqual(["e5"]);
+    expect(at("e3")).toEqual([]);
+    // Asking does not play: the position is the same.
+    expect(game.view().dice.some((die) => die.cell === "e5")).toBe(true);
   });
 
   it("does not select a die of the opponent, an empty cell or anything else", () => {

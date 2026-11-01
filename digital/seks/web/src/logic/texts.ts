@@ -5,6 +5,7 @@ import { LinkError } from "./link";
 import type { LastPlay, MatchSnapshot, Mode } from "./match";
 import { isResigned, mailStatus, type MailGame } from "./mail-games";
 import { drawStatus } from "./status";
+import { arrivalValue } from "./marks";
 
 /**
  * Every sentence the player reads, in Portuguese, with the terms of
@@ -51,6 +52,8 @@ export const SIDES = {
 export const LEGEND = {
   selected: "dado selecionado",
   destination: "casa ao alcance, com o valor com que o dado chega",
+  capture: "casa ao alcance onde o dado captura",
+  victim: "dado adversário que pode ser capturado",
   target: "alvo do tiro",
   origin: "origem",
   last: "destino da última jogada",
@@ -266,7 +269,9 @@ export function hint(snapshot: MatchSnapshot, gesture: Gesture): Hint {
   const targets = selection.shots.length;
   const shoot = targets > 0 ? `${Verb} num dado marcado para atirar: ${targets === 1 ? "1 alvo" : `${targets} alvos`}.` : "";
   const mark = targets > 0 ? (near > 0 ? `Ou ${verb} numa casa marcada para mover.` : "") : `${Verb} numa casa marcada para mover: ${moveCount(near)}.`;
-  const plays = [shoot, mark].filter((part) => part !== "").join(" ");
+  const capturing = selection.captures.filter((cells) => cells.length > 0).length;
+  const capture = capturing === 0 ? "" : "Anel duplo: a jogada captura o dado adversário que fica entre a casa e outro dado seu.";
+  const plays = [shoot, mark, capture].filter((part) => part !== "").join(" ");
   const noIncrement = snapshot.view.first_turn ? "No primeiro turno, as Brancas precisam mover." : `Um ${value} não pode ser incrementado.`;
   if (selection.refused) return { strong: noIncrement, rest: `${plays} ${Verb} em outra casa para tirar a seleção.` };
   const strong = `${value} em ${selection.at} selecionado.`;
@@ -315,7 +320,13 @@ export function cellDescription(snapshot: MatchSnapshot, cell: Cell): string {
   const parts = [die === undefined ? `${cell}, vazia` : `${cell}, ${die.value} das ${SIDE_NAME[die.side]}`];
   const selection = snapshot.selection;
   if (selection?.at === cell) parts.push("selecionado");
-  if (selection?.moves.includes(cell)) parts.push("casa ao alcance");
+  const move = selection?.moves.indexOf(cell) ?? -1;
+  if (selection && move >= 0) {
+    parts.push(`casa ao alcance, chega com ${arrivalValue(selection.at, cell)}`);
+    const captured = selection.captures[move] ?? [];
+    if (captured.length > 0) parts.push(`captura ${captured.join(" e ")}`);
+  }
+  if (selection?.captures.some((cells) => cells.includes(cell))) parts.push("pode ser capturado");
   if (selection?.shots.includes(cell)) parts.push("alvo do tiro");
   if (cell === CENTER) parts.push("casa central");
   return `${parts.join(", ")}.`;

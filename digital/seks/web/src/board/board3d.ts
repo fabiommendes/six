@@ -56,6 +56,8 @@ const MARK_HEIGHT = 0.004;
 const BOARD_TEXTURE = 2048;
 const RING_POOL = 48;
 const MARK_TEXTURE = 128;
+/** The kinds of ring, in the order of `ringTextures`: the value the die lands with, and whether the landing captures. */
+const RING_KINDS: readonly (readonly [number, boolean])[] = [false, true].flatMap((captures) => [1, 2, 3, 4, 5, 6].map((value) => [value, captures] as const));
 /** The sides of the board, lit from the north west: the sun falls on the west and north sides. */
 const BLOCK_COLORS = { west: "#DDD2BD", north: "#DDD2BD", east: "#C9BCA3", south: "#C9BCA3" } as const;
 
@@ -114,7 +116,7 @@ export class Board3D implements Stage {
   private layout: FrameLayout = frameLayout(false);
   private readonly markTextures: Record<MarkKind, CanvasTexture>;
   private readonly markMaterials: Record<MarkKind, Material>;
-  /** The rings of the destinations, one for each value a die can land with (1 to 6). */
+  /** The rings of the destinations, one for each value a die can land with (1 to 6), then the same with the outer ring of a capture. */
   private readonly ringTextures: CanvasTexture[];
   private readonly ringMaterials: Material[];
   private readonly markGeometry = new PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
@@ -127,6 +129,7 @@ export class Board3D implements Stage {
   private readonly rings: Mesh[] = [];
   private readonly decisiveMarks: Mesh[] = [];
   private readonly targetMarks: Mesh[] = [];
+  private readonly victimMarks: Mesh[] = [];
   private marks: Marks = NO_MARKS;
   /** How far the world is turned, in radians: 0 for the Whites' point of view, a half turn more for each change. */
   private yaw = 0;
@@ -168,15 +171,15 @@ export class Board3D implements Stage {
     this.block.visible = false;
     this.world.add(this.block);
 
-    this.ringTextures = [1, 2, 3, 4, 5, 6].map((value) => {
-      const t = new CanvasTexture(drawRing(value, MARK_TEXTURE, FONT));
+    this.ringTextures = RING_KINDS.map(([value, captures]) => {
+      const t = new CanvasTexture(drawRing(value, MARK_TEXTURE, FONT, undefined, captures));
       t.colorSpace = SRGBColorSpace;
       return t;
     });
     this.ringMaterials = this.ringTextures.map((map) => new MeshBasicMaterial({ map, transparent: true, depthWrite: false }));
-    this.markTextures = { selected: markTexture("selected"), from: markTexture("from"), to: markTexture("to"), decisive: markTexture("decisive"), target: markTexture("target"), cursor: markTexture("cursor") };
+    this.markTextures = { selected: markTexture("selected"), from: markTexture("from"), to: markTexture("to"), decisive: markTexture("decisive"), target: markTexture("target"), victim: markTexture("victim"), cursor: markTexture("cursor") };
     const markMaterial = (kind: MarkKind) => new MeshBasicMaterial({ map: this.markTextures[kind], transparent: true, depthWrite: false });
-    this.markMaterials = { selected: markMaterial("selected"), from: markMaterial("from"), to: markMaterial("to"), decisive: markMaterial("decisive"), target: markMaterial("target"), cursor: markMaterial("cursor") };
+    this.markMaterials = { selected: markMaterial("selected"), from: markMaterial("from"), to: markMaterial("to"), decisive: markMaterial("decisive"), target: markMaterial("target"), victim: markMaterial("victim"), cursor: markMaterial("cursor") };
     this.selectedMark = this.newMark("selected");
     this.fromMark = this.newMark("from");
     this.toMark = this.newMark("to");
@@ -215,7 +218,7 @@ export class Board3D implements Stage {
     this.placeMark(this.toMark, marks.lastTo, 0.001);
     marks.destinations.forEach((cell, i) => {
       const ring = this.ring(i);
-      ring.material = this.ringMaterials[(marks.arrivals?.[i] ?? 1) - 1]!;
+      ring.material = this.ringMaterials[(marks.arrivals?.[i] ?? 1) - 1 + (marks.capturing?.[i] ? 6 : 0)]!;
       // The numeral reads upright from the side the board is seen from.
       ring.rotation.y = -this.yawTarget;
       this.placeMark(ring, cell, 0.002);
@@ -224,6 +227,9 @@ export class Board3D implements Stage {
     const targets = marks.targets ?? [];
     while (this.targetMarks.length < targets.length) this.targetMarks.push(this.newMark("target"));
     this.targetMarks.forEach((mark, i) => this.placeMark(mark, targets[i] ?? null, 0.002));
+    const victims = marks.victims ?? [];
+    while (this.victimMarks.length < victims.length) this.victimMarks.push(this.newMark("victim"));
+    this.victimMarks.forEach((mark, i) => this.placeMark(mark, victims[i] ?? null, 0.002));
     const decisive = marks.decisive ?? [];
     while (this.decisiveMarks.length < decisive.length) this.decisiveMarks.push(this.newMark("decisive"));
     this.decisiveMarks.forEach((mark, i) => this.placeMark(mark, decisive[i] ?? null, 0.003));
@@ -233,7 +239,7 @@ export class Board3D implements Stage {
   async animate(events: readonly Event[], view: View, marks: Marks): Promise<void> {
     const motion = !this.options.reducedMotion();
     // The selection goes away at once; the marks of the last play come when the die lands.
-    this.setMarks({ ...this.marks, selected: null, destinations: [], targets: [] });
+    this.setMarks({ ...this.marks, selected: null, destinations: [], targets: [], victims: [] });
     const captured: Extract<Event, { type: "captured" }>[] = [];
     let shotAt: Cell | null = null;
     for (const event of events) {
@@ -420,7 +426,8 @@ export class Board3D implements Stage {
     if (this.disposed) return;
     // The numerals of the rings, now in the font of the board.
     this.ringTextures.forEach((texture, i) => {
-      drawRing(i + 1, MARK_TEXTURE, FONT, texture.image as HTMLCanvasElement);
+      const [value, captures] = RING_KINDS[i]!;
+      drawRing(value, MARK_TEXTURE, FONT, texture.image as HTMLCanvasElement, captures);
       texture.needsUpdate = true;
     });
     for (const turned of [0, 1]) {

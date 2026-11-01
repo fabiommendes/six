@@ -211,24 +211,27 @@ export function drawShadow(px: number, share: number, blur: number): HTMLCanvasE
   return canvas;
 }
 
-export type MarkKind = "selected" | "from" | "to" | "decisive" | "target" | "cursor";
+export type MarkKind = "selected" | "from" | "to" | "decisive" | "target" | "victim" | "cursor";
 
 /**
  * A cell the selected die can move to: a ring with the value the die shows
  * when it lands there, the number of cells it walks. The numeral has a halo
- * in the colour of the plate, so it reads on the red center cell too.
+ * in the colour of the plate, so it reads on the red center cell too. A
+ * landing that captures has a second, outer ring.
  */
-export function drawRing(value: number, px: number, fontFamily: string, canvas: HTMLCanvasElement = makeCanvas(px)): HTMLCanvasElement {
+export function drawRing(value: number, px: number, fontFamily: string, canvas: HTMLCanvasElement = makeCanvas(px), captures = false): HTMLCanvasElement {
   const ctx = context(canvas);
   ctx.clearRect(0, 0, px, px);
   const c = px / 2;
-  disc(ctx, c, c, px * 0.27);
-  ctx.strokeStyle = COLORS.wool;
-  ctx.lineWidth = px * 0.1;
-  ctx.stroke();
-  ctx.strokeStyle = COLORS.seks;
-  ctx.lineWidth = px * 0.045;
-  ctx.stroke();
+  for (const r of captures ? [0.27, 0.42] : [0.27]) {
+    disc(ctx, c, c, px * r);
+    ctx.strokeStyle = COLORS.wool;
+    ctx.lineWidth = px * 0.1;
+    ctx.stroke();
+    ctx.strokeStyle = COLORS.seks;
+    ctx.lineWidth = px * 0.045;
+    ctx.stroke();
+  }
   ctx.font = `800 ${Math.round(px * 0.38)}px ${fontFamily}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -272,6 +275,24 @@ export function drawMark(kind: MarkKind, px: number): HTMLCanvasElement {
       }
     };
     ticks();
+    ctx.strokeStyle = COLORS.wool;
+    ctx.lineWidth = px * 0.12;
+    ctx.stroke();
+    ctx.strokeStyle = COLORS.seks;
+    ctx.lineWidth = px * 0.06;
+    ctx.stroke();
+  } else if (kind === "victim") {
+    // A die a move can capture: four diagonal strokes at the corners of the cell, pointing at the die.
+    ctx.beginPath();
+    for (const [x, y] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) {
+      const x0 = px * (0.05 + 0.9 * x);
+      const y0 = px * (0.05 + 0.9 * y);
+      const x1 = px * (0.2 + 0.6 * x);
+      const y1 = px * (0.2 + 0.6 * y);
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x1, y1);
+    }
+    ctx.lineCap = "round";
     ctx.strokeStyle = COLORS.wool;
     ctx.lineWidth = px * 0.12;
     ctx.stroke();

@@ -6,6 +6,8 @@ export interface Selection {
   readonly at: Cell;
   /** Where it can move, as the engine lists them (the interface never works these out). */
   readonly moves: readonly Cell[];
+  /** The dice of the opponent each move captures, in the order of `moves`; empty for a move that captures nothing. */
+  readonly captures: readonly (readonly Cell[])[];
   readonly canIncrement: boolean;
   /** The dice it can shoot: only a 6 in the center cell has any. */
   readonly shots: readonly Cell[];
@@ -19,6 +21,8 @@ export interface SelectionBoard {
   isOwnDie(cell: Cell): boolean;
   /** The options of the die in `cell`, from the engine. */
   options(cell: Cell): DieOptions;
+  /** The dice of the opponent that `command` would capture, as the engine plays it on a copy of the game. */
+  captures(command: Command): Cell[];
 }
 
 /** The result of a click: the new selection and, if the click completed a play, the command. */
@@ -29,7 +33,8 @@ export interface ClickResult {
 
 function select(cell: Cell, board: SelectionBoard): Selection {
   const options = board.options(cell);
-  return { at: cell, moves: options.moves, canIncrement: options.can_increment, shots: options.shots };
+  const captures = options.moves.map((to) => board.captures(`${cell}-${to}`));
+  return { at: cell, moves: options.moves, captures, canIncrement: options.can_increment, shots: options.shots };
 }
 
 /**

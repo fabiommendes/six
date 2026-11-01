@@ -383,6 +383,8 @@ export class Match {
       selected: this.selection?.at ?? null,
       destinations: this.selection?.moves ?? NO_MARKS.destinations,
       arrivals: this.selection?.moves.map((cell) => arrivalValue(this.selection!.at, cell)) ?? [],
+      capturing: this.selection?.captures.map((cells) => cells.length > 0) ?? [],
+      victims: [...new Set(this.selection?.captures.flat() ?? [])],
       targets: this.selection?.shots ?? [],
       lastFrom: last?.from ?? null,
       lastTo: last?.to ?? null,
@@ -401,7 +403,7 @@ export class Match {
 
   private selectionBoard(view: View): SelectionBoard {
     const own = new Set(view.dice.filter((die) => die.side === view.to_move).map((die) => die.cell));
-    return { isOwnDie: (cell) => own.has(cell), options: (cell) => this.game.options(cell) };
+    return { isOwnDie: (cell) => own.has(cell), options: (cell) => this.game.options(cell), captures: (command) => this.game.capturesOf(command) };
   }
 
   /**

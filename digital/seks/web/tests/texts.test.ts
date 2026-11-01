@@ -167,6 +167,17 @@ describe("the note under the title", () => {
     });
   });
 
+  it("teaches the capture when a destination captures, and reads it to the keyboard", async () => {
+    const at: Record<string, string> = { e2: "w2", e5: "b1", e6: "w1", k11: "b1" };
+    const rows = Array.from({ length: 11 }, (_, i) => Array.from({ length: 11 }, (_, col) => at[`${"abcdefghijk"[col]}${11 - i}`] ?? "..").join(" "));
+    const { match } = newMatch(SeksGame.fromDiagram(rows.join("\n"), "white"), { kind: "hotseat" });
+    await match.start();
+    await match.click("e2");
+    expect(hint(match.snapshot(), "toque").rest).toContain("Anel duplo: a jogada captura o dado adversário que fica entre a casa e outro dado seu.");
+    expect(cellDescription(match.snapshot(), "e4")).toBe("e4, vazia, casa ao alcance, chega com 2, captura e5.");
+    expect(cellDescription(match.snapshot(), "e5")).toBe("e5, 1 das Pretas, pode ser capturado.");
+  });
+
   it("explains that a 6 cannot be incremented", async () => {
     const rows = Array.from({ length: 11 }, (_, i) => (i === 5 ? ".. .. .. .. w6 .. .. .. .. .. .." : i === 0 ? ".. .. .. .. .. .. .. .. .. .. b1" : i === 10 ? "w1 .. .. .. .. .. .. .. .. .. .." : ".. ".repeat(10) + ".."));
     const { match } = newMatch(SeksGame.fromDiagram(rows.join("\n"), "white"), { kind: "hotseat" });
@@ -223,7 +234,7 @@ describe("the keyboard cursor", () => {
     expect(cellDescription(match.snapshot(), "f6")).toBe("f6, vazia, casa central.");
     await match.click("b2");
     expect(cellDescription(match.snapshot(), "b2")).toBe("b2, 2 das Brancas, selecionado.");
-    expect(cellDescription(match.snapshot(), "b4")).toBe("b4, vazia, casa ao alcance.");
+    expect(cellDescription(match.snapshot(), "b4")).toBe("b4, vazia, casa ao alcance, chega com 2.");
     expect(boardLabel(match.snapshot())).toBe("Tabuleiro do Seks: vez das brancas; dado em b2 selecionado. Setas escolhem a casa, Enter joga.");
   });
 });

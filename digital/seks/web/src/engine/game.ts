@@ -64,6 +64,19 @@ export class SeksGame {
     return JSON.parse(this.game.command(command)) as Transition;
   }
 
+  /**
+   * The dice of the opponent that `command` would capture, without playing it:
+   * the engine plays it on a copy of the game. Throws if it is illegal.
+   */
+  capturesOf(command: Command): Cell[] {
+    const copy = SeksGame.fromStateJson(this.stateJson());
+    try {
+      return copy.command(command).events.flatMap((event) => (event.type === "captured" ? [event.at] : []));
+    } finally {
+      copy.free();
+    }
+  }
+
   /** The hash of the position now (Zobrist, 16 hex digits): the last of the `State` history. */
   hash(): string {
     const history = this.state().history;
