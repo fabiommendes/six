@@ -8,7 +8,7 @@ import type { PreferenceStore } from "./view-preference";
  * visits.
  */
 
-export type LegendMark = "selected" | "destination" | "capture" | "victim" | "target" | "origin" | "last" | "decisive";
+export type LegendMark = "selected" | "destination" | "capture" | "victim" | "target" | "custody" | "origin" | "last" | "decisive";
 
 export const LEGEND_KEY = "seks-web:legend";
 
@@ -41,6 +41,8 @@ export function marksOnBoard(snapshot: MatchSnapshot): MarkOccasion[] {
     }
     if (selection.shots.length > 0) out.push({ mark: "target", occasion: key });
   }
+  // A capture just made, until the player has seen the rule a few times: the last play names the cells, this says why.
+  if (last !== null && last.captures > 0 && !last.shot && selection === null) out.push({ mark: "custody", occasion: lastKey });
   // The origin and the destination of the last play are explained by the line of the last play, with their icons.
   const outcome = snapshot.view.outcome;
   if (outcome !== null && outcome.kind === "win") out.push({ mark: "decisive", occasion: `${lastKey}/${outcome.reason}` });

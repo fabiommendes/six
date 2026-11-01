@@ -107,7 +107,7 @@ export function markIcon(kind: LegendMark, size = 22): string {
     s = `<circle cx="${c}" cy="${c}" r="${f(size * 0.3)}" fill="none" stroke="${COLORS.seks}" stroke-width="1.6"/><circle cx="${c}" cy="${c}" r="${f(size * 0.45)}" fill="none" stroke="${COLORS.seks}" stroke-width="1.6"/>`;
     s += `<text x="${c}" y="${f(c + size * 0.02)}" text-anchor="middle" dominant-baseline="central" font-family="Alegreya Sans, sans-serif" font-weight="800" font-size="${f(size * 0.4)}" fill="${COLORS.seks}">2</text>`;
   }
-  if (kind === "victim") s = `<path d="M2 2L${f(size * 0.27)} ${f(size * 0.27)}M${size - 2} 2L${f(size * 0.73)} ${f(size * 0.27)}M2 ${size - 2}L${f(size * 0.27)} ${f(size * 0.73)}M${size - 2} ${size - 2}L${f(size * 0.73)} ${f(size * 0.73)}" fill="none" stroke="${COLORS.seks}" stroke-width="2.5" stroke-linecap="round"/>`;
+  if (kind === "victim" || kind === "custody") s = `<path d="M2 2L${f(size * 0.27)} ${f(size * 0.27)}M${size - 2} 2L${f(size * 0.73)} ${f(size * 0.27)}M2 ${size - 2}L${f(size * 0.27)} ${f(size * 0.73)}M${size - 2} ${size - 2}L${f(size * 0.73)} ${f(size * 0.73)}" fill="none" stroke="${COLORS.seks}" stroke-width="2.5" stroke-linecap="round"/>`;
   if (kind === "target") s = `<path d="M${c} 1V${f(size * 0.3)}M${c} ${size - 1}V${f(size * 0.7)}M1 ${c}H${f(size * 0.3)}M${size - 1} ${c}H${f(size * 0.7)}" fill="none" stroke="${COLORS.seks}" stroke-width="2.5"/>`;
   if (kind === "selected") s = `<rect x="2" y="2" width="${size - 4}" height="${size - 4}" fill="${COLORS.selection}" stroke="${COLORS.seks}" stroke-width="3"/>`;
   if (kind === "origin") s = `<rect x="3" y="3" width="${size - 6}" height="${size - 6}" fill="none" stroke="${COLORS.ink}" stroke-width="1.6" stroke-dasharray="2.3 2.3"/>`;

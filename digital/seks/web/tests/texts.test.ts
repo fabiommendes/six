@@ -173,6 +173,8 @@ describe("the note under the title", () => {
     expect(hint(match.snapshot(), "toque").rest).toContain("Anel duplo: a jogada captura o dado adversário que fica entre a casa e outro dado seu.");
     expect(cellDescription(match.snapshot(), "e4")).toBe("e4, vazia, casa ao alcance, chega com 2, captura e5.");
     expect(cellDescription(match.snapshot(), "e5")).toBe("e5, 1 das Pretas, pode ser capturado.");
+    await match.click("e4");
+    expect(lastPlayText(match.snapshot().last!)).toBe("Última jogada: Brancas, de e2 para e4, capturando o dado de e5.");
   });
 
   it("explains that a 6 cannot be incremented", async () => {
@@ -202,8 +204,8 @@ describe("the note under the title", () => {
     expect(note.rest).toBe("Clique num dado marcado para atirar: 1 alvo. Ou clique numa casa marcada para mover.");
     await match.click("k11");
     const last = match.snapshot().last!;
-    expect(last).toEqual({ side: "white", from: "f6", to: "k11", value: 6, captures: 1, shot: true });
-    expect(lastPlayText(last)).toBe("Última jogada: Brancas, tiro de f6 em k11, com captura de 1 dado.");
+    expect(last).toEqual({ side: "white", from: "f6", to: "k11", value: 6, captures: 1, capturedAt: ["k11"], shot: true });
+    expect(lastPlayText(last)).toBe("Última jogada: Brancas, tiro de f6 em k11.");
   });
 
   it("says the bot is thinking, and the human's turn against it", async () => {

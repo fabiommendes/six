@@ -73,6 +73,8 @@ export interface LastPlay {
   readonly value: number;
   /** How many dice the play captured. */
   readonly captures: number;
+  /** The cells of the dice it captured; absent in a last play saved before they were kept. */
+  readonly capturedAt?: readonly Cell[];
   /** Whether the play was a shot from the center cell (`from`) at the die in `to`. */
   readonly shot?: boolean;
 }
@@ -130,14 +132,18 @@ export const BOTS_MIN_GAP_MS = 300;
 function summarize(events: readonly Event[]): { last: LastPlay; captured: Captured[] } {
   let last: LastPlay | null = null;
   const captured: Captured[] = [];
+  const capturedAt: Cell[] = [];
   for (const event of events) {
     if (event.type === "moved") last = { side: event.side, from: event.from, to: event.to, value: event.value, captures: 0 };
     else if (event.type === "incremented") last = { side: event.side, from: null, to: event.at, value: event.value, captures: 0 };
     else if (event.type === "shot") last = { side: event.side, from: event.from, to: event.to, value: 6, captures: 0, shot: true };
-    else if (event.type === "captured") captured.push({ side: event.side, value: event.value });
+    else if (event.type === "captured") {
+      captured.push({ side: event.side, value: event.value });
+      capturedAt.push(event.at);
+    }
   }
   if (last === null) throw new Error("a play without a move, an increment or a shot");
-  return { last: { ...last, captures: captured.length }, captured };
+  return { last: { ...last, captures: captured.length, ...(capturedAt.length > 0 ? { capturedAt } : {}) }, captured };
 }
 
 /**

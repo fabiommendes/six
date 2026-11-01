@@ -53,6 +53,7 @@ export const LEGEND = {
   destination: "casa ao alcance, com o valor com que o dado chega",
   capture: "casa ao alcance onde o dado captura",
   victim: "dado adversário que pode ser capturado",
+  custody: "captura: o dado que fica entre dois dados adversários, na mesma linha ou coluna, sai do tabuleiro",
   target: "alvo do tiro",
   origin: "origem",
   last: "destino da última jogada",
@@ -219,7 +220,18 @@ export function sideTag(mode: Mode, side: Side): string {
 export function lastPlayText(last: LastPlay): string {
   const who = SIDE_NAME[last.side];
   const what = last.from === null ? `${last.to} incrementado para ${last.value}` : last.shot ? `tiro de ${last.from} em ${last.to}` : `de ${last.from} para ${last.to}`;
-  const captures = last.captures === 0 ? "" : last.captures === 1 ? ", com captura de 1 dado" : `, com captura de ${last.captures} dados`;
+  // A shot always takes the die it hits, so the line names only the dice taken besides it.
+  const known = last.capturedAt !== undefined && last.capturedAt.length === last.captures;
+  const cells = (last.capturedAt ?? []).filter((cell) => !(last.shot && cell === last.to));
+  const also = last.shot ? " também" : "";
+  const captures =
+    last.captures === 0 || (known && cells.length === 0)
+      ? ""
+      : known
+        ? `, capturando${also} ${cells.length === 1 ? "o dado de" : "os dados de"} ${cells.join(" e ")}`
+        : last.captures === 1
+          ? ", com captura de 1 dado"
+          : `, com captura de ${last.captures} dados`;
   return `Última jogada: ${who}, ${what}${captures}.`;
 }
 
