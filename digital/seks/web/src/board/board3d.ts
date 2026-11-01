@@ -543,6 +543,11 @@ export class Board3D implements Stage {
     this.invalidate();
   };
 
+  /** The cell under the keyboard cursor, or `null` while the arrows have not brought it out. */
+  get keyboardCell(): Cell | null {
+    return this.cursor;
+  }
+
   /** A click or a tap puts the keyboard cursor away until the arrows bring it back. */
   private hideCursor(): void {
     if (this.cursor === null) return;

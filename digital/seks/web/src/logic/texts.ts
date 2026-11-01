@@ -16,8 +16,8 @@ import { arrivalValue } from "./marks";
 /** The side as the glossary names it, in the plural. */
 export const SIDE_NAME: Record<Side, string> = { white: "Brancas", black: "Pretas" };
 
-/** How the player activates a cell: a tap on a touch screen, a click otherwise. */
-export type Gesture = "toque" | "clique";
+/** How the player activates a cell: a tap on a touch screen, a click with a mouse, Enter with the keyboard cursor. */
+export type Gesture = "toque" | "clique" | "tecle Enter";
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
@@ -30,8 +30,7 @@ export const APP = {
 export const BUTTONS = {
   undo: "Desfazer",
   newGame: "Nova partida",
-  tiltOn: "Vista inclinada",
-  tiltOff: "Vista de cima",
+  tilt: "Vista inclinada",
   play: "Jogar",
   home: "Voltar ao início",
   leave: "Sair da partida",

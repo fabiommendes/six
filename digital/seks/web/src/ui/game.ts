@@ -157,13 +157,13 @@ const SKELETON = `
       ${LivePanel.html}
       ${MailPanel.html}
       ${ConfirmDialog.html}
-      <div class="last"></div>
+      <div class="last" aria-live="polite"></div>
       <div class="sides"></div>
       <div class="count" hidden></div>
       <div class="legend" hidden></div>
       <div class="actions">
         <button type="button" data-action="undo">${BUTTONS.undo}</button>
-        <button type="button" data-action="tilt" aria-pressed="false">${BUTTONS.tiltOn}</button>
+        <button type="button" data-action="tilt" aria-pressed="false">${BUTTONS.tilt}</button>
         <button type="button" data-action="resign" hidden>${BUTTONS.resign}</button>
         <button type="button" data-action="leave" hidden>${BUTTONS.leave}</button>
         <button type="button" data-action="stop-bots" hidden>${BUTTONS.stopBots}</button>
@@ -174,11 +174,28 @@ const SKELETON = `
     <div class="foot"></div>
   </div>`;
 
+/** The markup last set on each element by `setHtml` (the browser serializes `innerHTML` its own way). */
+const lastHtml = new WeakMap<HTMLElement, string>();
+
+/** Sets the markup only when it changed: a live region reads every change aloud, even to the same text. */
+function setHtml(element: HTMLElement, html: string): void {
+  if (lastHtml.get(element) === html) return;
+  lastHtml.set(element, html);
+  element.innerHTML = html;
+}
+
+function setText(element: HTMLElement, text: string): void {
+  if (element.textContent !== text) element.textContent = text;
+}
+
 /** The screen of a match: the board in Three.js and the panel of the sketch around it. */
 export class GameScreen {
   private readonly match: Match;
   private readonly board: Board3D | null;
-  private readonly gesture: Gesture;
+  /** How the pointer activates a cell here: a tap or a click. */
+  private readonly pointerGesture: Gesture;
+  /** The player moved the keyboard cursor since the last press of the pointer: the note speaks of Enter. */
+  private keyboard = false;
   private readonly reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
   private tilted = false;
   /** The side the board is seen from: the human's against the bot, the side to move in hotseat. */
@@ -202,7 +219,7 @@ export class GameScreen {
     private readonly host: HTMLElement,
     private readonly options: GameScreenOptions,
   ) {
-    this.gesture = matchMedia("(pointer: coarse)").matches ? "toque" : "clique";
+    this.pointerGesture = matchMedia("(pointer: coarse)").matches ? "toque" : "clique";
     this.legendMemory = new LegendMemory(options.legendStore === undefined ? browserStore() : options.legendStore);
     host.className = "screen";
     host.innerHTML = SKELETON;
@@ -228,12 +245,16 @@ export class GameScreen {
         onCell: (cell) => void this.onCell(cell),
         onCursor: (cell) => {
           need(host, "#cursor-say").textContent = cellDescription(this.match.snapshot(), cell);
+          this.useKeyboard(true);
         },
       });
     } catch {
       container.innerHTML = `<p class="board-error">Não foi possível iniciar o gráfico 3D neste navegador.</p>`;
     }
     this.board = board;
+    const onPointer = () => this.useKeyboard(false);
+    container.addEventListener("pointerdown", onPointer);
+    this.off.push(() => container.removeEventListener("pointerdown", onPointer));
     // The board needs a stage even when it has no WebGL: the match still runs, unseen.
     const stage = board ?? {
       show() {},
@@ -503,6 +524,17 @@ export class GameScreen {
     if (target && !target.closest("canvas, button, a, input, label, select")) this.match.clearSelection();
   };
 
+  private get gesture(): Gesture {
+    return this.keyboard ? "tecle Enter" : this.pointerGesture;
+  }
+
+  /** Switches the note between the words of the pointer and of the keyboard. */
+  private useKeyboard(keyboard: boolean): void {
+    if (this.keyboard === keyboard) return;
+    this.keyboard = keyboard;
+    this.render(this.match.snapshot());
+  }
+
   /** The marks on the board that the player has not seen enough times yet, each with what it means. */
   private renderLegend(snapshot: ReturnType<Match["snapshot"]>): void {
     const marks = this.legendMemory.update(marksOnBoard(snapshot));
@@ -545,10 +577,10 @@ export class GameScreen {
     note.classList.toggle("result", over);
     if (view.outcome !== null) {
       const result = resultText(view.outcome, view);
-      note.innerHTML = `<b>${esc(result.title)}.</b> ${esc(result.reason)}`;
+      setHtml(note, `<b>${esc(result.title)}.</b> ${esc(result.reason)}`);
     } else {
       const text = hint(snapshot, this.gesture);
-      note.innerHTML = `${text.strong ? `<b>${esc(text.strong)}</b> ` : ""}${esc(text.rest)}`;
+      setHtml(note, `${text.strong ? `<b>${esc(text.strong)}</b> ` : ""}${esc(text.rest)}`);
     }
     const warning = repetitionWarning(snapshot);
     const warn = need(host, ".warn");
@@ -556,9 +588,10 @@ export class GameScreen {
     warn.textContent = warning ?? "";
 
     const last = need(host, ".last");
-    last.innerHTML = snapshot.last
-      ? `<span>${markIcon("origin", 20)} ${markIcon("last", 20)}</span>${esc(lastPlayText(snapshot.last))}`
-      : "";
+    setHtml(last, snapshot.last ? `<span>${markIcon("origin", 20)} ${markIcon("last", 20)}</span>${esc(lastPlayText(snapshot.last))}` : "");
+    // The cell under the keyboard cursor may have changed with the play: read it again.
+    const cursor = this.board?.keyboardCell ?? null;
+    if (cursor !== null) setText(need(host, "#cursor-say"), cellDescription(snapshot, cursor));
 
     // The side the board is seen from is at the bottom, as on the board.
     const order = this.viewpoint === "white" ? (["black", "white"] as const) : (["white", "black"] as const);
@@ -575,7 +608,6 @@ export class GameScreen {
 
     need<HTMLButtonElement>(host, '[data-action="undo"]').disabled = !snapshot.canUndo;
     const tilt = need<HTMLButtonElement>(host, '[data-action="tilt"]');
-    tilt.textContent = this.tilted ? BUTTONS.tiltOff : BUTTONS.tiltOn;
     tilt.setAttribute("aria-pressed", String(this.tilted));
     host.classList.toggle("thinking", snapshot.thinking);
     this.renderSession(snapshot);
