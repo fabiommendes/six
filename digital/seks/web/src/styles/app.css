@@ -60,7 +60,10 @@ h1 { font-weight: 800; font-size: 54px; line-height: 0.9; margin: 12px 0 4px; le
 
 .warn[hidden] { display: none; }
 
-.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 12px; font-size: 14px; color: var(--muted); }
+/* The legend comes and goes: under the buttons, it moves nothing that the player aims at. */
+.rest { display: flex; flex-direction: column; }
+.legend { order: 1; display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 12px; font-size: 14px; color: var(--muted); }
+.rules-link { order: 2; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
@@ -92,7 +95,8 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
   .screen { padding: 8px; gap: 16px; --panel: 340px; }
   h1 { font-size: 30px; margin: 4px 0 2px; }
   .sub, .band, .foot { display: none; }
-  .legend { margin-top: 6px; font-size: 14px; }
+  .legend { order: 0; margin-top: 6px; font-size: 14px; }
+  .rules-link { order: 0; }
   .turn svg { width: 28px; height: 28px; }
   .turn .who { font-size: 22px; }
   .turn .what { display: none; }
@@ -122,7 +126,7 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
   .turn .who { font-size: 20px; }
   .mobile-turn { display: flex; }
   .turn .what, .desk-turn { display: none; }
-  .rest { padding: 0 6px; width: 100%; max-width: 640px; margin: 0 auto; }
+  .rest { display: block; padding: 0 6px; width: 100%; max-width: 640px; margin: 0 auto; }
   .note { font-size: 15px; margin-top: 10px; padding: 8px 10px; min-height: 0; }
   .last { font-size: 15px; margin-top: 8px; }
   .sides { margin-top: 10px; }

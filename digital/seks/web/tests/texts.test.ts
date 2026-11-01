@@ -8,6 +8,7 @@ import {
   APP,
   BUTTONS,
   LEGEND,
+  LIVE,
   SIDES,
   START,
   boardLabel,
@@ -252,5 +253,12 @@ describe("R7: the sentences of the draws", () => {
     const game = SeksGame.create();
     const view = game.view();
     expect(resultText({ kind: "draw", reason: "repetition" }, view).title).toBe("Empate");
+  });
+});
+
+describe("the turn while a live match has no connection", () => {
+  it("says that the play waits for the other player, not only that it is the player's turn", () => {
+    expect(LIVE.playsLater("connecting")).toBe("Sua vez: a jogada chega quando o outro jogador entrar.");
+    expect(LIVE.playsLater("away")).toBe("Sua vez: a jogada chega quando o outro jogador voltar.");
   });
 });

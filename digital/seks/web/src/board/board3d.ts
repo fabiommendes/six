@@ -534,8 +534,13 @@ export class Board3D implements Stage {
     }
   };
 
+  /** Focus by the keyboard brings the cursor out at once, so the first arrow already moves it. */
   private readonly onFocus = () => {
-    if (this.cursor === null) return;
+    if (this.cursor === null) {
+      if (!this.container.matches(":focus-visible")) return;
+      this.cursor = this.marks.selected ?? "f6";
+      this.options.onCursor?.(this.cursor);
+    }
     this.placeMark(this.cursorMark, this.cursor, 0.003);
     this.invalidate();
   };

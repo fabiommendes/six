@@ -111,7 +111,7 @@ export interface GameScreenOptions {
   readonly mail?: MailOptions;
   /** The live match; `mode` must be `live`. */
   readonly live?: LiveOptions;
-  /** Makes a bot for "Terminar com bots", when the match has none of its own. */
+  /** Makes a bot for "Deixar os bots terminarem", when the match has none of its own. */
   readonly spawnBot?: () => BotPlayer;
   /** The player asked for a new game. */
   readonly onNewGame: () => void;
@@ -164,7 +164,7 @@ const SKELETON = `
         <button type="button" data-action="stop-bots" hidden>${BUTTONS.stopBots}</button>
         <button type="button" data-action="new">${BUTTONS.newGame}</button>
       </div>
-      <a class="rules-link" href="${RULES_URL}" target="_blank" rel="noopener">${START.rules}</a>
+      <a class="rules-link" href="${RULES_URL}#o-turno" target="_blank" rel="noopener">${START.rules}</a>
     </div>
     <div class="foot"></div>
   </div>`;
@@ -573,7 +573,9 @@ export class GameScreen {
     // The turn, or the end of the game.
     const title = over ? "Fim da partida" : turnTitle(view.to_move);
     const turnIcon = over ? "" : dieIcon(6, view.to_move, iconSize);
-    const subtitle = turnSubtitle(snapshot);
+    const status = this.liveView.status;
+    const offline = this.options.live !== undefined && status !== "connected" && snapshot.humanToMove && !over;
+    const subtitle = offline ? LIVE.playsLater(status) : turnSubtitle(snapshot);
     need(host, ".desk-turn").innerHTML = `${turnIcon ? `<span>${turnIcon}</span>` : ""}<div><div class="who">${esc(title)}</div>${subtitle ? `<div class="what">${esc(subtitle)}</div>` : ""}</div>`;
     need(host, ".mobile-turn").innerHTML = `${over ? "" : dieIcon(6, view.to_move, 22)}<div class="who">${esc(title)}</div>`;
 

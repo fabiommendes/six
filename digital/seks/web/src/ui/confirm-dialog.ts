@@ -25,7 +25,7 @@ export class ConfirmDialog {
     this.asking = question;
   }
 
-  /** `canFinishWithBots`: whether "Sair da partida" offers "Terminar com bots"; `resignAsk`: what "Desistir" asks. */
+  /** `canFinishWithBots`: whether "Sair da partida" offers "Deixar os bots terminarem"; `resignAsk`: what "Desistir" asks. */
   render(canFinishWithBots: boolean, resignAsk: string = MAIL.resignAsk): void {
     const ask = need(this.host, ".ask");
     ask.hidden = this.asking === null;

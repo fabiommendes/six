@@ -300,14 +300,25 @@ export function drawMark(kind: MarkKind, px: number): HTMLCanvasElement {
     ctx.lineWidth = px * 0.06;
     ctx.stroke();
   } else if (kind === "decisive") {
-    // What decided the game: a heavy red frame with a thin one inside, over the whole cell.
-    for (const [color, widen] of [[COLORS.wool, px * 0.05], [COLORS.seks, 0]] as const) {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = px * 0.08 + widen;
-      ctx.strokeRect(px * 0.04, px * 0.04, px * 0.92, px * 0.92);
-      ctx.lineWidth = px * 0.025 + widen;
-      ctx.strokeRect(px * 0.14, px * 0.14, px * 0.72, px * 0.72);
+    // What decided the game: a solid red triangle in each corner of the cell, unlike the frames of the selection and the cursor.
+    const k = px * 0.36;
+    ctx.beginPath();
+    for (const [x, y] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) {
+      const cx = px * (0.04 + 0.92 * x);
+      const cy = px * (0.04 + 0.92 * y);
+      const sx = x === 0 ? 1 : -1;
+      const sy = y === 0 ? 1 : -1;
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + sx * k, cy);
+      ctx.lineTo(cx, cy + sy * k);
+      ctx.closePath();
     }
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = COLORS.wool;
+    ctx.lineWidth = px * 0.06;
+    ctx.stroke();
+    ctx.fillStyle = COLORS.seks;
+    ctx.fill();
   } else if (kind === "cursor") {
     // The keyboard cursor: an ink frame at the edge of the cell, with a halo in the colour of the plate.
     for (const [color, width] of [[COLORS.wool, px * 0.11], [COLORS.ink, px * 0.05]] as const) {

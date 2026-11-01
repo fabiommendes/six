@@ -35,7 +35,7 @@ export const BUTTONS = {
   home: "Voltar ao início",
   leave: "Sair da partida",
   stopBots: "Interromper",
-  finishWithBots: "Terminar com bots",
+  finishWithBots: "Deixar os bots terminarem",
   resign: "Desistir",
   viewBoard: "Ver tabuleiro",
   cancel: "Cancelar",
@@ -131,6 +131,8 @@ export const LIVE = {
   connected: "Conectado",
   away: "O outro jogador saiu da conexão.",
   connectingRest: "Esperando o outro jogador entrar.",
+  /** Under "Sua vez" while the other player is not connected: the play is not lost. */
+  playsLater: (status: "connecting" | "away") => `Sua vez: a jogada chega quando o outro jogador ${status === "away" ? "voltar" : "entrar"}.`,
   awayRest: "Se ele voltar, a partida continua de onde parou.",
   fallbackAsk: "A conexão está demorando ou não sai. Você pode continuar esta partida por correspondência, com um link a cada jogada.",
   fallback: "Continuar por correspondência",

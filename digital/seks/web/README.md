@@ -106,7 +106,7 @@ roda sem `prefers-reduced-motion`.
 ## Sair da partida local
 
 Em hotseat e contra o bot, "Sair da partida" oferece "Voltar para o início" ou
-"Terminar com bots": os bots (nível padrão, `Match.finishWithBots`) jogam os dois
+"Deixar os bots terminarem": os bots (nível padrão, `Match.finishWithBots`) jogam os dois
 lados, com no mínimo 0,3 s entre o início de uma jogada e o da seguinte (um bot que demora mais joga assim que responde, sem espera extra), e o jogador assiste até o fim.
 "Interromper" para os bots na posição de agora. Não há desfazer nem clique no
 tabuleiro enquanto os bots jogam, e o fim mostra o resultado neutro.
