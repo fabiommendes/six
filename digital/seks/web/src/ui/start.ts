@@ -94,19 +94,15 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
             ${radio("mode", "live", START.live, START.liveNote, initial.mode === "live")}
             ${radio("mode", "mail", START.mail, START.mailNote, initial.mode === "mail")}
           </fieldset>
-          <div class="side-options"${initial.mode === "hotseat" ? " hidden" : ""}>
-            <fieldset>
-              <legend>${START.sideLegend}</legend>
-              <div class="sides-choice">${radio("side", "white", START.sideWhite, START.sideWhiteNote, initial.side === "white", dieIcon(6, "white", 22))}
-              ${radio("side", "black", START.sideBlack, START.sideBlackNote, initial.side === "black", dieIcon(6, "black", 22))}</div>
-            </fieldset>
-          </div>
-          <div class="bot-options"${initial.mode === "bot" ? "" : " hidden"}>
-            <fieldset>
-              <legend>${START.levelLegend}</legend>
-              <div class="levels">${BOT_LEVELS.map((level) => radio("level", level.id, level.label, "", initial.level === level.id)).join("")}</div>
-            </fieldset>
-          </div>
+          <fieldset class="side-options"${initial.mode === "hotseat" ? " disabled" : ""}>
+            <legend>${START.sideLegend}</legend>
+            <div class="sides-choice">${radio("side", "white", START.sideWhite, START.sideWhiteNote, initial.side === "white", dieIcon(6, "white", 22))}
+            ${radio("side", "black", START.sideBlack, START.sideBlackNote, initial.side === "black", dieIcon(6, "black", 22))}</div>
+          </fieldset>
+          <fieldset class="bot-options"${initial.mode === "bot" ? "" : " disabled"}>
+            <legend>${START.levelLegend}</legend>
+            <div class="levels">${BOT_LEVELS.map((level) => radio("level", level.id, level.label, "", initial.level === level.id)).join("")}</div>
+          </fieldset>
           <button type="submit" class="primary">${BUTTONS.play}</button>
         </form>
         ${links}
@@ -116,8 +112,8 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
     </main>`;
   need(host, ".mark").innerHTML = brandMark(26);
   const form = need<HTMLFormElement>(host, ".start-form");
-  const botOptions = need(host, ".bot-options");
-  const sideOptions = need(host, ".side-options");
+  const botOptions = need<HTMLFieldSetElement>(host, ".bot-options");
+  const sideOptions = need<HTMLFieldSetElement>(host, ".side-options");
 
   const read = (): StartChoice => {
     const data = new FormData(form);
@@ -127,10 +123,11 @@ export function showStart(host: HTMLElement, initial: StartChoice, onPlay: (choi
       level: (BOT_LEVELS.find((level) => level.id === data.get("level")) ?? DEFAULT_BOT_LEVEL).id,
     };
   };
+  // The options that do not apply are switched off, not hidden: the card keeps its height, so nothing moves under the pointer.
   const onChange = () => {
     const mode = read().mode;
-    botOptions.hidden = mode !== "bot";
-    sideOptions.hidden = mode === "hotseat";
+    botOptions.disabled = mode !== "bot";
+    sideOptions.disabled = mode === "hotseat";
   };
   const onList = (event: Event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>("button[data-open], button[data-remove]");

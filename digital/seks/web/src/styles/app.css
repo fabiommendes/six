@@ -186,7 +186,11 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 .levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .levels .choice { margin: 0; }
 .levels .choice-body { justify-content: center; text-align: center; padding: 10px 6px; }
-.bot-options[hidden] { display: none; }
+/* An option that does not apply to the chosen mode stays in place, faded, with no choice marked. */
+.start-form fieldset:disabled { opacity: 0.45; }
+.start-form fieldset:disabled .choice { cursor: default; }
+.start-form fieldset:disabled .choice input:checked + .choice-body { border-color: var(--line); background: var(--paper); }
+.start-form fieldset:disabled .choice input:checked + .choice-body::after { display: none; }
 .primary { width: 100%; font-size: 22px; padding: 12px; background: var(--seks); color: #fff; border-color: var(--ink); }
 .start-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; margin-top: 16px; font-size: 17px; }
 .start-links a { color: var(--ink); font-weight: 700; text-underline-offset: 3px; }
