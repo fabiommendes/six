@@ -135,9 +135,10 @@ quebra os links já enviados, e o teste falha antes.
 
 Na interface:
 
-- tela inicial: "Por correspondência" cria a partida; a lista abaixo guarda as
-  partidas em andamento (`localStorage`, `seks-web:mail`), com a cor e de quem é a
-  vez; as terminadas têm "Remover";
+- tela inicial: "Por correspondência" cria a partida; a aba "Suas partidas",
+  que abre primeiro quando há alguma, guarda as partidas em andamento
+  (`localStorage`, `seks-web:mail`), com a cor e de quem é a vez; as terminadas
+  têm "Remover". A tela cabe na janela sem rolagem: a lista rola por dentro;
 - depois de jogar, o painel mostra o link, com "Copiar link" e "Compartilhar"
   (onde há `navigator.share`). Até copiar ou compartilhar a jogada pode ser
   desfeita; depois, não (as jogadas que vieram em links nunca podem);

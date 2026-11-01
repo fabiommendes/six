@@ -85,7 +85,8 @@ export const START = {
 
 /** Play by correspondence: the saved list on the start screen and the panel with the link. */
 export const MAIL = {
-  listHeading: "Suas partidas guardadas",
+  /** The tab of the start screen with the games kept here. */
+  listTab: "Suas partidas",
   you: (side: Side) => `Você joga com as ${SIDE_NAME[side]}`,
   /** How far the game went and when it last changed, to tell the games apart. */
   when: (plies: number, updated: number) =>

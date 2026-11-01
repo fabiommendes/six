@@ -181,9 +181,17 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 @keyframes leave-face { 0% { opacity: 1; } 42% { opacity: 0; } 94% { opacity: 1; } }
 @keyframes rings-out { 0%, 30% { opacity: 1; } 40%, 92% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes ring-kept { 0%, 40% { opacity: 1; } 48%, 92% { opacity: 0; } 100% { opacity: 1; } }
-.sides-choice { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+/* The four modes by name, two by two; what the chosen one is goes in the line under them. */
+.modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.modes .choice { margin: 0; }
+.modes .choice-body { min-height: 52px; }
+.modes .choice .d { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Two lines are kept for the longest note, so the choices under it do not move. */
+.start-form fieldset:first-child { margin-bottom: 12px; }
+.mode-note { margin: 8px 0 0; min-height: 2.6em; font-size: 15px; line-height: 1.3; color: var(--muted); }
+.sides-choice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .sides-choice .choice { margin: 0; }
-.levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .levels .choice { margin: 0; }
 .levels .choice-body { justify-content: center; text-align: center; padding: 10px 6px; }
 /* An option that does not apply to the chosen mode stays in place, faded, with no choice marked. */
@@ -196,19 +204,99 @@ button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
 .start-links a { color: var(--ink); font-weight: 700; text-underline-offset: 3px; }
 .start .foot { margin-top: 22px; padding-top: 0; }
 .start-intro .start-links { justify-content: flex-start; }
-/* Wide screens: the game and its rule on the left, the choices on the right, all above the fold. */
-@media (min-width: 900px) {
+/*
+ * The start screen always fits the window, with no scrolling: the decoration
+ * goes first, then the figure, and the labels of the colour and the level move
+ * beside their buttons.
+ */
+/* Wide screens, and phones on their side: the game and its rule on the left, the choices on the right. */
+@media (min-width: 900px), (min-width: 600px) and (max-height: 560px) {
   .start-card { width: min(980px, 100%); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 40px; align-items: start; }
   .start-card .foot { grid-column: 1 / -1; }
+  .start-play .start-links { display: none; }
 }
-@media (max-width: 899px) { .start-intro .start-links { display: none; } }
-@media (min-width: 900px) { .start-play .start-links { display: none; } }
+@media not ((min-width: 900px) or ((min-width: 600px) and (max-height: 560px))) {
+  .start-intro .start-links { display: none; }
+}
 @media (max-width: 480px) {
-  .start { padding: 12px 10px; }
-  .start-card { padding: 18px 16px; }
-  .start h1 { font-size: 52px; }
-  .start .pitch { margin-bottom: 14px; font-size: 16px; }
+  .start { padding: 10px; }
+  .start-card { padding: 16px; }
+  .start h1 { font-size: 48px; margin: 6px 0 2px; }
+  .start .pitch { font-size: 16px; }
+  .start-show { margin: 12px 0 14px; }
   .choice-body { padding: 8px 12px; }
+  .choice .t { font-size: 18px; }
+  .modes .choice .t { font-size: 16px; }
+  .start-form fieldset { margin-bottom: 14px; }
+  .start-links { margin-top: 12px; }
+}
+/* Narrow or low: the labels of the colour and the level beside their buttons. */
+@media (max-width: 899px), (max-height: 560px) {
+  .side-options legend, .bot-options legend { float: left; width: 5.6em; margin: 0; padding-top: 8px; line-height: 1.2; }
+  /* Who moves first goes to screen readers only: beside the label there is room for the name alone. */
+  .sides-choice .choice .d { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .sides-choice .choice-body { gap: 8px; }
+}
+@media (max-height: 760px) {
+  .start .foot { display: none; }
+  .start h1 { font-size: 52px; margin: 8px 0 2px; }
+}
+/* One column and not tall enough: the figure goes. Side by side (a phone on its side), the left column has room for it. */
+@media (max-width: 599px) and (max-height: 720px), (max-width: 899px) and (min-height: 561px) and (max-height: 720px) {
+  .start-show { display: none; }
+  .start .band { display: none; }
+  .start .pitch { margin-bottom: 12px; }
+}
+@media (max-height: 560px) {
+  .start .band { display: none; }
+  .start-show { margin: 10px 0 8px; }
+}
+/* A phone on its side, or a small phone: the tightest steps of every part. */
+@media (max-height: 560px), (max-width: 899px) and (max-height: 600px) {
+  .start { padding: 8px; }
+  .start-card { padding: 14px 18px; }
+  .start h1 { font-size: 40px; }
+  .start .pitch { font-size: 15px; }
+  .choice-body { padding: 6px 10px; min-height: 44px; }
+  .modes .choice-body { min-height: 44px; }
+  .choice .t { font-size: 17px; }
+  .modes .choice .t { font-size: 16px; }
+  .mode-note { margin-top: 4px; font-size: 14px; }
+  .start-form legend { margin-bottom: 4px; }
+  .start-form fieldset { margin-bottom: 10px; }
+  .primary { padding: 8px; font-size: 19px; }
+}
+@media (max-width: 599px) and (max-height: 600px), (max-width: 899px) and (min-height: 561px) and (max-height: 600px) {
+  .start-intro .brand { display: none; }
+  .start .pitch { margin-top: 4px; }
+}
+/* The lowest windows: the modes speak for themselves, and their label goes to screen readers only. */
+@media (max-height: 420px) {
+  .start-card { padding-top: 10px; padding-bottom: 10px; }
+  .start-form fieldset:first-child > legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+/* With games kept here the tabs take a row: who comes back knows the game, so the pitch and then the note of the mode give way first. */
+@media (max-height: 760px) {
+  .has-games .start-tabs { margin-bottom: 10px; }
+}
+@media (max-width: 599px) and (max-height: 760px), (max-width: 899px) and (min-height: 561px) and (max-height: 760px) {
+  .has-games .pitch { display: none; }
+}
+@media (max-height: 640px) {
+  .has-games .choice-body, .has-games .modes .choice-body { padding-top: 6px; padding-bottom: 6px; min-height: 44px; }
+  .has-games .start-form fieldset { margin-bottom: 10px; }
+}
+@media (max-height: 420px) {
+  .has-games .mode-note { display: none; }
+  .has-games .start-tabs { margin-bottom: 6px; }
+}
+@media (max-width: 340px) {
+  .modes .choice .t { font-size: 15px; }
+  .modes .choice-body, .sides-choice .choice-body { padding-left: 8px; padding-right: 8px; }
+  /* The colour shows in the name: the die beside it gives way to the word. */
+  .sides-choice .choice-icon { display: none; }
+  .choice input:checked + .choice-body::after { top: 4px; right: 4px; width: 7px; height: 7px; }
+  .side-options legend, .bot-options legend { width: 5em; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -237,12 +325,22 @@ button.quiet { border-color: var(--line); box-shadow: 0 2px 0 var(--line); }
 .live-fallback { margin-top: 8px; padding-top: 8px; border-top: 2px solid var(--line); }
 .live-fallback-text { margin: 0 0 8px; font-size: 15px; line-height: 1.3; }
 .live-fallback button { width: 100%; }
-.mail-list { margin: 0 0 22px; }
-.mail-list h2 { margin: 0 0 8px; font: 800 20px "Alegreya", serif; }
+/* The games kept here and the new game, one at a time in the same place: the list takes the height of the choices and scrolls inside. */
+.start-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 16px; border-bottom: 2px solid var(--ink); }
+.start-tabs button { min-height: 44px; border: 0; border-bottom: 4px solid transparent; margin-bottom: -2px; border-radius: 0; background: none; box-shadow: none; font-size: 18px; color: var(--muted); }
+.start-tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--seks); }
+.start-tabs .count { display: inline-block; min-width: 1.5em; margin-left: 4px; padding: 0 5px; border: 1.5px solid currentColor; border-radius: 3px; font-size: 14px; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.start-panels { position: relative; }
+.start-panels[data-tab="saved"] .start-form { visibility: hidden; }
+.start-panels:not([data-tab="saved"]) .mail-list { display: none; }
+.mail-list { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: thin; }
 .mail-list ul { list-style: none; margin: 0; padding: 0; }
 .mail-game { display: flex; align-items: center; gap: 12px; padding: 8px 10px; margin-bottom: 8px; border: 2px solid var(--line); background: var(--paper); }
-.mail-game > span { line-height: 0; flex: none; }
-.mail-game-text { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+.mail-game > span:first-child { line-height: 0; flex: none; }
+.mail-game { flex-wrap: wrap; }
+.mail-game-text { display: flex; flex-direction: column; flex: 1 1 11em; min-width: 0; }
+/* The buttons stay together and go under the text when the row is too narrow for both. */
+.mail-game-actions { display: flex; gap: 8px; margin-left: auto; }
 .mail-game-text .t { font-weight: 800; font-size: 17px; line-height: 1.1; }
 .mail-game-text .d { font-size: 15px; color: var(--muted); }
 
